@@ -78,6 +78,10 @@ echo
 
 check_default_shell
 
+# install vivid
+wget "https://github.com/sharkdp/vivid/releases/download/v0.4.0/vivid_0.4.0_amd64.deb"
+sudo dpkg -i vivid_0.4.0_amd64.deb
+
 echo
 echo -n "Would you like to backup your current dotfiles? (y/n) "
 old_stty_cfg=$(stty -g)

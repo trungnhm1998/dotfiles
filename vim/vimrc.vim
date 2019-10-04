@@ -1,0 +1,66 @@
+" ****************************************
+" Plugins
+" ****************************************
+call plug#begin('~/.vim/plugged')
+Plug 'itchyny/lightline.vim' " For status bar
+Plug 'terryma/vim-multiple-cursors' " Sublime/VSCode multi cursor
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-fugitive' " Git Wrapper
+Plug 'scrooloose/nerdtree' " File explorer editor like
+Plug 'scrooloose/syntastic' " Syntax checking for alot of programming language
+Plug 'joshdick/onedark.vim'
+Plug 'leafgarland/typescript-vim' " For typescript
+Plug 'HerringtonDarkholme/yats.vim' " more typescript thingy
+Plug 'Quramy/tsuquyomi' " Auto complete
+call plug#end()
+
+" ****************************************
+" Vim Config
+" ****************************************
+
+
+" ****************************************
+" Basic
+" ****************************************
+set backspace=indent,eol,start " Bring backspace to life
+set autoindent
+set hidden
+set ruler
+set wildmenu
+set number          " Line numbers
+set relativenumber  " Relative line numbers
+set hlsearch        " Highlight whole word when searching
+set ignorecase      " Ignore case when searching...
+set smartcase       " ...except when serach query contains a capital letter
+"set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
+"set list            " show end of line
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set expandtab
+filetype plugin indent on
+syntax on
+
+
+if (empty($TMUX))
+  if (has("nvim"))
+    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+  endif
+  if (has("termguicolors"))
+    set termguicolors
+  endif
+endif
+
+colorscheme onedark
+
+" color scheme
+
+set laststatus=2
+let g:lightline = {
+  \ 'colorscheme': 'onedark',
+  \ }
+" lightline.vim begin
+if !has('gui_running')
+  set t_Co=256
+endif
+" end
