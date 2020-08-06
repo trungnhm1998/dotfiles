@@ -75,12 +75,50 @@ check_for_software vim
 echo
 check_for_software tmux
 echo
+check_for_software curl
+echo
+check_for_software wget
+echo
+check_for_software git
+echo
+
+# Install ohmyzsh
+
+DIRECTORY="$HOME/.oh-my-zsh"
+if [ ! -d "$DIRECTORY" ]; then
+	sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+# install spaceship theme
+DIRECTORY="$ZSH_CUSTOM/themes/spaceship-prompt"
+if [ ! -d "$DIRECTORY" ]; then
+  # Control will enter here if $DIRECTORY doesn't exist.
+	git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
+	ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
+fi
+
+# install zsh-autosuggestions
+# ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+DIRECTORY="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" 
+if [ ! -d "$DIRECTORY" ]; then
+	git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+fi
+
+# install zsh-sytanx-highlightning
+# ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+DIRECTORY="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+if [ ! -d "$DIRECTORY" ]; then
+	git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+fi
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	wget "https://github.com/sharkdp/vivid/releases/download/v0.5.0/vivid_0.5.0_amd64.deb"
+	sudo dpkg -i vivid_0.5.0_amd64.deb
+fi
 
 check_default_shell
 
-# install vivid
-wget "https://github.com/sharkdp/vivid/releases/download/v0.4.0/vivid_0.4.0_amd64.deb"
-sudo dpkg -i vivid_0.4.0_amd64.deb
 
 echo
 echo -n "Would you like to backup your current dotfiles? (y/n) "
