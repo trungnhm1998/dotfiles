@@ -30,5 +30,7 @@ plugins=(
 
 #alias tmux="TERM=screen-256color-bce tmux"
 
+bindkey -v # YAY VIM MODE
+
 source $ZSH/oh-my-zsh.sh
 source ~/dotfiles/zsh/keybindings.sh

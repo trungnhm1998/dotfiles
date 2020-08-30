@@ -4,14 +4,15 @@
 call plug#begin('~/.vim/plugged')
 Plug 'itchyny/lightline.vim' " For status bar
 Plug 'terryma/vim-multiple-cursors' " Sublime/VSCode multi cursor
-Plug 'tpope/vim-surround' " Can't live wihout this
+Plug 'tpope/vim-surround' " Can't live without this
 Plug 'tpope/vim-fugitive' " Git Wrapper
 Plug 'scrooloose/nerdtree' " File explorer editor on the left like in editor
 Plug 'scrooloose/syntastic' " Syntax checking for alot of programming language
 Plug 'joshdick/onedark.vim' " THEME!
 Plug 'leafgarland/typescript-vim' " For typescript
 Plug 'HerringtonDarkholme/yats.vim' " more typescript thingy
-Plug 'Quramy/tsuquyomi' " Auto complete
+Plug 'Quramy/tsuquyomi' " Auto complete. I should change to YCM
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " like ctrl + p in VSCode
 call plug#end()
 
 " ****************************************
@@ -64,3 +65,19 @@ if !has('gui_running')
   set t_Co=256
 endif
 " end
+" ******************************************
+" REMAP Y and P for clipboard usages
+" * for main clipboard
+" + for vim clipboard?
+" *****************************************
+noremap <Leader>y "*y
+noremap <Leader>p "*p
+noremap <Leader>Y "+y
+noremap <Leader>P "+p
+
+
+" ******************************************
+" FZF Keybinding
+" ******************************************
+" exec :FZF using <CR>
+nnoremap <silent> <C-p> :FZF<CR>
