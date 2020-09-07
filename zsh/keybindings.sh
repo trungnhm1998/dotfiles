@@ -42,7 +42,7 @@
 
 # LS
 	function ctrl_l() {
-		BUFFER="ls"
+		BUFFER="git log --oneline --graph --decorate --color=always"
 		zle accept-line
 	}
 	zle -N ctrl_l
