@@ -14,6 +14,7 @@ Plug 'HerringtonDarkholme/yats.vim' " more typescript thingy
 Plug 'Quramy/tsuquyomi' " Auto complete. I should change to YCM
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " like ctrl + p in VSCode
 Plug 'junegunn/fzf.vim'
+Plug 'easymotion/vim-easymotion'
 call plug#end()
 
 " ****************************************
