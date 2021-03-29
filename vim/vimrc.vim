@@ -43,6 +43,20 @@ set expandtab
 filetype plugin indent on
 syntax on
 
+" fast cursor change when press ESC
+set ttimeout
+set ttimeoutlen=1
+set listchars=tab:>-,trail:~,extends:>,precedes:<,space:.
+set ttyfast
+
+" to fix cursor shape in WSL bash add 
+" echo -ne "\e[2 q"
+" to .bashrc
+if &term =~ "xterm"
+  let &t_SI = "\<Esc>[6 q"
+  let &t_SR = "\<Esc>[3 q"
+  let &t_EI = "\<Esc>[2 q"
+endif
 
 if (empty($TMUX))
   if (has("nvim"))
@@ -82,3 +96,17 @@ noremap <Leader>P "+p
 " ******************************************
 " exec :FZF using <CR>
 nnoremap <silent> <C-p> :FZF<CR>
+
+" ******************************************
+" NERD Tree Keybinding
+" ******************************************
+" Toggle NERDTree and go to file with Find
+function MintNERDTreeToggle()
+  if &filetype == 'nerdtree' || exists("g:NERDTree") && g:NERDTree.IsOpen()
+    :NERDTreeToggle
+  else
+    :NERDTreeFind
+  endif
+endfunction
+" map NERDTree to Ctrl+Shift+E
+nnoremap <C-S-e> :call MintNERDTreeToggle()<CR>
