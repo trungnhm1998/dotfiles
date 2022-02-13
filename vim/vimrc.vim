@@ -13,7 +13,7 @@ Plug 'leafgarland/typescript-vim' " For typescript
 Plug 'HerringtonDarkholme/yats.vim' " more typescript thingy
 Plug 'Quramy/tsuquyomi' " Auto complete. I should change to YCM
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " like ctrl + p in VSCode
-Plug 'junegunn/fzf.vim'
+Plug 'justinmk/vim-sneak'
 Plug 'easymotion/vim-easymotion'
 call plug#end()
 
