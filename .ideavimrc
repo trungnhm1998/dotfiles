@@ -1,0 +1,63 @@
+" ****************************************
+" Plugins
+" ****************************************
+set multiple-cursors
+set commentary
+set NERDTree
+set easymotion
+set ideajoin
+set idearefactormode=keep
+set surround
+
+" ****************************************
+" Vim Config
+" ****************************************
+
+
+" ****************************************
+" Basic
+" ****************************************
+set backspace=indent,eol,start " Bring backspace to life
+set hidden
+set ruler
+set wildmenu
+set number          " Line numbers
+set relativenumber  " Relative line numbers
+set hlsearch        " Highlight whole word when searching
+set ignorecase      " Ignore case when searching...
+set smartcase       " ...except when serach query contains a capital letter
+"set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
+"set list            " show end of line
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set expandtab
+filetype plugin indent on
+syntax on
+
+" fast cursor change when press ESC
+set ttimeout
+set ttimeoutlen=1
+set listchars=tab:>-,trail:~,extends:>,precedes:<,space:.
+set ttyfast
+
+" end
+" ******************************************
+" REMAP Y and P for clipboard usages
+" * for main clipboard
+" + for vim clipboard?
+" *****************************************
+noremap <Leader>y "*y
+noremap <Leader>p "*p
+noremap <Leader>Y "+y
+noremap <Leader>P "+p
+
+" ******************************************
+" NERD Tree Keybinding
+" ******************************************
+" Toggle NERDTree and go to file with Find
+function MintNERDTreeToggle()
+    :NERDTreeToggle
+endfunction
+" map NERDTree to Ctrl+Shift+E
+nnoremap <C-S-e> :NERDTreeToggle<CR>
