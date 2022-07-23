@@ -53,11 +53,15 @@ noremap <Leader>Y "+y
 noremap <Leader>P "+p
 
 " ******************************************
+" Remap for ideavim to show error description
+" *****************************************
+map gh <Action>(ShowErrorDescription)
+map gm <Action>(HideAllWindows)
+nnoremap <C-w>q :tabclose<CR>
+
+" ******************************************
 " NERD Tree Keybinding
 " ******************************************
 " Toggle NERDTree and go to file with Find
-function MintNERDTreeToggle()
-    :NERDTreeToggle
-endfunction
 " map NERDTree to Ctrl+Shift+E
 nnoremap <C-S-e> :NERDTreeToggle<CR>
