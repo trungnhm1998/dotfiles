@@ -17,10 +17,6 @@ set surround
 " ****************************************
 " Basic
 " ****************************************
-set backspace=indent,eol,start " Bring backspace to life
-set hidden
-set ruler
-set wildmenu
 set number          " Line numbers
 set relativenumber  " Relative line numbers
 set hlsearch        " Highlight whole word when searching
@@ -28,18 +24,6 @@ set ignorecase      " Ignore case when searching...
 set smartcase       " ...except when serach query contains a capital letter
 "set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
 "set list            " show end of line
-set tabstop=2
-set shiftwidth=2
-set softtabstop=2
-set expandtab
-filetype plugin indent on
-syntax on
-
-" fast cursor change when press ESC
-set ttimeout
-set ttimeoutlen=1
-set listchars=tab:>-,trail:~,extends:>,precedes:<,space:.
-set ttyfast
 
 " end
 " ******************************************
@@ -55,8 +39,8 @@ noremap <Leader>P "+p
 " ******************************************
 " Remap for ideavim to show error description
 " *****************************************
-map gh <Action>(ShowErrorDescription)
-map gm <Action>(HideAllWindows)
+map gh :action ShowErrorDescription \| :action QuickJavaDoc<CR>
+map gm :action HideAllWindows<CR>
 nnoremap <C-w>q :tabclose<CR>
 
 " ******************************************
