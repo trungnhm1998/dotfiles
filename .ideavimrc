@@ -41,7 +41,7 @@ noremap <Leader>P "+p
 " *****************************************
 map gh :action ShowErrorDescription \| :action QuickJavaDoc<CR>
 map gm :action HideAllWindows<CR>
-nnoremap <C-w>q :tabclose<CR>
+nnoremap <C-w>q :action CloseContent<CR>
 
 " ******************************************
 " NERD Tree Keybinding
