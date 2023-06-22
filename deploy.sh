@@ -85,7 +85,7 @@ echo
 check_for_software git
 echo
 
-ZSH_CUSTOM=-~/.oh-my-zsh/custom
+ZSH_CUSTOM=~/.oh-my-zsh/custom
 
 # Install ohmyzsh
 DIRECTORY="$HOME/.oh-my-zsh"
@@ -96,23 +96,25 @@ fi
 # install spaceship theme
 DIRECTORY="${ZSH_CUSTOM}/themes/spaceship-prompt"
 if [ ! -d "$DIRECTORY" ]; then
-	# Control will enter here if $DIRECTORY doesn't exist.
-	git clone https://github.com/denysdovhan/spaceship-prompt.git "${ZSH_CUSTOM}/themes/spaceship-prompt"
-	ln -s "${ZSH_CUSTOM}/themes/spaceship-prompt/spaceship.zsh-theme" "${ZSH_CUSTOM}/themes/spaceship.zsh-theme"
+	echo
+	echo "Unable to find $DIRECTORY"
+	git clone https://github.com/denysdovhan/spaceship-prompt.git $ZSH_CUSTOM/themes/spaceship-prompt
+	ln -s "${ZSH_CUSTOM}/themes/spaceship-prompt/spaceship.zsh-theme" $ZSH_CUSTOM/themes/spaceship.zsh-theme
 fi
 
 # install zsh-autosuggestions
-# ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
 DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-autosuggestions"
 if [ ! -d "$DIRECTORY" ]; then
+	echo
+	echo "Unable to find $DIRECTORY"
 	git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
-
 fi
 
 # install zsh-sytanx-highlightning
-# ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
 DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting"
 if [ ! -d "$DIRECTORY" ]; then
+	echo
+	echo "Unable to find $DIRECTORY"
 	git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
 fi
 
@@ -121,7 +123,6 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	sudo dpkg -i vivid_0.5.0_amd64.deb
 fi
 
-check_default_shell
 
 echo
 echo -n "Would you like to backup your current dotfiles? (y/n) "
@@ -141,6 +142,8 @@ printf "source $HOME/dotfiles/zsh/zshrc_manager.sh" >~/.zshrc
 printf "so $HOME/dotfiles/vim/vimrc.vim" >~/.vimrc
 printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavim
 printf "source=file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
+
+check_default_shell
 
 echo
 echo "Please log out and log back in for default shell to be initialized."
