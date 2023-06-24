@@ -8,6 +8,9 @@ set easymotion
 set ideajoin
 set idearefactormode=keep
 set surround
+set showmode
+set textobj-entire
+set ReplaceWithRegister
 
 " ****************************************
 " Vim Config
@@ -17,7 +20,6 @@ set surround
 " ****************************************
 " Basic
 " ****************************************
-set showmode
 set number          " Line numbers
 set relativenumber  " Relative line numbers
 set hlsearch        " Highlight whole word when searching
@@ -27,11 +29,12 @@ set ignorecase smartcase
 set NERDTree
 set showmode
 set scrolloff=5
+set so=5
 set history=1000
 set surround
 set incsearch
 set relativenumber
-set number
+set nu
 set smartcase
 set hlsearch
 set visualbell
@@ -42,6 +45,30 @@ set ideajoin
 set exchange
 set multiple-cursors
 set sneak
+
+""" Idea specific settings ------------------
+set ideajoin
+set ideastatusicon=gray
+set idearefactormode=keep
+
+""" Mappings --------------------------------
+map <leader>d <Action>(Debug)
+map <leader>r <Action>(RenameElement)
+map <leader>c <Action>(Stop)
+map <leader>z <Action>(ToggleDistractionFreeMode)
+
+map <leader>s <Action>(SelectInProjectView)
+map <leader>a <Action>(Annotate)
+map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
+map <S-Space> <Action>(GotoNextError)
+
+map <leader>b <Action>(ToggleLineBreakpoint)
+map <leader>o <Action>(FileStructurePopup)
+
+" map gl <Action>(QuickJavaDoc)
+map gh <Action>(ShowErrorDescription)
+map gm <Action>(HideAllWindows)
+map gu <Action>(FindUsages)
 
 " Greatest remap EVER!! 
 " Let me explain, this remap while in visiual mode
@@ -61,21 +88,16 @@ noremap <Leader>y "*y
 noremap <Leader>p "*p
 noremap <Leader>Y "+y
 noremap <Leader>P "+p
-set clipboard+=ideaput
-set clipboard+=unnamedplus
 
 " ******************************************
 " Remap for ideavim to show error description
 " *****************************************
-map gh :action ShowErrorDescription \| :action QuickJavaDoc<CR>
-map gm :action HideAllWindows<CR>
-map gu :action FindUsages<CR>
-nnoremap <Leader>/ :nohlsearch<CR>
-nnoremap <C-w>q :action CloseContent<CR>
+nnoremap <Leader>/ <Action>(nohlsearch)
+nnoremap <C-w>q <Action>(CloseContent)
 
 " ******************************************
 " NERD Tree Keybinding
 " ******************************************
 " Toggle NERDTree and go to file with Find
 " map NERDTree to Ctrl+Shift+E
-nnoremap <C-S-e> :NERDTreeToggle<CR>
+" nnoremap <C-S-e> :NERDTreeToggle<CR>
