@@ -11,6 +11,7 @@ set surround
 set showmode
 set textobj-entire
 set ReplaceWithRegister
+set sneak
 
 " ****************************************
 " Vim Config
@@ -25,26 +26,15 @@ set relativenumber  " Relative line numbers
 set hlsearch        " Highlight whole word when searching
 set ignorecase      " Ignore case when searching...
 set smartcase       " ...except when serach query contains a capital letter
-set ignorecase smartcase
-set NERDTree
-set showmode
 set scrolloff=5
 set so=5
 set history=1000
-set surround
 set incsearch
-set relativenumber
 set nu
-set smartcase
 set hlsearch
 set visualbell
 set noerrorbells
-set easymotion
-set commentary
-set ideajoin
 set exchange
-set multiple-cursors
-set sneak
 
 """ Idea specific settings ------------------
 set ideajoin
