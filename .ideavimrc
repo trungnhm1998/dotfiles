@@ -25,7 +25,7 @@ set number          " Line numbers
 set relativenumber  " Relative line numbers
 set hlsearch        " Highlight whole word when searching
 set ignorecase      " Ignore case when searching...
-set smartcase       " ...except when serach query contains a capital letter
+set smartcase       " ...except when search query contains a capital letter
 set scrolloff=5
 set so=5
 set history=1000
@@ -55,18 +55,18 @@ map <S-Space> <Action>(GotoNextError)
 map <leader>b <Action>(ToggleLineBreakpoint)
 map <leader>o <Action>(FileStructurePopup)
 
-" map gl <Action>(QuickJavaDoc)
+map gl <Action>(QuickJavaDoc)
 map gh <Action>(ShowErrorDescription)
 map gm <Action>(HideAllWindows)
 map gu <Action>(FindUsages)
 
 " Greatest remap EVER!! 
-" Let me explain, this remap while in visiual mode
+" Let me explain, this remap while in visual mode
 " will delete what is currently highlighted and replace it 
 " with what is in the register BUT it will YANK (delete) it 
 " to a VOID register. Meaning I still have what I originally had
 " when I pasted. I don't loose the previous thing I YANKED!
-vnoremap <leader>p "_dP
+vnoremap <leader>pp "_dP
 
 " end
 " ******************************************
@@ -82,8 +82,9 @@ noremap <Leader>P "+p
 " ******************************************
 " Remap for ideavim to show error description
 " *****************************************
-nnoremap <Leader>/ <Action>(nohlsearch)
-nnoremap <C-w>q <Action>(CloseContent)
+nnoremap <Leader>/ :action nohlsearch<CR>
+" nnoremap <C-w>q :action CloseContent<CR>
+sethandler <C-w>q n:vim
 
 " ******************************************
 " NERD Tree Keybinding
