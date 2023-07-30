@@ -50,7 +50,7 @@ set visualbell
 set exchange
 
 """ Idea specific settings ------------------
-
+set showmode
 set ideajoin
 set ideastatusicon=gray
 set idearefactormode=keep
@@ -58,7 +58,7 @@ set idearefactormode=keep
 " ******************************************
 " Remap for idea features
 " *****************************************
-nnoremap <Leader>/ :action nohl<CR>
+nnoremap <Leader>/ :nohl<CR>
 map <leader>d <Action>(Debug)
 map <leader>r <Action>(RenameElement)
 map <leader>c <Action>(Stop)
