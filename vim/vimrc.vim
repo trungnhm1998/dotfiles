@@ -18,11 +18,6 @@ Plug 'easymotion/vim-easymotion'
 call plug#end()
 
 " ****************************************
-" Vim Config
-" ****************************************
-
-
-" ****************************************
 " Basic
 " ****************************************
 set backspace=indent,eol,start " Bring backspace to life
@@ -42,6 +37,15 @@ set shiftwidth=2
 set softtabstop=2
 set expandtab
 filetype plugin indent on
+set scrolloff=5
+set so=5
+set history=1000
+set incsearch
+set nu
+set hlsearch
+set visualbell
+set exchange
+
 syntax on
 
 " fast cursor change when press ESC
@@ -81,6 +85,15 @@ if !has('gui_running')
   set t_Co=256
 endif
 " end
+
+" Greatest remap EVER!! 
+" Let me explain, this remap while in visual mode
+" will delete what is currently highlighted and replace it 
+" with what is in the register BUT it will YANK (delete) it 
+" to a VOID register. Meaning I still have what I originally had
+" when I pasted. I don't loose the previous thing I YANKED!
+vnoremap <leader>pp "_dP
+
 " ******************************************
 " REMAP Y and P for clipboard usages
 " * for main clipboard
