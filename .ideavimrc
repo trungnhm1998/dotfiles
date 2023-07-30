@@ -1,7 +1,23 @@
 " ****************************************
 " Vim Config
 " ****************************************
-source ./vim/.vimrc
+" Greatest remap EVER!! 
+" Let me explain, this remap while in visual mode
+" will delete what is currently highlighted and replace it 
+" with what is in the register BUT it will YANK (delete) it 
+" to a VOID register. Meaning I still have what I originally had
+" when I pasted. I don't loose the previous thing I YANKED!
+vnoremap <leader>pp "_dP
+
+" ******************************************
+" REMAP Y and P for clipboard usages
+" * for main clipboard
+" + for vim clipboard?
+" *****************************************
+noremap <Leader>y "*y
+noremap <Leader>p "*p
+noremap <Leader>Y "+y
+noremap <Leader>P "+p
 
 " ****************************************
 " Plugins
@@ -10,8 +26,6 @@ set multiple-cursors
 set commentary
 set NERDTree
 set easymotion
-set ideajoin
-set idearefactormode=keep
 set surround
 set showmode
 set textobj-entire
@@ -36,6 +50,7 @@ set visualbell
 set exchange
 
 """ Idea specific settings ------------------
+
 set ideajoin
 set ideastatusicon=gray
 set idearefactormode=keep
