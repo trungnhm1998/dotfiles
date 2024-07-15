@@ -77,7 +77,7 @@ map gl <Action>(QuickJavaDoc)
 map gh <Action>(ShowErrorDescription)
 map gm <Action>(HideAllWindows)
 map gu <Action>(FindUsages)
-map <leader>gu <Action>(QuickImplementations)
+map <leader>gd <Action>(QuickImplementations)
 
 " ******************************************
 " Remap for conflicts
@@ -91,7 +91,6 @@ sethandler <C-C> a:ide
 sethandler <C-E> a:ide
 sethandler <C-G> a:ide
 sethandler <C-H> a:ide
-sethandler <C-I> a:ide
 sethandler <C-J> a:ide
 sethandler <C-K> a:ide
 sethandler <C-L> a:ide
@@ -106,6 +105,7 @@ sethandler <C-]> a:ide
 sethandler <C-P> a:ide
 sethandler <S-j> a:ide
 
+sethandler <C-I> a:vim
 sethandler <C-B> a:vim
 sethandler <C-D> a:vim
 sethandler <C-F> n:vim i-x-v:ide 
