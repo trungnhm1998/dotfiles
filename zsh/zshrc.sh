@@ -32,6 +32,7 @@ plugins+=(
   zsh-syntax-highlighting
   pyenv
   zsh-vi-mode
+  tmux
 )
 
 #alias tmux="TERM=screen-256color-bce tmux"
