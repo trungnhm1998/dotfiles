@@ -40,9 +40,9 @@ check_default_shell() {
     answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
     stty $old_stty_cfg && echo
     if echo "$answer" | grep -iq "^y"; then
-        chsh -s $(which zsh)
+      chsh -s $(which zsh)
     else
-        echo "Warning: Your configuration won't work properly. If you exec zsh, it'll exec tmux which will exec your default shell which isn't zsh."
+      echo "Warning: Your configuration won't work properly. If you exec zsh, it'll exec tmux which will exec your default shell which isn't zsh."
     fi
   fi
 }
@@ -70,7 +70,7 @@ echo
 check_for_software vim
 # Install VimPlug
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 echo
 check_for_software tmux
 echo
