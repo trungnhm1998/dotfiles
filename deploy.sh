@@ -141,7 +141,7 @@ fi
 printf "source $HOME/dotfiles/zsh/zshrc_manager.sh" >~/.zshrc
 printf "so $HOME/dotfiles/vim/vimrc.vim" >~/.vimrc
 printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavim
-printf "source=file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
+printf "source-file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
 
 check_default_shell
 
