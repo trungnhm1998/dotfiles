@@ -44,7 +44,6 @@ set incsearch
 set nu
 set hlsearch
 set visualbell
-set exchange
 
 syntax on
 
