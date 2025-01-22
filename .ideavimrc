@@ -1,3 +1,7 @@
+" unmap space, by default it will move the cursor to the left 1 char
+nnoremap <space> <Nop>
+let mapleader="\<Space>"
+
 " ****************************************
 " Vim Config
 " ****************************************
@@ -121,4 +125,4 @@ sethandler <C-W> a:vim
 " ******************************************
 " Toggle NERDTree and go to file with Find
 " map NERDTree to Ctrl+Shift+E
-" nnoremap <C-S-e> :NERDTreeToggle<CR>
+nnoremap <C-S-e> :NERDTreeToggle<CR>

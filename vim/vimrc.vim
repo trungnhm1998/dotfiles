@@ -1,3 +1,7 @@
+" set leader as space and localleader as \
+let mapleader = " "
+let maplocalleader = "\\"
+
 " ****************************************
 " Plugins
 " ****************************************
