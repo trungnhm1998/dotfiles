@@ -18,14 +18,21 @@ if [ -x "$(command -v vivid)" ]; then
   export LS_COLORS=$LS_COLORS:"tw=30;42:ow=30;42"
 fi
 
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+
 ZSH_THEME="spaceship"
 ZSH_DISABLE_COMPFIX=true
 
-plugins=(
+plugins+=(
   nvm
   git
   zsh-autosuggestions
   zsh-syntax-highlighting
+  pyenv
+  zsh-vi-mode
+  tmux
 )
 
 #alias tmux="TERM=screen-256color-bce tmux"
