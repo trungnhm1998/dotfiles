@@ -115,7 +115,7 @@ if [ ! -d "$DIRECTORY" ]; then
 fi
 
 # install zsh-vi-mode
-DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting"
+DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-vi-mode"
 if [ ! -d "$DIRECTORY" ]; then
   echo
   echo "Unable to find $DIRECTORY"
