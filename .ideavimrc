@@ -18,10 +18,10 @@ vnoremap <leader>pp "_dP
 " * for main clipboard
 " + for vim clipboard?
 " *****************************************
-noremap <Leader>y "*y
-noremap <Leader>p "*p
-noremap <Leader>Y "+y
-noremap <Leader>P "+p
+" noremap <Leader>y "*y
+" noremap <Leader>p "*p
+" noremap <Leader>Y "+y
+" noremap <Leader>P "+p
 
 " ****************************************
 " Plugins
@@ -52,6 +52,15 @@ set nu
 set hlsearch
 set visualbell
 set exchange
+set clipboard=unnamed " Copy to system clipboard
+set g:highlightedyank_highlight_duration = 500
+
+" show relative line numbers in normal mode only
+" augroup linea
+"    autocmd!
+"     autocmd InsertEnter * set norelativenumber
+"     autocmd InsertLeave * set relativenumber
+" augroup END
 
 """ Idea specific settings ------------------
 set showmode
@@ -60,14 +69,34 @@ set ideastatusicon=gray
 set idearefactormode=keep
 
 " ******************************************
+" Remap Ctrl + h,j,k,l to move between windows
+" *****************************************
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" remap gt and gT to move between tabs
+nnoremap <S-h> :bprevious<CR>
+nnoremap <S-l> :bnext<CR>
+
+map <leader>w <c-w>
+map <leader>wd <c-w>c
+
+" ******************************************
 " Remap for idea features
 " *****************************************
 map <C-W>q :q<CR>
 nnoremap <Leader>/ :nohl<CR>
+map K <Action>(ShowHoverInfo)
 map <leader>d <Action>(Debug)
-map <leader>r <Action>(RenameElement)
 map <leader>c <Action>(Stop)
-map <leader>z <Action>(ToggleDistractionFreeMode)
+map <leader>uz <Action>(ToggleDistractionFreeMode)
+map <leader>ss <Action>(FileStructurePopup)
+map <leader><space> <Action>(GotoFile)
+map <leader>fT <Action>(ActivateTerminalToolWindow)
+map <C-/> <Action>(HideActiveWindow)
+map <leader>cr <Action>(RenameElement)
 
 map <leader>s <Action>(SelectInProjectView)
 map <leader>a <Action>(Annotate)
@@ -77,11 +106,18 @@ map <S-Space> <Action>(GotoNextError)
 map <leader>b <Action>(ToggleLineBreakpoint)
 map <leader>o <Action>(FileStructurePopup)
 
-map gl <Action>(QuickJavaDoc)
-map gh <Action>(ShowErrorDescription)
+map gh <Action>(QuickJavaDoc)
+map ge <Action>(ShowErrorDescription)
 map gm <Action>(HideAllWindows)
-map gu <Action>(FindUsages)
-map <leader>gd <Action>(QuickImplementations)
+map gr <Action>(FindUsages)
+map gI <Action>(GotoImplementation)
+map gpi <Action>(QuickImplementations)
+map gpd <Action>(QuickImplementations)
+map gq <Action>(ShowIntentionActions)
+map gy <Action>(GotoTypeDeclaration)
+
+map ]e <Action>(ReSharperGotoNextErrorInSolution)
+map [e <Action>(ReSharperGotoPrevErrorInSolution)
 
 " ******************************************
 " Remap for conflicts
@@ -94,10 +130,6 @@ sethandler <C-A> a:ide
 sethandler <C-C> a:ide
 sethandler <C-E> a:ide
 sethandler <C-G> a:ide
-sethandler <C-H> a:ide
-sethandler <C-J> a:ide
-sethandler <C-K> a:ide
-sethandler <C-L> a:ide
 sethandler <C-M> a:ide
 sethandler <C-S> a:ide
 sethandler <C-T> a:ide
@@ -109,6 +141,10 @@ sethandler <C-]> a:ide
 sethandler <C-P> a:ide
 sethandler <S-j> a:ide
 
+sethandler <C-H> n:vim i-x-v:ide
+sethandler <C-J> n:vim i-x-v:ide
+sethandler <C-K> n:vim i-x-v:ide
+sethandler <C-L> n:vim i-x-v:ide
 sethandler <C-I> a:vim
 sethandler <C-B> a:vim
 sethandler <C-D> a:vim
@@ -125,4 +161,4 @@ sethandler <C-W> a:vim
 " ******************************************
 " Toggle NERDTree and go to file with Find
 " map NERDTree to Ctrl+Shift+E
-nnoremap <C-S-e> :NERDTreeToggle<CR>
+nnoremap <leader>e :NERDTreeToggle<CR>
