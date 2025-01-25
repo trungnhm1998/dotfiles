@@ -54,7 +54,7 @@ syntax on
 " fast cursor change when press ESC
 set ttimeout
 set ttimeoutlen=1
-set listchars=tab:>-,trail:~,extends:>,precedes:<,space:.
+set listchars=tab:>-,trail:~,extends:>,precedes:<,space:.,eol:↵,nbsp:␣
 set ttyfast
 
 " to fix cursor shape in WSL bash add 
