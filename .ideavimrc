@@ -77,8 +77,8 @@ nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
 " remap gt and gT to move between tabs
-nnoremap <S-h> :bprevious<CR>
-nnoremap <S-l> :bnext<CR>
+nnoremap <S-h> gT
+nnoremap <S-l> gt
 
 map <leader>w <c-w>
 map <leader>wd <c-w>c
