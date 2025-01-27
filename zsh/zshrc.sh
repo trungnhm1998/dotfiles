@@ -54,12 +54,9 @@ plugins+=(
   vi-mode
   tmux
 )
-
 #alias tmux="TERM=screen-256color-bce tmux"
 
 source $ZSH/oh-my-zsh.sh
-
-# bindkey -v # YAY VIM MODE
 
 source ~/dotfiles/zsh/keybindings.sh
 
