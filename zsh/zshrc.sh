@@ -51,7 +51,7 @@ plugins+=(
   zsh-autosuggestions
   zsh-syntax-highlighting
   pyenv
-  zsh-vi-mode
+  vi-mode
   tmux
 )
 
