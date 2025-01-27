@@ -63,6 +63,7 @@ source ~/dotfiles/zsh/keybindings.sh
 # ---- FZF ----
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
+export FZF_DEFAULT_OPTS="--style full --preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse"
 
 # -- Use fs instead of fzf --
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
