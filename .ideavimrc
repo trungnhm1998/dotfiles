@@ -35,6 +35,8 @@ set showmode
 set textobj-entire
 set ReplaceWithRegister
 set sneak
+set highlightedyank
+set which-key
 
 " ****************************************
 " Basic
@@ -63,8 +65,9 @@ set g:highlightedyank_highlight_duration = 500
 " augroup END
 
 """ Idea specific settings ------------------
+set notimeout
 set showmode
-" set ideajoin
+set ideajoin
 set ideastatusicon=gray
 set idearefactormode=keep
 
@@ -82,6 +85,23 @@ nnoremap <S-l> gt
 
 map <leader>w <c-w>
 map <leader>wd <c-w>c
+
+" Fix multple cursor issue
+" Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
+nmap <C-n> <Plug>NextWholeOccurrence
+xmap <C-n> <Plug>NextWholeOccurrence
+nmap g<C-n> <Plug>NextOccurrence
+xmap g<C-n> <Plug>NextOccurrence
+xmap <C-x> <Plug>SkipOccurrence
+xmap <C-p> <Plug>RemoveOccurrence
+
+" Note that the default <A-n> and g<A-n> shortcuts don't work on Mac due to dead keys.
+" <A-n> is used to enter accented text e.g. ñ
+" Feel free to pick your own mappings that are not affected. I like to use <leader>
+nmap <leader><C-n> <Plug>AllWholeOccurrences
+xmap <leader><C-n> <Plug>AllWholeOccurrences
+nmap <leader>g<C-n> <Plug>AllOccurrences
+xmap <leader>g<C-n> <Plug>AllOccurrences
 
 " ******************************************
 " Remap for idea features
