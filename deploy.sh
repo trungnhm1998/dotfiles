@@ -73,6 +73,11 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
   https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 echo
 check_for_software tmux
+# TMP
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# default tmux theme
+mkdir -p ~/.config/tmux/plugins/catppuccin
+git clone -b v2.1.2 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux
 echo
 check_for_software curl
 echo
