@@ -31,12 +31,12 @@ zle -N goto_home
 bindkey "^h" goto_home
 
 # Edit and rerun
-# function edit_and_run() {
-# 	BUFFER="fc"
-# 	zle accept-line
-# }
-# zle -N edit_and_run
-# bindkey "^v" edit_and_run
+function edit_and_run() {
+  BUFFER="fc"
+  zle accept-line
+}
+zle -N edit_and_run
+bindkey "^v" edit_and_run
 
 # LS
 function ctrl_l() {
@@ -53,7 +53,7 @@ function enter_line() {
 zle -N enter_line
 bindkey "^o" enter_line
 
-# Sudo
+# Add Sudo to current editing buffer
 function add_sudo() {
   BUFFER="sudo "$BUFFER
   zle end-of-line
