@@ -123,7 +123,13 @@ map <leader>a <Action>(Annotate)
 map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
 map <S-Space> <Action>(GotoNextError)
 
-map <leader>b <Action>(ToggleLineBreakpoint)
+map <leader>bd <Action>(CloseContent)
+map <leader>bD <Action>(CloseAllEditors)
+map <leader>bo <Action>(CloseAllEditorsButActive)
+
+map <leader>uz <Action>(ToggleZenMode)
+
+map <leader>db <Action>(ToggleLineBreakpoint)
 map <leader>o <Action>(FileStructurePopup)
 
 map gh <Action>(QuickJavaDoc)
