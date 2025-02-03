@@ -131,6 +131,7 @@ map <leader>uz <Action>(ToggleZenMode)
 
 map <leader>db <Action>(ToggleLineBreakpoint)
 map <leader>o <Action>(FileStructurePopup)
+map <leader>ss <Action>(FileStructurePopup)
 
 map gh <Action>(QuickJavaDoc)
 map ge <Action>(ShowErrorDescription)
