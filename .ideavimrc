@@ -33,7 +33,7 @@ set easymotion
 set surround
 set showmode
 set textobj-entire
-set ReplaceWithRegister
+" set ReplaceWithRegister
 set sneak
 set highlightedyank
 set which-key
