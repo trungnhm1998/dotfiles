@@ -49,12 +49,12 @@ set smartcase       " ...except when search query contains a capital letter
 set scrolloff=5
 set so=5
 set history=1000
-set incsearch
+set incsearch " search as soon as you type
 set nu
-set hlsearch
 set visualbell
 set exchange
-set clipboard=unnamed " Copy to system clipboard
+" set clipboard=unnamed " Copy to system clipboard
+set clipboard+=unnamed " Copy to system clipboard
 set g:highlightedyank_highlight_duration = 500
 
 " show relative line numbers in normal mode only
@@ -67,6 +67,7 @@ set g:highlightedyank_highlight_duration = 500
 """ Idea specific settings ------------------
 set notimeout
 set showmode
+set showcmd
 set ideajoin
 set ideastatusicon=gray
 set idearefactormode=keep
@@ -103,6 +104,10 @@ xmap <leader><C-n> <Plug>AllWholeOccurrences
 nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
+" Using C-n and C-p to select
+inoremap <expr> j ((pumvisible())?("\<C-n>"):("j"))
+inoremap <expr> k ((pumvisible())?("\<C-p>"):("k"))
+
 " ******************************************
 " Remap for idea features
 " *****************************************
@@ -118,8 +123,18 @@ map <leader>fT <Action>(ActivateTerminalToolWindow)
 imap <C-/> <Action>(HideActiveWindow)
 map <leader>cr <Action>(RenameElement)
 
+map <leader>aa <Action>(copilot.chat.show)
+map <leader>aq <Action>(copilot.chat.inline)
+
+" Popup navigation
+inoremap <C-j> <Action>(PopupMenu-selectNext)
+inoremap <C-k> <Action>(PopupMenu-selectPrev)
+
 map <leader>s <Action>(SelectInProjectView)
-map <leader>a <Action>(Annotate)
+map <leader>ghB <Action>(Annotate)
+map <leader>ghb <Action>(GitToolBox.BlameDetails)
+map <leader>gb <Action>(Annotate)
+
 map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
 map <S-Space> <Action>(GotoNextError)
 
