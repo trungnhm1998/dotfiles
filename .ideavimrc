@@ -123,6 +123,8 @@ map <leader>fT <Action>(ActivateTerminalToolWindow)
 imap <C-/> <Action>(HideActiveWindow)
 map <leader>cr <Action>(RenameElement)
 
+map <leader>sg <Action>(FindInPath)
+
 map <leader>aa <Action>(copilot.chat.show)
 map <leader>aq <Action>(copilot.chat.inline)
 
