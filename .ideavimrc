@@ -105,8 +105,8 @@ nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
 " Using C-n and C-p to select
-inoremap <expr> j ((pumvisible())?("\<C-n>"):("j"))
-inoremap <expr> k ((pumvisible())?("\<C-p>"):("k"))
+" inoremap <expr> j ((pumvisible())?("\<C-n>"):("j"))
+" inoremap <expr> k ((pumvisible())?("\<C-p>"):("k"))
 
 " ******************************************
 " Remap for idea features
