@@ -6,3 +6,8 @@ debug
 foo.*
 *.log
 data
+/plugged/
+/undodir/
+/spell/
+/plugin/
+lazy-lock.json
