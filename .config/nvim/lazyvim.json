@@ -2,6 +2,8 @@
   "extras": [
     "lazyvim.plugins.extras.ai.copilot",
     "lazyvim.plugins.extras.ai.copilot-chat",
+    "lazyvim.plugins.extras.coding.luasnip",
+    "lazyvim.plugins.extras.editor.outline",
     "lazyvim.plugins.extras.editor.refactoring",
     "lazyvim.plugins.extras.editor.telescope",
     "lazyvim.plugins.extras.lang.json",
@@ -9,6 +11,7 @@
     "lazyvim.plugins.extras.lang.omnisharp",
     "lazyvim.plugins.extras.lang.toml",
     "lazyvim.plugins.extras.lsp.neoconf",
+    "lazyvim.plugins.extras.ui.edgy",
     "lazyvim.plugins.extras.util.dot",
     "lazyvim.plugins.extras.vscode"
   ],
@@ -16,5 +19,5 @@
   "news": {
     "NEWS.md": "10960"
   },
-  "version": 8
+  "version": 7
 }
