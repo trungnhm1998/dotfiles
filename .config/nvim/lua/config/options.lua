@@ -11,3 +11,5 @@ vim.opt.listchars = {
   nbsp = "␣",
 }
 vim.opt.list = true
+vim.g.autoformat = false
+vim.g.lazyvim_cmp = "nvim-cmp"

@@ -150,6 +150,11 @@ printf "source $HOME/dotfiles/zsh/zshrc_manager.sh" >~/.zshrc
 printf "so $HOME/dotfiles/vim/vimrc.vim" >~/.vimrc
 printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavim
 printf "source-file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
+ln -sf $HOME/dotfiles/.config/starship.toml $HOME/.config/starship.toml
+ln -sf $HOME/dotfiles/.config/yazi $HOME/.config/yazi
+ln -sf $HOME/dotfiles/.config/nvim $HOME/.config/nvim
+ln -sf $HOME/dotfiles/.config/powershell $HOME/.config/powershell
+ln -sf $HOME/dotfiles/.config/wezterm $HOME/.config/wezterm
 
 check_default_shell
 
