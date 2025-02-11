@@ -1,7 +1,7 @@
 Import-Module -Name Terminal-Icons
 
 Import-Module -Name PSReadLine
-Set-PSReadLineOption -EditMode Vi
+Set-PSReadLineOption -EditMode vi
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
 Set-PSReadLineOption -EditMode Windows
