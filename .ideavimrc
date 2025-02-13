@@ -123,6 +123,7 @@ map <leader>ff <Action>(GotoFile)
 map <leader>fT <Action>(ActivateTerminalToolWindow)
 noremap <C-/> <Action>(ActiveTerminalToolWindow)
 map <leader>cr <Action>(RenameElement)
+map <leader>cf <Action>(ReformatCode)
 
 map <leader>sg <Action>(FindInPath)
 
