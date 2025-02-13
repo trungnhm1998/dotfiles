@@ -121,7 +121,7 @@ map <leader>ss <Action>(FileStructurePopup)
 map <leader><space> <Action>(GotoFile)
 map <leader>ff <Action>(GotoFile)
 map <leader>fT <Action>(ActivateTerminalToolWindow)
-imap <C-/> <Action>(HideActiveWindow)
+noremap <C-/> <Action>(ActiveTerminalToolWindow)
 map <leader>cr <Action>(RenameElement)
 
 map <leader>sg <Action>(FindInPath)
