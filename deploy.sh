@@ -155,6 +155,8 @@ ln -sf $HOME/dotfiles/.config/yazi $HOME/.config/yazi
 ln -sf $HOME/dotfiles/.config/nvim $HOME/.config/nvim
 ln -sf $HOME/dotfiles/.config/powershell $HOME/.config/powershell
 ln -sf $HOME/dotfiles/.config/wezterm $HOME/.config/wezterm
+ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
+ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
 
 check_default_shell
 
