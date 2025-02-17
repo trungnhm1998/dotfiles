@@ -49,10 +49,10 @@ shift + cmd - k : yabai -m window --warp north
 shift + cmd - l : yabai -m window --warp east
 
 # focus window
-alt - h : yabai -m window --focus west
+alt - h : yabai -m window --focus west || yabai -m display --focus west
 alt - j : yabai -m window --focus south
 alt - k : yabai -m window --focus north
-alt - l : yabai -m window --focus east
+alt - l : yabai -m window --focus east || yabai -m display --focus east
 
 # focus display
 ctrl + shift + alt - 1 : yabai -m display --focus 1
