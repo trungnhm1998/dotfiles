@@ -36,10 +36,10 @@ alt - y : yabai -m space --mirror y-axis
 alt - x : yabai -m window --close
 
 # swap window
-shift + alt - h : yabai -m window --swap west
+shift + alt - h : yabai -m window --swap west || yabai -m window --display west --focus
 shift + alt - j : yabai -m window --swap south
 shift + alt - k : yabai -m window --swap north
-shift + alt - l : yabai -m window --swap east
+shift + alt - l : yabai -m window --swap east || yabai -m window --display east --focus
 shift + alt - r : yabai -m window --display recent --focus
 
 # move window
