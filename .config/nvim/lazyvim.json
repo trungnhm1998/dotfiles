@@ -6,12 +6,15 @@
     "lazyvim.plugins.extras.editor.outline",
     "lazyvim.plugins.extras.editor.refactoring",
     "lazyvim.plugins.extras.editor.telescope",
+    "lazyvim.plugins.extras.formatting.prettier",
     "lazyvim.plugins.extras.lang.json",
     "lazyvim.plugins.extras.lang.markdown",
     "lazyvim.plugins.extras.lang.omnisharp",
     "lazyvim.plugins.extras.lang.toml",
     "lazyvim.plugins.extras.lsp.neoconf",
     "lazyvim.plugins.extras.ui.edgy",
+    "lazyvim.plugins.extras.ui.indent-blankline",
+    "lazyvim.plugins.extras.ui.mini-indentscope",
     "lazyvim.plugins.extras.util.dot",
     "lazyvim.plugins.extras.vscode"
   ],
@@ -19,5 +22,5 @@
   "news": {
     "NEWS.md": "10960"
   },
-  "version": 7
+  "version": 8
 }
