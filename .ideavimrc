@@ -138,6 +138,7 @@ map <leader>s <Action>(SelectInProjectView)
 map <leader>ghB <Action>(Annotate)
 map <leader>ghb <Action>(GitToolBox.BlameDetails)
 map <leader>gb <Action>(Annotate)
+map <leader>uw <Action>(EditorToggleUseSoftWraps)
 
 map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
 map <S-Space> <Action>(GotoNextError)
