@@ -1,12 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.33/schema.bar.json",
+  "height": 30,
   "monitor": {
     "index": 1,
     "work_area_offset": {
       "left": 0,
-      "top": 40,
+      "top": 28,
       "right": 0,
-      "bottom": 40
+      "bottom": 28
     }
   },
   "font_family": "JetBrains Mono",
@@ -53,12 +54,12 @@
     },
     {
       "Memory": {
-        "enable": true
+        "enable": false
       }
     },
     {
       "Network": {
-        "enable": true,
+        "enable": false,
         "show_total_data_transmitted": true,
         "show_network_activity": true
       }
