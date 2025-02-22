@@ -113,5 +113,16 @@
   ],
   "ignore_rules": [],
   "manage_rules": [],
-  "tray_and_multi_window_applications": []
+  "tray_and_multi_window_applications": [
+    {
+      "kind": "Exe",
+      "id": "Todoist.exe",
+      "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "Surfshark.exe",
+      "matching_strategy": "Equals"
+    }
+  ]
 }
