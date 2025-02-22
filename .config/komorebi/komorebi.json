@@ -9,7 +9,7 @@
   "border_width": 4,
   "border_offset": -1,
   "animation": {
-    "enabled": true
+    "enabled": false
   },
   "theme": {
     "palette": "Base16",
@@ -41,27 +41,39 @@
         },
         {
           "name": "II",
-          "layout": "VerticalStack"
+          "layout": "BSP"
         },
         {
           "name": "III",
-          "layout": "HorizontalStack"
+          "layout": "BSP"
         },
         {
           "name": "IV",
-          "layout": "UltrawideVerticalStack"
+          "layout": "BSP"
         },
         {
           "name": "V",
-          "layout": "Rows"
+          "layout": "BSP"
         },
         {
           "name": "VI",
-          "layout": "Grid"
+          "layout": "BSP"
         },
         {
           "name": "VII",
-          "layout": "RightMainVerticalStack"
+          "layout": "BSP"
+        },
+        {
+          "name": "VIII",
+          "layout": "BSP"
+        },
+        {
+          "name": "IX",
+          "layout": "BSP"
+        },
+        {
+          "name": "X",
+          "layout": "BSP"
         }
       ]
     },
@@ -97,5 +109,8 @@
         }
       ]
     }
-  ]
+  ],
+  "ignore_rules": [],
+  "manage_rules": [],
+  "tray_and_multi_window_applications": []
 }
