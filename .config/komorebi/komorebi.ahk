@@ -32,6 +32,8 @@ Komorebic(cmd) {
 !+l::Komorebic("move right")
 !+p::Komorebic("cycle-move-to-workspace previous")
 !+n::Komorebic("cycle-move-to-workspace next")
+^+!#1::Komorebic("move-to-monitor 0")
+^+!#2::Komorebic("move-to-monitor 1")
 
 ; Stack windows
 !Left::Komorebic("stack left")
