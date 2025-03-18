@@ -146,6 +146,7 @@ map <S-Space> <Action>(GotoNextError)
 map <leader>bd <Action>(CloseContent)
 map <leader>bD <Action>(CloseAllEditors)
 map <leader>bo <Action>(CloseAllEditorsButActive)
+map <leader>bk <Action>(KeepTabOpen)
 
 map <leader>uz <Action>(ToggleZenMode)
 
