@@ -19,8 +19,8 @@
     "bar_accent": "Base0D"
   },
   "display_index_preferences": {
-    "0": "GSM5BBF-5&1d97c3ca&2&UID4355",
-    "1": "AUS278F-5&1d97c3ca&2&UID4357"
+    "0": "GSM5BBF-5&37a6d80e&0&UID4355",
+    "1": "AUS278F-5&37a6d80e&0&UID4353"
   },
   "bar_configurations": [
     "$Env:KOMOREBI_CONFIG_HOME/komorebi.bar.monitor1.json",
