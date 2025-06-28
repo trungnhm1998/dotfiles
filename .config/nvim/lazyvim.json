@@ -11,6 +11,7 @@
     "lazyvim.plugins.extras.lang.markdown",
     "lazyvim.plugins.extras.lang.omnisharp",
     "lazyvim.plugins.extras.lang.toml",
+    "lazyvim.plugins.extras.lang.typescript",
     "lazyvim.plugins.extras.lsp.neoconf",
     "lazyvim.plugins.extras.ui.edgy",
     "lazyvim.plugins.extras.ui.indent-blankline",
@@ -22,5 +23,5 @@
   "news": {
     "NEWS.md": "10960"
   },
-  "version": 8
+  "version": 7
 }
