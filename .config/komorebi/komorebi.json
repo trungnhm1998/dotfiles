@@ -4,7 +4,7 @@
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
   "default_workspace_padding": 4,
-  "default_container_padding": 0,
+  "default_container_padding": 2,
   "mouse_follows_focus": true,
   "border": true,
   "border_width": 4,
