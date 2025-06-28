@@ -63,7 +63,7 @@ config.keys = {
 
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     config.leader = {
-        key = "\\",
+        key = " ",
         mods = "CTRL",
         timeout_milliseconds = 1000,
     }
@@ -113,6 +113,40 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 end),
             }),
         },
+        {
+            key = 's',
+            mods = 'LEADER|SHIFT',
+            action = wezterm.action.ShowLauncherArgs { flags = 'WORKSPACES' },
+        },
+        {
+            key = "x",
+            mods = "LEADER",
+            action = wezterm.action({ CloseCurrentPane = { confirm = true } }),
+        },
+        {
+            key = "&",
+            mods = "LEADER|SHIFT",
+            action = wezterm.action({ CloseCurrentTab = { confirm = true } }),
+        },
+        {
+            key = ",",
+            mods = "LEADER",
+            action = wezterm.action.PromptInputLine {
+                description = 'Enter new name for tab',
+                action = wezterm.action_callback(
+                    function(window, pane, line)
+                        if line then
+                            window:active_tab():set_title(line)
+                        end
+                    end
+                ),
+            },
+        },
+        {
+            key = "t",
+            mods = "LEADER",
+            action = wezterm.action.SpawnTab "CurrentPaneDomain",
+        }
     }
 
     -- Create a status bar on the top right that shows the current workspace and date
