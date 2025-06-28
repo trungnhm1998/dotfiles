@@ -1,6 +1,8 @@
 --- @type Wezterm
 local wezterm = require("wezterm")
 
+local vim_smart_splits = wezterm.plugin.require('https://github.com/mrjones2014/smart-splits.nvim')
+
 -- This will hold the configuration.
 local config = wezterm.config_builder()
 
@@ -67,6 +69,32 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         mods = "CTRL",
         timeout_milliseconds = 1000,
     }
+
+    -- local direction_keys = {
+    --     h = "Left",
+    --     j = "Down",
+    --     k = "Up",
+    --     l = "Right",
+    -- }
+    -- local function split_nav(key)
+    --     return {
+    --         key = key,
+    --         mods = "CTRL",
+    --         action = wezterm.action_callback(function(win, pane)
+    --             if pane.Get_users_vars ~= nil and type(pane.Get_users.vars) == "function" then
+    --                 -- pass the keys through to vim/nvim
+    --                 if pane:Get_users_vars().IS_NVIM == "true" then
+    --                   win:perform_action({
+    --                       SendKey = { key = key, mods = "CTRL" },
+    --                   }, pane)
+    --                 end
+    --             else
+    --                 win:perform_action({ ActivatePaneDirection = direction_keys[key] }, pane)
+    --             end
+    --         end),
+    --     }
+    -- end
+
     config.keys = {
         -- CTRL-SHIFT-l activates the debug overlay
         { key = "L", mods = "CTRL",   action = wezterm.action.ShowDebugOverlay },
@@ -76,17 +104,27 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
             mods = "LEADER|SHIFT",
             action = wezterm.action({ SplitHorizontal = { domain = "CurrentPaneDomain" } }),
         },
+        {
+            key = "v",
+            mods = "LEADER",
+            action = wezterm.action({ SplitHorizontal = { domain = "CurrentPaneDomain" } }),
+        },
         -- Split Vertical
         {
             key = "-",
             mods = "LEADER|SHIFT",
             action = wezterm.action({ SplitVertical = { domain = "CurrentPaneDomain" } }),
         },
-        -- Move between panes
-        { key = "h", mods = "LEADER", action = wezterm.action({ ActivatePaneDirection = "Left" }) },
-        { key = "j", mods = "LEADER", action = wezterm.action({ ActivatePaneDirection = "Down" }) },
-        { key = "k", mods = "LEADER", action = wezterm.action({ ActivatePaneDirection = "Up" }) },
-        { key = "l", mods = "LEADER", action = wezterm.action({ ActivatePaneDirection = "Right" }) },
+        {
+            key = "s",
+            mods = "LEADER",
+            action = wezterm.action({ SplitVertical = { domain = "CurrentPaneDomain" } }),
+        },
+        -- Move between panes, mimic 'christoome/vim-tmux-navigator'
+        -- split_nav("h"),
+        -- split_nav("j"),
+        -- split_nav("k"),
+        -- split_nav("l"),
         -- Switch to new or existing workspace
         -- Similar to when you attach to or switch tmux sessions
         {
@@ -146,9 +184,27 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
             key = "t",
             mods = "LEADER",
             action = wezterm.action.SpawnTab "CurrentPaneDomain",
+        },
+        {
+            key = "p",
+            mods = "LEADER",
+            action = wezterm.action.ActivateTabRelative(-1),
+        },
+        {
+            key = "n",
+            mods = "LEADER",
+            action = wezterm.action.ActivateTabRelative(1),
         }
     }
 
+    -- tab switching
+    for i = 1, 9 do
+        table.insert(config.keys, {
+            key = tostring(i),
+            mods = "LEADER",
+            action = wezterm.action.ActivateTab(i - 1),
+        })
+    end
     -- Create a status bar on the top right that shows the current workspace and date
     wezterm.on("update-right-status", function(window, _)
         local date = wezterm.strftime("%d-%m-%Y %H:%M:%S")
@@ -164,6 +220,25 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
             { Text = date },
         }))
     end)
+
+    -- vim smart splits
+    vim_smart_splits.apply_to_config(config, {
+        -- directional keys to use in order of: left, down, up, right
+        direction_keys = { 'h', 'j', 'k', 'l' },
+        -- if you want to use separate direction keys for move vs. resize, you
+        -- can also do this:
+        direction_keys = {
+            move = { 'h', 'j', 'k', 'l' },
+            resize = { 'LeftArrow', 'DownArrow', 'UpArrow', 'RightArrow' },
+        },
+        -- modifier keys to combine with direction_keys
+        modifiers = {
+            move = 'CTRL', -- modifier to use for pane movement, e.g. CTRL+h to move left
+            resize = 'META', -- modifier to use for pane resize, e.g. META+h to resize to the left
+        },
+        -- log level to use: info, warn, error
+        log_level = 'info',
+    })
 end
 
 local font_family = "JetBrainsMono Nerd Font"
