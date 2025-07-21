@@ -20,7 +20,13 @@ brew install \
   jq \
   fd \
   wget \
-  poppler
+  poppler \
+  exa \
+  lazygit \
+  yazi \
+  font-fira-cod \
+  starship \
+  nvm
 
 # HomeBrew casks
 brew install --cask \
@@ -29,4 +35,6 @@ brew install --cask \
   keycastr \
   wezterm \
   kitty \
-  miniconda
+  miniconda \
+  homebrew/cask-fonts \
+  alt-tab
