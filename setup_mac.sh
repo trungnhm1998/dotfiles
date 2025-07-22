@@ -22,6 +22,7 @@ brew install \
   wget \
   poppler \
   exa \
+  eza \
   lazygit \
   yazi \
   font-fira-cod \
