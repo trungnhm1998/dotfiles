@@ -86,6 +86,7 @@ nnoremap <S-l> gt
 
 map <leader>w <c-w>
 map <leader>wd <c-w>c
+map <leader>z <Action>(MaximizeEditorInSplit)
 
 " Fix multple cursor issue
 " Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
