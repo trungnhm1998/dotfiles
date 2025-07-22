@@ -26,7 +26,8 @@ brew install \
   yazi \
   font-fira-cod \
   starship \
-  nvm
+  nvm \
+  btop
 
 # HomeBrew casks
 brew install --cask \
