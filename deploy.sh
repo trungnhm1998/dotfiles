@@ -148,7 +148,7 @@ fi
 
 printf "source $HOME/dotfiles/zsh/zshrc_manager.sh" >~/.zshrc
 printf "so $HOME/dotfiles/vim/vimrc.vim" >~/.vimrc
-printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavim
+printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavimrc
 printf "source-file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
 ln -sf $HOME/dotfiles/.config/starship.toml $HOME/.config/starship.toml
 ln -sf $HOME/dotfiles/.config/yazi $HOME/.config/yazi
