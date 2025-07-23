@@ -27,6 +27,12 @@ alt - 0 : yabai -m space --focus 10
 alt - p : $HOME/.config/skhd/space_cycle_prev.sh
 alt - n : $HOME/.config/skhd/space_cycle_next.sh
 
+# stack
+alt - right : yabai -m window --stack east $(yabai -m query --windows --window | jq -r '.id')
+alt - left : yabai -m window --stack west $(yabai -m query --windows --window | jq -r '.id')
+alt - 0x21 : yabai -m window --focus stack.prev || yabai -m window --focus stack.last
+alt - 0x1E : yabai -m window --focus stack.next || yabai -m window --focus stack.first
+
 # float / unfloat window and center on screen
 alt - t : yabai -m window --toggle float yabai -m window --grid 4:4:1:1:2:2
 
