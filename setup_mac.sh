@@ -21,14 +21,14 @@ brew install \
   fd \
   wget \
   poppler \
-  exa \
   eza \
   lazygit \
   yazi \
   font-fira-cod \
   starship \
   nvm \
-  btop
+  btop \
+  1password-cli
 
 # HomeBrew casks
 brew install --cask \
