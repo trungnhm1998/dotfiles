@@ -157,6 +157,7 @@ ln -sf $HOME/dotfiles/.config/powershell $HOME/.config/powershell
 ln -sf $HOME/dotfiles/.config/wezterm $HOME/.config/wezterm
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
+ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
 
 check_default_shell
 
