@@ -73,7 +73,7 @@ ctrl + shift + alt - 3 : yabai -m display --focus 3
 shift + alt - tab : yabai -m display --focus recent
 
 # toggle window fullscreen zoom
-alt - f : yabai -m window --focus mouse && yabai -m window --toggle zoom-fullscreen
+alt - f : $HOME/.config/skhd/yabai-toggle-zoom.sh
 
 # toggle window native fullscreen
 shift + alt - f : yabai -m window --toggle native-fullscreen

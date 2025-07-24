@@ -51,5 +51,11 @@ yabai -m signal --add event=display_changed action="yabai -m window --focus \$(y
 yabai -m signal --add event=space_changed action='yabai -m window --focus $(yabai -m query --windows --space | jq -r '\''[.[]|select(."is-visible")][0].id'\'')'
 
 borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0 &
+
+# change borders color when zoom-fullscreen
+
+yabai -m signal --add event=window_focused action="~/.config/jankyborders/maximize-border.sh"
+yabai -m signal --add event=window_resized action="~/.config/jankyborders/maximize-border.sh"
+
 brew install yabai --HEAD
 echo "Yabai configuration loaded.."
