@@ -42,3 +42,5 @@ brew install --cask \
   alt-tab \
   sketchybar \
   font-sketchybar-app-font
+
+brew services start sketchybar
