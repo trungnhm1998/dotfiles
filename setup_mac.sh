@@ -39,4 +39,6 @@ brew install --cask \
   kitty \
   miniconda \
   homebrew/cask-fonts \
-  alt-tab
+  alt-tab \
+  sketchybar \
+  font-sketchybar-app-font
