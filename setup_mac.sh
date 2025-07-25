@@ -29,7 +29,8 @@ brew install \
   nvm \
   btop \
   1password-cli \
-  gawk
+  gawk \
+  pyenv
 
 # HomeBrew casks
 brew install --cask \
