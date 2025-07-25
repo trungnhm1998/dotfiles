@@ -28,7 +28,8 @@ brew install \
   starship \
   nvm \
   btop \
-  1password-cli
+  1password-cli \
+  gawk
 
 # HomeBrew casks
 brew install --cask \
