@@ -155,12 +155,6 @@ ln -sf $HOME/dotfiles/.config/yazi $HOME/.config/yazi
 ln -sf $HOME/dotfiles/.config/nvim $HOME/.config/nvim
 ln -sf $HOME/dotfiles/.config/powershell $HOME/.config/powershell
 ln -sf $HOME/dotfiles/.config/wezterm $HOME/.config/wezterm
-ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
-ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
-ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
-ln -sf $HOME/dotfiles/.config/sketchybar/ $HOME/.config/sketchybar
-ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use multiple bars
-ln -sf $HOME/dotfiles/.config/external_bar/ $HOME/.config/external_bar
 
 check_default_shell
 
