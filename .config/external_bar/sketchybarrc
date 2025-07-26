@@ -1,0 +1,59 @@
+#!/bin/bash
+# This is a demo config to showcase some of the most important commands.
+# It is meant to be changed and configured, as it is intentionally kept sparse.
+# For a (much) more advanced configuration example see my dotfiles:
+# https://github.com/FelixKratz/dotfiles
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+echo "external bar loaded $PLUGIN_DIR"
+
+##### Bar Appearance #####
+# Configuring the general appearance of the bar.
+# These are only some of the options available. For all options see:
+# https://felixkratz.github.io/SketchyBar/config/bar
+# If you are looking for other colors, see the color picker:
+# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+
+DISPLAYS=$(yabai -m query --displays | jq ".[] | select(.index!=1).index" | paste -sd, -)
+# echo "external_bar displays: $DISPLAYS"
+external_bar --bar position=top height=26 blur_radius=30 color=0x40000000 display="$DISPLAYS"
+
+##### Changing Defaults #####
+# We now change some default values, which are applied to all further items.
+# For a full list of all available item properties see:
+# https://felixkratz.github.io/SketchyBar/config/items
+
+default=(
+  padding_left=5
+  padding_right=5
+  icon.font="Hack Nerd Font:Bold:17.0"
+  label.font="Hack Nerd Font:Bold:14.0"
+  icon.color=0xffffffff
+  label.color=0xffffffff
+  icon.padding_left=4
+  icon.padding_right=4
+  label.padding_left=4
+  label.padding_right=4
+)
+external_bar --default "${default[@]}"
+
+spaces_on_other_displays=$(yabai -m query --displays | jq ".[] | select(.index!=1).spaces.[]" | sort)
+for space_id in $spaces_on_other_displays; do
+  # echo "Adding space $space_id"
+  space=(
+    space="$space_id"
+    icon="$space_id"
+    icon.padding_left=7
+    icon.padding_right=7
+    background.color=0x40ffffff
+    background.corner_radius=5
+    background.height=25
+    label.drawing=off
+    script="$PLUGIN_DIR/space.sh"
+    click_script="yabai -m space --focus $space_id"
+  )
+  external_bar --add space space."$space_id" left --set space."$space_id" "${space[@]}"
+done
+
+##### Force all scripts to run the first time (never do this in a script) #####
+external_bar --update

@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "sketchybarrc-laptop loaded"
+
+##### Bar Appearance #####
+# Configuring the general appearance of the bar.
+# These are only some of the options available. For all options see:
+# https://felixkratz.github.io/SketchyBar/config/bar
+# If you are looking for other colors, see the color picker:
+# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+
+sketchybar --bar position=top height=38 blur_radius=30 color=0x40000000 display=main
+
