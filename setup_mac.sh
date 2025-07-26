@@ -3,6 +3,8 @@
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # command lines tools
+brew tap FelixKratz/formulae
+
 brew install \
   neovim \
   node \
@@ -30,7 +32,9 @@ brew install \
   btop \
   1password-cli \
   gawk \
-  pyenv
+  pyenv \
+  tldr \
+  sketchybar
 
 # HomeBrew casks
 brew install --cask \
@@ -43,6 +47,7 @@ brew install --cask \
   homebrew/cask-fonts \
   alt-tab \
   sketchybar \
-  font-sketchybar-app-font
+  font-sketchybar-app-font \
+  sf-symbols # for sketchybar
 
 brew services start sketchybar
