@@ -118,6 +118,6 @@ has_external_monitor=$(yabai -m query --displays | jq '. | length > 1')
 
 if [[ $has_external_monitor == "true" ]]; then
   # If there is an external monitor, load the external bar config
-  external_bar $
+  external_bar # do not start as background proccess, I like when stopping sketchybar stops the external bar
   external_bar --hotload true
 fi
