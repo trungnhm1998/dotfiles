@@ -114,6 +114,10 @@ done
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
 
-# TODO: If there is only one monitor connected, the external bar is not needed.
-external_bar
-external_bar --hotload true
+has_external_monitor=$(yabai -m query --displays | jq '. | length > 1')
+
+if [[ $has_external_monitor == "true" ]]; then
+  # If there is an external monitor, load the external bar config
+  external_bar $
+  external_bar --hotload true
+fi
