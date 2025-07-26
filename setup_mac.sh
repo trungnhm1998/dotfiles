@@ -39,6 +39,7 @@ brew install \
   pyenv \
   tldr \
   sketchybar \
+  svim \
   zoxide \
   gh \
   skhd \
@@ -73,5 +74,6 @@ ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use m
 ln -sf $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
 ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
 
+brew services start svim
 brew services start sketchybar
 
