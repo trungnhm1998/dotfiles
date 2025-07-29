@@ -45,7 +45,7 @@ brew install \
   skhd \
   borders \
   yabai \
-
+  bat
 
 # HomeBrew casks
 brew install --cask \
