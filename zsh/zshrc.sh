@@ -1,4 +1,4 @@
-export PATH=$HOME/Library/Android/sdk/platform-tools:$PATH
+export PATH=$HOME/Library/Android/sdk/platform-tools:$PATH # macos
 export PATH=$HOME/bin:usr/local/bin:$PATH
 export PATH=$HOME/.local/share/umake/bin:$PATH
 export PATH=$PATH:/usr/local/nodejs/bin
@@ -22,9 +22,8 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 
 # --- ruby env ---
+export PATH=$HOME/.gem/ruby/2.6.0/bin:$PATH
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
-if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
 if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
 
 export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
