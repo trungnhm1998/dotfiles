@@ -1,5 +1,5 @@
-#!/bin/zsh
 xcode-select --install
+#!/bin/zsh
 # install homebrew first
 # maybe check for homebrew exist?
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -29,8 +29,13 @@ brew install \
   poppler \
   eza \
   lazygit \
+  ffmpeg \
+  sevenzip \
+  resvg \
+  imagemagick \
+  font-symbols-only-nerd-font \
   yazi \
-  font-fira-cod \
+  font-fira-code \
   starship \
   nvm \
   btop \
