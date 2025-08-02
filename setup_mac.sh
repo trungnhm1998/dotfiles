@@ -35,7 +35,6 @@ brew install \
   imagemagick \
   font-symbols-only-nerd-font \
   yazi \
-  font-fira-code \
   starship \
   nvm \
   btop \
