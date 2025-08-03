@@ -167,8 +167,8 @@ map gy <Action>(GotoTypeDeclaration)
 
 map ]e <Action>(ReSharperGotoNextErrorInSolution)
 map [e <Action>(ReSharperGotoPrevErrorInSolution)
-map ]h<Action>(VcsShowNextChangeMarker)
-map [h<Action>(VcsShowPrevChangeMarker)
+map ]h <Action>(VcsShowNextChangeMarker)
+map [h <Action>(VcsShowPrevChangeMarker)
 map <C-/> <Action>(ActivateTerminalToolWindow)
 
 " ******************************************
