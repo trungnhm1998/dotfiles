@@ -1,4 +1,12 @@
-if [ -z "$INTELLIJ_ENVIRONMENT_READER" ]; then
+is_ide_terminal() {
+    [ -n "$INTELLIJ_ENVIRONMENT_READER" ] || \
+    [ -n "$VSCODE_PID" ] || \
+    [ -n "$CURSOR_PID" ] || \
+    [ "$TERM_PROGRAM" = "vscode" ] || \
+    [ "$TERM_PROGRAM" = "cursor" ]
+}
+
+if ! is_ide_terminal; then
   time_out() { perl -e 'alarm shift; exec @ARGV' "$@"; }
 
   # Run tmux if exists
