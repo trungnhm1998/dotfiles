@@ -43,6 +43,27 @@ yabai -m rule --add app="^Calculator$" manage=off
 yabai -m rule --add app="^Karabiner-Elements$" manage=off
 yabai -m rule --add app="^Wally$" manage=off
 yabai -m rule --add app="^Pulse Secure$" manage=off
+# Float Windows
+yabai -m rule --add app=Finder manage=off
+yabai -m rule --add app=Tweetbot manage=off
+# yabai -m rule --add app=Photoshop manage=off
+# yabai -m rule --add app=Illustrator  manage=off
+yabai -m rule --add app=Vox manage=off
+yabai -m rule --add app=checkra1n manage=off
+yabai -m rule --add app=ColorSlurp manage=off
+yabai -m rule --add app=System Preferences manage=off
+yabai -m rule --add app=VOX manage=off
+yabai -m rule --add app=The\ Unarchiver manage=off
+yabai -m rule --add app=System\ Preferences manage=off
+yabai -m rule --add app=".*CleanMyMac.*" manage=off
+yabai -m rule --add app=".*1Password.*" manage=off
+yabai -m rule --add app=Surfshark manage=off
+yabai -m rule --add app=Calculator manage=off
+yabai -m rule --add app=Kodi manage=off
+yabai -m rule --add app=VLC manage=off
+yabai -m rule --add app="Axis & Allies 1942 Online" manage=off
+yabai -m rule --add app="AxisAndAllies1942Online" manage=off
+yabai -m rule --add app="Alfred Preferences" manage=off
 
 # focus window after active space changes
 yabai -m signal --add event=space_changed action="yabai -m window --focus \$(yabai -m query --windows --space | jq .[0].id)"
