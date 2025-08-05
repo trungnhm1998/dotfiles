@@ -63,7 +63,7 @@ brew install --cask \
   alt-tab \
   sketchybar \
   font-sketchybar-app-font \
-  sf-symbols # for sketchybar
+  sf-symbols \
   font-sf-mono \
   font-sf-pro \
   font-hack-nerd-font \
