@@ -68,7 +68,8 @@ brew install --cask \
   font-sf-pro \
   font-hack-nerd-font \
   font-jetbrains-mono \
-  font-fira-code
+  font-fira-code \
+  karabiner-elements
 
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
