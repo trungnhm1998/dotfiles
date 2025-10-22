@@ -37,6 +37,7 @@ set textobj-entire
 set sneak
 set highlightedyank
 set which-key
+set quickscope
 
 " ****************************************
 " Basic
