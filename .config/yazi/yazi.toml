@@ -2,4 +2,7 @@
 show_hidden = true
 
 [opener]
-edit = [{ run = 'nvim %*', block = true, desc = "nvim", for = "windows" }]
+edit = [
+  { run = 'nvim %*', block = true, desc = "nvim", for = "windows" },
+  { run = 'cursor %*', block = false, for = "windows", desc = "Cursor" },
+]
