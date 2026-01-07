@@ -13,6 +13,8 @@
     Overwrite existing configs without prompting
 .PARAMETER DryRun
     Show what would be done without executing
+.PARAMETER SkipFonts
+    Skip Powerline fonts installation
 .NOTES
     Requires Administrator privileges for creating symbolic links
 #>
@@ -20,6 +22,7 @@
 param(
     [switch]$SkipPackages,
     [switch]$SkipSymlinks,
+    [switch]$SkipFonts,
     [switch]$Force,
     [switch]$DryRun
 )
@@ -74,7 +77,7 @@ $symlinks = @(
     }
     @{
         Source      = "$dotfilesRoot\.config\nvim"
-        Target      = "$env:LOCALAPPDATA\nvim"
+        Target      = "$HOME\.config\nvim"
         IsDirectory = $true
         Description = "Neovim configuration"
     }
@@ -414,6 +417,7 @@ Write-Host "`n=== Setting Environment Variables ===" -ForegroundColor Magenta
 
 $envVars = @{
     "KOMOREBI_CONFIG_HOME" = "$HOME\.config\komorebi"
+    "XDG_CONFIG_HOME"      = "$HOME\.config"
 }
 
 foreach ($var in $envVars.GetEnumerator()) {
@@ -434,7 +438,7 @@ foreach ($var in $envVars.GetEnumerator()) {
 # Powerline Fonts
 # =============================================================================
 
-if (-not $SkipPackages) {
+if (-not $SkipFonts) {
     Write-Host "`n=== Installing Powerline Fonts ===" -ForegroundColor Magenta
     $powerlinePath = "$env:TEMP\powerline-fonts"
 
@@ -453,6 +457,8 @@ if (-not $SkipPackages) {
         Remove-Item -Recurse -Force $powerlinePath
         Write-Status "Powerline fonts installed and temp files cleaned up" -Type Success
     }
+} else {
+    Write-Status "Skipping Powerline fonts installation" -Type Warning
 }
 
 # =============================================================================
