@@ -38,7 +38,7 @@ function edit_and_run() {
 zle -N edit_and_run
 bindkey "^v" edit_and_run
 
-# LS
+# git log beautiful
 function ctrl_l() {
   BUFFER="git log --oneline --graph --decorate --color=always"
   zle accept-line
