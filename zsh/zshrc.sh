@@ -2,6 +2,7 @@ export PATH=$HOME/Library/Android/sdk/platform-tools:$PATH # macos
 export PATH=$HOME/bin:usr/local/bin:$PATH
 export PATH=$HOME/.local/share/umake/bin:$PATH
 export PATH=$PATH:/usr/local/nodejs/bin
+export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 
