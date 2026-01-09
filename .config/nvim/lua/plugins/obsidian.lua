@@ -9,6 +9,7 @@ if vim.fn.has("win32") then
 end
 
 return {
+  enabled = true,
   "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
   lazy = true,
@@ -25,6 +26,8 @@ return {
     -- Required.
     "nvim-lua/plenary.nvim",
   },
+  ---@module 'obsidian'
+  ---@type obsidian.config.Internal
   opts = {
     workspaces = {
       {
@@ -32,5 +35,6 @@ return {
         path = path_to_workspace,
       },
     },
+    ui = { enable = false },
   },
 }
