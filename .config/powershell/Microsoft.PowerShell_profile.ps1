@@ -11,7 +11,18 @@ Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
-Set-PSReadLineOption -EditMode Windows
+Set-PSReadLineOption -ViModeIndicator Cursor
+# F2: enter screen capture/selection mode (scroll + select + Enter to copy)
+Set-PSReadLineKeyHandler -Key F2 -Function CaptureScreen
+
+# Vi-mode friendly copy/paste on Space+y / Space+p in command mode
+Set-PSReadLineKeyHandler -Key 'y' -Function Copy  -ViMode Command
+Set-PSReadLineKeyHandler -Key 'p' -Function Paste -ViMode Command
+
+# Vi-mode search style
+Set-PSReadLineKeyHandler -Key '/' -Function ViSearchHistoryBackward
+# Set-PSReadLineKeyHandler -Key '?' -Function ViSearchHistoryForward
+# Set-PSReadLineOption -EditMode Windows
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
 # Be aware that if you are missing these lines from your profile, tab completion
