@@ -130,11 +130,11 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 	-- end
 
 	config.keys = {
-    {
-      key = "T",
-      mods = "LEADER|SHIFT",
-      action = act.ShowLauncher,
-    },
+		{
+			key = "T",
+			mods = "LEADER|SHIFT",
+			action = act.ShowLauncher,
+		},
 		-- CTRL-SHIFT-l activates the debug overlay
 		{ key = "L", mods = "CTRL", action = wezterm.action.ShowDebugOverlay },
 		-- Split horizontal
