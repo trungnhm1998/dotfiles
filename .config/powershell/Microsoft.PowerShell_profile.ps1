@@ -4,8 +4,13 @@ $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 # oh-my-posh init pwsh --config  $poshThemesDir\$randomTheme | Invoke-Expression
 Import-Module posh-git
 Import-Module Terminal-Icons
-
 Import-Module -Name PSReadLine
+Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
+Import-Module PSFzf
+
+Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
+Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -EditMode vi
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
