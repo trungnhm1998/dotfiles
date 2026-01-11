@@ -2,6 +2,8 @@
   "extras": [
     "lazyvim.plugins.extras.ai.claudecode",
     "lazyvim.plugins.extras.coding.luasnip",
+    "lazyvim.plugins.extras.dap.core",
+    "lazyvim.plugins.extras.dap.nlua",
     "lazyvim.plugins.extras.editor.outline",
     "lazyvim.plugins.extras.editor.refactoring",
     "lazyvim.plugins.extras.editor.telescope",
