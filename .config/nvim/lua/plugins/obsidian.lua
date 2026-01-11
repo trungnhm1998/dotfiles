@@ -1,11 +1,9 @@
 local path_to_workspace = ""
 
-if vim.fn.has("win32") then
+if vim.fn.has("unix") then
+  path_to_workspace = "/Users/trungnhm1998/trung.nguyenhoangminh1998@gmail.com - Google Drive/My Drive/ObsidianVaults"
+elseif vim.fn.has("win32") then
   path_to_workspace = "Z:\\My Drive\\ObsidianVaults\\"
-  -- table.insert(workspaces, {
-  --   name = "vault",
-  --   path = "Z:\\My Drive\\ObsidianVaults",
-  -- })
 end
 
 return {
