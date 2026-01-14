@@ -1,8 +1,8 @@
 local path_to_workspace = ""
 
-if vim.fn.has("unix") then
+if vim.fn.has("unix") == 1 then
   path_to_workspace = "/Users/trungnhm1998/trung.nguyenhoangminh1998@gmail.com - Google Drive/My Drive/ObsidianVaults"
-elseif vim.fn.has("win32") then
+elseif vim.fn.has("win32") == 1 then
   path_to_workspace = "Z:\\My Drive\\ObsidianVaults\\"
 end
 
