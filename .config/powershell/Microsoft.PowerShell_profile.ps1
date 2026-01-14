@@ -25,7 +25,7 @@ Set-PSReadLineKeyHandler -Key 'y' -Function Copy  -ViMode Command
 Set-PSReadLineKeyHandler -Key 'p' -Function Paste -ViMode Command
 
 # Vi-mode search style
-Set-PSReadLineKeyHandler -Key '/' -Function ViSearchHistoryBackward
+# Set-PSReadLineKeyHandler -Key '/' -Function ViSearchHistoryBackward
 # Set-PSReadLineKeyHandler -Key '?' -Function ViSearchHistoryForward
 # Set-PSReadLineOption -EditMode Windows
 # Import the Chocolatey Profile that contains the necessary code to enable
