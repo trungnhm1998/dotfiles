@@ -45,10 +45,10 @@ Komorebic(cmd) {
 !]::Komorebic("cycle-stack next")
 
 ; Resize
-!=::Komorebic("resize-axis horizontal increase")
-!-::Komorebic("resize-axis horizontal decrease")
-!+=::Komorebic("resize-axis vertical increase")
-!+_::Komorebic("resize-axis vertical decrease")
+^!h::Komorebic("resize-edge left increase")
+^!j::Komorebic("resize-edge down increase")
+^!k::Komorebic("resize-edge up increase")
+^!l::Komorebic("resize-edge right increase")
 
 ; Manipulate windows
 !t::Komorebic("toggle-float")
