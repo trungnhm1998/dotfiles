@@ -283,10 +283,11 @@ local font = wezterm.font({
 	family = font_family,
 	weight = "Medium",
 })
+local macbookFontSize = 13
+local windowsFontSize = 10
+local isMacOS = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
 config.font = font
-config.font_size = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
-		and 12
-	or 9
+config.font_size = isMacOS and macbookFontSize or windowsFontSize
 
 --ref: https://wezfurlong.org/wezterm/config/lua/config/freetype_pcf_long_family_names.html#why-doesnt-wezterm-use-the-distro-freetype-or-match-its-configuration
 config.freetype_load_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
