@@ -278,7 +278,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 	})
 end
 
-local font_family = "JetBrainsMono Nerd Font"
+local font_family = "JetBrains Mono" -- or JetBrains Mono Nerd Font, Fira Code
 local font = wezterm.font({
 	family = font_family,
 	weight = "Medium",
