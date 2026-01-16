@@ -278,15 +278,15 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 	})
 end
 
--- local font_family = "JetBrains Mono" -- or JetBrains Mono Nerd Font, Fira Code
-local font_family = "JetBrainsMono Nerd Font" -- or JetBrains Mono Nerd Font, Fira Code
-local font = wezterm.font({
-	family = font_family,
-	weight = "Medium",
+-- local font_family = "JetBrains Mono" -- or JetBrainsMono Nerd Font, Fira Code
+local font = wezterm.font_with_fallback({
+	{ family = "JetBrains Mono", weight = "Medium" },
+	"JetBrainsMono Nerd Font",
 })
 local macbookFontSize = 13
 local windowsFontSize = 10
-local isMacOS = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
+local isMacOS = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
+	or false
 config.font = font
 config.font_size = isMacOS and macbookFontSize or windowsFontSize
 
