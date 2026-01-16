@@ -7,69 +7,71 @@ xcode-select --install
 # taps
 brew tap FelixKratz/formulae
 brew tap koekeishiya/formulae
+brew tap deskflow/tap
 
 # command lines tools
 brew install \
-  neovim \
-  node \
-  universal-ctags \
-  lua-language-server \
-  stylua \
-  ripgrep \
-  pandoc \
-  fzf \
-  ffmpeg \
-  fontconfig \
-  hugo \
-  miniconda \
-  tmux \
-  jq \
-  fd \
-  wget \
-  poppler \
-  eza \
-  lazygit \
-  ffmpeg \
-  sevenzip \
-  resvg \
-  imagemagick \
-  font-symbols-only-nerd-font \
-  yazi \
-  starship \
-  nvm \
-  btop \
-  1password-cli \
-  gawk \
-  pyenv \
-  tldr \
-  sketchybar \
-  svim \
-  zoxide \
-  gh \
-  skhd \
-  borders \
-  yabai \
-  bat
+    neovim \
+    node \
+    universal-ctags \
+    lua-language-server \
+    stylua \
+    ripgrep \
+    pandoc \
+    fzf \
+    ffmpeg \
+    fontconfig \
+    hugo \
+    miniconda \
+    tmux \
+    jq \
+    fd \
+    wget \
+    poppler \
+    eza \
+    lazygit \
+    ffmpeg \
+    sevenzip \
+    resvg \
+    imagemagick \
+    font-symbols-only-nerd-font \
+    yazi \
+    starship \
+    nvm \
+    btop \
+    1password-cli \
+    gawk \
+    pyenv \
+    tldr \
+    sketchybar \
+    svim \
+    zoxide \
+    gh \
+    skhd \
+    borders \
+    yabai \
+    bat \
+    deskflow
 
 # HomeBrew casks
 brew install --cask \
-  skim \
-  calibre \
-  keycastr \
-  wezterm \
-  kitty \
-  miniconda \
-  homebrew/cask-fonts \
-  alt-tab \
-  sketchybar \
-  font-sketchybar-app-font \
-  sf-symbols \
-  font-sf-mono \
-  font-sf-pro \
-  font-hack-nerd-font \
-  font-jetbrains-mono \
-  font-fira-code \
-  karabiner-elements
+    skim \
+    calibre \
+    keycastr \
+    wezterm \
+    kitty \
+    miniconda \
+    homebrew/cask-fonts \
+    alt-tab \
+    sketchybar \
+    font-sketchybar-app-font \
+    sf-symbols \
+    font-sf-mono \
+    font-sf-pro \
+    font-hack-nerd-font \
+    font-jetbrains-mono \
+    font-fira-code \
+    karabiner-elements
 
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
@@ -81,4 +83,3 @@ ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
 
 brew services start svim
 brew services start sketchybar
-
