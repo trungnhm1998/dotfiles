@@ -1,4 +1,3 @@
-print("Loading VSCode Keymaps...")
 local map = vim.keymap.set
 local vscode = require("vscode")
 local action = vscode.action
@@ -102,10 +101,6 @@ end)
 --     vscode.action("editor.action.addSelectionToNextFindMatch")
 --   end)
 -- end)
--- abc
--- abc
--- abc
--- abc
 map({ "n", "x", "i" }, "<leader>n", function()
     vscode.with_insert(function()
         vscode.action("editor.action.addSelectionToNextFindMatch")
@@ -140,6 +135,9 @@ map("n", "<leader>aa", function()
     action("workbench.action.chat.open")
 end, { desc = "Open AI Chat" })
 map({ "n", "x" }, "<leader>aq", function()
+    -- editor.action.inlineDiffs.focusEditor
+    -- aipopup.action.modal.generate
+    -- need to check if cursor then use above actions
     action("inlineChat.start")
 end, { desc = "Open AI Inline Chat" })
 map({ "n", "x" }, "<leader>as", function()
@@ -148,6 +146,31 @@ end, { desc = "Add selection to chat" })
 map({ "n", "x" }, "<leader>ab", function()
     action("workbench.action.chat.attachFile")
 end, { desc = "Add file/buffer to chat" })
--- workbench.action.toggleSidebarVisibility
--- workbench.action.toggleAuxiliaryBar
--- workbench.action.toggleUnifiedSidebar
+
+map({"n", "x"}, "<leader>wH", function() action("workbench.action.moveActiveEditorGroupLeft") end)
+map({"n", "x"}, "<leader>wJ", function() action("workbench.action.moveActiveEditorGroupDown") end)
+map({"n", "x"}, "<leader>wK", function() action("workbench.action.moveActiveEditorGroupUp") end)
+map({"n", "x"}, "<leader>wL", function() action("workbench.action.moveActiveEditorGroupRight") end)
+map("n", "<leader>wx", function() action("workbench.action.moveEditorToNextGroup") end)
+map("n", "<leader>wX", function() action("workbench.action.moveEditorToPreviousGroup") end)
+
+map({"n", "x"}, "<leader>wh", function() action("workbench.action.navigateLeft") end)
+map({"n", "x"}, "<leader>wj", function() action("workbench.action.navigateDown") end)
+map({"n", "x"}, "<leader>wk", function() action("workbench.action.navigateUp") end)
+map({"n", "x"}, "<leader>wl", function() action("workbench.action.navigateRight") end)
+
+map("n", "<leader>wd", function() action("workbench.action.closeEditorsInGroup") end)
+map("n", "<leader>wq", function() action("workbench.action.closeEditorsInGroup") end)
+map("n", "<leader>wo", function() action("workbench.action.closeEditorsInOtherGroups") end)
+map("n", "<leader>wv", function() action("workbench.action.splitEditor") end)
+map("n", "<leader>ws", function() action("workbench.action.splitEditorDown") end)
+map("n", "<leader>wT", function() action("workbench.action.moveEditorToFirstGroup") end)
+map("n", "<leader>ww", function() action("workbench.action.focusNextGroup") end)
+map("n", "<leader>wW", function() action("workbench.action.focusPreviousGroup") end)
+map("n", "<leader>wm", function() action("workbench.action.maximizeEditorHideSidebar") end)
+
+map("n", "<C-Up>", function() action("workbench.action.decreaseViewHeight") end)
+map("n", "<C-Down>", function() action("workbench.action.increaseViewHeight") end)
+map("n", "<C-Left>", function() action("workbench.action.decreaseViewWidth") end)
+map("n", "<C-Right>", function() action("workbench.action.increaseViewWidth") end)
+map("n", "<leader>w=", function() action("workbench.action.evenEditorWidths") end)
