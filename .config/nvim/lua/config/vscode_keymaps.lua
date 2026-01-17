@@ -11,10 +11,22 @@ map("n", "<leader>cr", function()
     action("editor.action.rename")
 end, { desc = "Rename Symbol" })
 
+-- Buffers
+-- workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup
+map("n", "<leader>bb", function() action("workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup") end)
+map("n", "<leader>bo", function() action("workbench.action.closeOtherEditors") end)
+map("n", "<leader>bD", function() action("workbench.action.closeEditorsInGroup") end)
+
 -- File Explorer
 map("n", "<leader>e", function()
     action("workbench.action.toggleSidebarVisibility")
-end, { desc = "Toggle Sidebar" })
+end, { desc = "Toggle Primary Sidebar" })
+map("n", "<leader>ub", function()
+    action("workbench.action.toggleSidebarVisibility")
+end, { desc = "Toggle Secondary/Auxiliary Sidebar" })
+map("n", "<leader>uB", function()
+    action("workbench.action.toggleAuxiliaryBar")
+end, { desc = "Toggle Secondary/Auxiliary Sidebar" })
 
 -- Diagnostics Navigation
 map("n", "<leader>cd", function()
@@ -136,3 +148,6 @@ end, { desc = "Add selection to chat" })
 map({ "n", "x" }, "<leader>ab", function()
     action("workbench.action.chat.attachFile")
 end, { desc = "Add file/buffer to chat" })
+-- workbench.action.toggleSidebarVisibility
+-- workbench.action.toggleAuxiliaryBar
+-- workbench.action.toggleUnifiedSidebar
