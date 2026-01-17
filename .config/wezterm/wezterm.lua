@@ -243,7 +243,10 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 		})
 	end
 	-- Create a status bar on the top right that shows the current workspace and date
-	wezterm.on("update-right-status", function(window, _)
+    ---comment
+    ---@param window Window
+    ---@param pane Pane
+	wezterm.on("update-right-status", function(window, pane)
 		local date = wezterm.strftime("%d-%m-%Y %H:%M:%S")
 
 		-- Make it italic and underlined
