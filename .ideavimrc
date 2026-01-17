@@ -33,11 +33,16 @@ set easymotion
 set surround
 set showmode
 set textobj-entire
-" set ReplaceWithRegister
+set ReplaceWithRegister
 set sneak
 set highlightedyank
 set which-key
 set quickscope
+set mini-ai " not AI but a and i
+set functiontextobj " work with dif, vaf, daf, caf function
+set argtextobj " work with arguments, daa via caa
+" set anyobject " this might be good too https://github.com/magidc/ideavim-anyobject/blob/release/README.md
+set peekaboo
 
 " ****************************************
 " Basic
