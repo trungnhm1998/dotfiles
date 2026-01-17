@@ -1,6 +1,7 @@
 " unmap space, by default it will move the cursor to the left 1 char
 nnoremap <space> <Nop>
 let mapleader="\<Space>"
+let maplocalleader = "\\"
 
 " ****************************************
 " Vim Config
