@@ -120,7 +120,10 @@ xmap <leader>g<C-n> <Plug>AllOccurrences
 " Remap for idea features
 " *****************************************
 map <C-W>q :q<CR>
-nnoremap <Leader>/ :nohl<CR>
+" Bind Escape to clear search highlights in normal, insert, and select modes
+nnoremap <Esc> :nohl<CR>
+inoremap <Esc> <Esc>:nohl<CR>
+snoremap <Esc> <Esc>:nohl<CR>
 map K <Action>(ShowHoverInfo)
 map <leader>d <Action>(Debug)
 map <leader>c <Action>(Stop)
