@@ -1,1 +1,27 @@
-.idea
+# IDEs and Editors
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# AI Assistant (temporary state)
+.claude/
+
+# Build and Dependencies
+node_modules/
+*.log
+
+# Backup Files
+*.backup
+*.backup_*
+*.old
+
+# Platform-specific Trash
+.Trash-*/
