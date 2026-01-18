@@ -283,7 +283,7 @@ end
 
 -- local font_family = "JetBrains Mono" -- or JetBrainsMono Nerd Font, Fira Code
 local font = wezterm.font_with_fallback({
-	{ family = "JetBrains Mono", weight = "Medium" },
+    "JetBrains Mono",
 	"JetBrainsMono Nerd Font",
 })
 local macbookFontSize = 13
