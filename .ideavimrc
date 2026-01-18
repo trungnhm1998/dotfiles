@@ -40,8 +40,9 @@ let g:highlightedyank_highlight_duration = 500
 
 set notimeout
 set ideajoin
+set ideamarks
 set ideastatusicon=gray
-set idearefactormode=keep
+set idearefactormode=normal
 
 " ==================================================================================
 " PLUGINS
@@ -66,6 +67,7 @@ set peekaboo
 " ==================================================================================
 " CORE VIM REMAPS
 " ==================================================================================
+nmap <leader>l <Action>(VimActions)
 
 " Visual Mode: Paste without losing clipboard contents
 " Deletes highlighted text to void register, then pastes
@@ -87,10 +89,14 @@ nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
 " Window Commands
-map <leader>w <c-w>
-map <leader>wd <c-w>c
-map <C-W>q :q<CR>
-map <leader>z <Action>(MaximizeEditorInSplit)
+"MoveEditorToOppositeTabGroup
+nmap <leader>wx <Action>()
+nmap <leader>wX <Action>()
+nmap <leader>w <c-w>
+nmap <leader>ww <c-w>w
+nmap <leader>wd <c-w>c
+nmap <C-W>q :q<CR>
+nmap <leader>z <Action>(MaximizeEditorInSplit)
 inoremap <C-v> <Action>(RiderEditSourceInRightSplit)
 
 " Tab Navigation
@@ -119,14 +125,14 @@ nnoremap <leader>e :NERDTreeToggle<CR>
 " ==================================================================================
 
 " Go to...
-map gh <Action>(QuickJavaDoc)
-map gr <Action>(FindUsages)
-map gI <Action>(GotoImplementation)
-map gy <Action>(GotoTypeDeclaration)
-
-" Quick Peek
-map gpi <Action>(QuickImplementations)
-map gpd <Action>(QuickImplementations)
+nmap gh <Action>(QuickJavaDoc)
+nmap gr <Action>(FindUsages)
+nmap gu <Action>(ShowUsages)
+nmap gi <Action>(GotoImplementation)
+nmap gI <Action>(QuickImplementations)
+nmap gD <Action>(GotoTypeDeclaration)
+nmap gd <Action>(GotoDeclaration)
+nmap gn <Action>(ShowNavBar)
 
 " Actions & Errors
 map ge <Action>(ShowErrorDescription)
@@ -138,14 +144,21 @@ map <S-Space> <Action>(GotoNextError)
 map ]e <Action>(ReSharperGotoNextErrorInSolution)
 map [e <Action>(ReSharperGotoPrevErrorInSolution)
 
+" location
+nmap <C-o> <Action>(Back)
+nmap <C-i> <Action>(Forward)
+
 " ==================================================================================
 " CODE ACTIONS (LSP-LIKE)
 " ==================================================================================
 
-map K <Action>(ShowHoverInfo)
-map <leader>cr <Action>(RenameElement)
-map <leader>cf <Action>(ReformatCode)
+nmap K <Action>(ShowHoverInfo)
+nmap <leader>cr <Action>(RenameElement)
+nmap <leader>cf <Action>(ReformatCode)
+nmap <leader>r <Action>(Refactorings.QuickListPopupAction)
 vmap <leader>r <Action>(Refactorings.QuickListPopupAction)
+xmap <leader>r <Action>(Refactorings.QuickListPopupAction)
+smap <leader>r <Action>(Refactorings.QuickListPopupAction)
 
 " CODE Refactorings
 
@@ -211,6 +224,8 @@ xmap <leader>g<C-n> <Plug>AllOccurrences
 " Popup Menu Navigation
 inoremap <C-j> <Action>(PopupMenu-selectNext)
 inoremap <C-k> <Action>(PopupMenu-selectPrev)
+imap <C-n> <Action>(EditorDown)
+imap <C-p> <Action>(EditorUp)
 
 " AI / Copilot
 map <leader>aa <Action>(copilot.chat.show)
@@ -263,3 +278,6 @@ sethandler <C-W> a:vim
 
 " __AUTO_GENERATED_PRINT_VAR_START__
 echom ' ?:' ?| " __AUTO_GENERATED_PRINT_VAR_END__
+
+if &ide =~? 'intellij idea'
+endif
