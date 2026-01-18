@@ -1,9 +1,14 @@
+print("Loading vscode_keymaps.lua")
 local map = vim.keymap.set
 local vscode = require("vscode")
 -- .includes('aipopup.action.modal.generate')
-local is_cursor = vscode.eval("return await vscode.commands.getCommands()")
+local is_cursor = vscode.eval(
+    "var commands = await vscode.commands.getCommands(); return commands.includes('aipopup.action.modal.generate');")
 local call = vscode.call
 local action = vscode.action
+
+-- lsp
+map({ "n" }, "gr", function () action("editor.action.goToReferences") end)
 
 -- Code Actions
 map({ "n", "x" }, "<leader>cf", function ()
@@ -137,20 +142,10 @@ end, { desc = "Toggle Maximize Editor" })
 
 -- AI
 map("n", "<leader>aa", function ()
-    action("workbench.action.chat.open")
+    call(is_cursor and "aichat.newchataction" or "workbench.action.chat.open")
 end, { desc = "Open AI Chat" })
 map({ "n", "x" }, "<leader>aq", function ()
-    print("is using cursor " .. tostring(is_cursor))
-    -- editor.action.inlineDiffs.focusEditor
-    -- aipopup.action.modal.generate
-    -- need to check if cursor then use above actions
-    call("aipopup.action.modal.generate")
-    action("inlineChat.start", {
-        callback = function (err, ret)
-            print("err " .. err)
-            print("ret " .. (ret or ""))
-        end
-    })
+    call(is_cursor and "aipopup.action.modal.generate" or "inlineChat.start")
 end, { desc = "Open AI Inline Chat" })
 map({ "n", "x" }, "<leader>as", function ()
     action("workbench.action.chat.attachSelection")
