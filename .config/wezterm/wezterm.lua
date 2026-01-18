@@ -18,6 +18,16 @@ config.use_fancy_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
 
 config.set_environment_variables = {}
+
+local ShellTypes = {
+    NONE = 0,
+    CMD = 1,
+    CMDER = 2,
+    PowerShell = 3,
+    WSL = 4,
+}
+
+local shellType = ShellTypes.WSL
 -- uncomment if I want to use clink only
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     -- PowerShell 7
@@ -51,14 +61,6 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         args = { "cmd.exe", "/s", "/k", cmder_root .. "\\vendor\\init.bat" },
     })
 
-    local ShellTypes = {
-        NONE = 0,
-        CMD = 1,
-        CMDER = 2,
-        PowerShell = 3,
-    }
-
-    local shellType = ShellTypes.PowerShell
     -- because my tmux on macos have bottom tab bar
     config.tab_bar_at_bottom = true
     if shellType == ShellTypes.CMD then
@@ -90,6 +92,10 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     if shellType == ShellTypes.PowerShell then
         config.default_prog = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" }
     end
+
+    if shellType == ShellTypes.WSL then
+        config.default_domain = "WSL:Ubuntu"
+    end
 end
 
 -- unbind alt enter
@@ -97,7 +103,7 @@ config.keys = {
     { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
 }
 
-if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+if wezterm.target_triple == "x86_64-pc-windows-msvc" and shellType ~= ShellTypes.WSL then
     config.leader = {
         key = " ",
         mods = "CTRL",
