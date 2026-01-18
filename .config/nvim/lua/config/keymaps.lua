@@ -1,5 +1,5 @@
 if vim.g.vscode then
-    require("config.vscode_keymaps")
+  require("config.vscode_keymaps")
   return
 end
 -- Keymaps are automatically loaded on the VeryLazy event
