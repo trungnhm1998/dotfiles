@@ -89,35 +89,54 @@ nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
 " Window Commands
-"MoveEditorToOppositeTabGroup
-nmap <leader>wx <Action>()
-nmap <leader>wX <Action>()
+" Resizing
+nmap <leader>w+ <Action>(StretchSplitToTop)
+nmap <leader>w- <Action>(StretchSplitToBottom)
+nmap <leader>w< <Action>(StretchSplitToLeft)
+nmap <leader>w> <Action>(StretchSplitToRight)
+
+nmap <C-Up> <Action>(StretchSplitToTop)
+nmap <C-Down> <Action>(StretchSplitToBottom)
+nmap <C-Left> <Action>(StretchSplitToLeft)
+nmap <C-Right> <Action>(StretchSplitToRight)
+
+nmap <leader>wm <Action>(MaximizeEditorInSplit)
+nmap <leader>uZ <Action>(MaximizeEditorInSplit)
+
+nmap <leader>wu <Action>(UnsplitAll)
+nmap <leader>wT <Action>(Unsplit)
+nmap <leader>wx <Action>(MoveEditorToOppositeTabGroup)
+
 nmap <leader>w <c-w>
 nmap <leader>ww <c-w>w
 nmap <leader>wd <c-w>c
 nmap <C-W>q :q<CR>
-nmap <leader>z <Action>(MaximizeEditorInSplit)
-inoremap <C-v> <Action>(RiderEditSourceInRightSplit)
 
 " Tab Navigation
 nnoremap <S-h> gT
 nnoremap <S-l> gt
 
 " Buffer Management
-map <leader>bd <Action>(CloseContent)
-map <leader>bD <Action>(CloseAllEditors)
-map <leader>bo <Action>(CloseAllEditorsButActive)
-map <leader>bk <Action>(KeepTabOpen)
+nmap <leader>bd <Action>(CloseContent)
+nmap <leader>bD <Action>(CloseAllEditors)
+nmap <leader>bo <Action>(CloseAllEditorsButActive)
+nmap <leader>bk <Action>(KeepTabOpen)
+nmap <leader>, <Action>(RecentFiles)
+nmap <leader>fr <Action>(RecentFiles)
 
 " ==================================================================================
 " FILE & PROJECT NAVIGATION
 " ==================================================================================
 
-map <leader>ff <Action>(GotoFile)
-map <leader>sg <Action>(FindInPath)
-map <leader>s <Action>(SelectInProjectView)
-map <leader>ss <Action>(FileStructurePopup)
-map <leader>o <Action>(FileStructurePopup)
+nmap <leader>fn <Action>(NewElement)
+nmap <leader>fN <Action>(NewElementSamePlace)
+nmap <leader>ff <Action>(GotoFile)
+nmap <leader><Space> <Action>(GotoFile)
+nmap <leader>sg <Action>(FindInPath)
+nmap <leader>s <Action>(SelectInProjectView)
+nmap <leader>sa <Action>(GotoAction)
+nmap <leader>ss <Action>(FileStructurePopup)
+nmap <leader>o <Action>(FileStructurePopup)
 nnoremap <leader>e :NERDTreeToggle<CR>
 
 " ==================================================================================
@@ -135,16 +154,20 @@ nmap gd <Action>(GotoDeclaration)
 nmap gn <Action>(ShowNavBar)
 
 " Actions & Errors
-map ge <Action>(ShowErrorDescription)
-map gq <Action>(ShowIntentionActions)
-map gm <Action>(HideAllWindows)
+" nmap ge <Action>(ShowErrorDescription)
+" nmap gq <Action>(ShowIntentionActions)
+nmap <leader>uu <Action>(HideAllWindows)
+nmap <leader>xx <Action>(ActivateProblemsViewToolWindow)
+nmap <leader>se <Action>(Rider.ProblemsView.ErrorsInSolution)
 
 " Error Navigation
-map <S-Space> <Action>(GotoNextError)
-map ]e <Action>(ReSharperGotoNextErrorInSolution)
-map [e <Action>(ReSharperGotoPrevErrorInSolution)
+nmap <S-Space> <Action>(GotoNextError)
+nmap ]e <Action>(ReSharperGotoNextErrorInSolution)
+nmap [e <Action>(ReSharperGotoPrevErrorInSolution)
+nmap ]d <Action>(GotoNextError)
+nmap [d <Action>(GotoPreviousError)
 
-" location
+" Jump List Navigation
 nmap <C-o> <Action>(Back)
 nmap <C-i> <Action>(Forward)
 
@@ -160,50 +183,68 @@ vmap <leader>r <Action>(Refactorings.QuickListPopupAction)
 xmap <leader>r <Action>(Refactorings.QuickListPopupAction)
 smap <leader>r <Action>(Refactorings.QuickListPopupAction)
 
-" CODE Refactorings
-
-" parameter or argument using p or a?
+" Specific Refactorings
 vmap <leader>rp <Action>(IntroduceParameter)
 vmap <leader>rv <Action>(IntroduceVariable)
 vmap <leader>rm <Action>(ExtractMethod)
 vmap <leader>rf <Action>(IntroduceField)
+
+" Imports
+nmap <leader>oi <Action>(OptimizeImports)
 
 " ==================================================================================
 " GIT / VERSION CONTROL
 " ==================================================================================
 
 " Git Blame & Annotations
-map <leader>gb <Action>(Annotate)
-map <leader>ghb <Action>(GitToolBox.BlameDetails)
+nmap <leader>gb <Action>(Annotate)
+nmap <leader>ghb <Action>(GitToolBox.BlameDetails)
 
 " VCS History & Changes
-map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
-map <leader>gg <Action>(ActivateCommitToolWindow)
+nmap <leader>h <Action>(Vcs.ShowTabbedFileHistory)
+nmap <leader>gg <Action>(ActivateCommitToolWindow)
 
 " Change Markers Navigation
-map ]h <Action>(VcsShowNextChangeMarker)
-map [h <Action>(VcsShowPrevChangeMarker)
+nmap ]h <Action>(VcsShowNextChangeMarker)
+nmap [h <Action>(VcsShowPrevChangeMarker)
 
 " ==================================================================================
 " DEBUGGING
 " ==================================================================================
 
-map <leader>d <Action>(Debug)
-map <leader>c <Action>(Stop)
-map <leader>db <Action>(ToggleLineBreakpoint)
+nmap <leader>db <Action>(ToggleLineBreakpoint)
+nmap <leader>dB <Action>(ViewBreakpoints)
+nmap <leader>dc <Action>(Resume)
+nmap <leader>di <Action>(StepInto)
+nmap <leader>do <Action>(StepOut)
+nmap <leader>dt <Action>(Stop)
+nmap <leader>dd <Action>(Debug)
+
+" ==================================================================================
+" UNIT TESTING
+" ==================================================================================
+
+if &ide =~? 'JetBrains Rider'
+    nmap <leader>tr <Action>(RiderUnitTestRunContextAction)
+    nmap <leader>tT <Action>(RiderUnitTestRunSolutionAction)
+    nmap <leader>tl <Action>(RiderUnitTestRepeatPreviousRunAction)
+    nmap <leader>td <Action>(RiderUnitTestDebugContextAction)
+endif
+nmap <leader>to <Action>(ActivateUnitTestsToolWindow)
+nmap <leader>ts <Action>(ActivateUnitTestsToolWindow)
 
 " ==================================================================================
 " UI & EDITOR TOGGLES
 " ==================================================================================
 
-map <leader>uz <Action>(ToggleZenMode)
-map <leader>uw <Action>(EditorToggleUseSoftWraps)
-" For zen mode
+" Editor Display
+nmap <leader>uz <Action>(ToggleZenMode)
+nmap <leader>uw <Action>(EditorToggleUseSoftWraps)
 nmap <leader>ul <Action>(EditorGutterToggleGlobalLineNumbers)
 
 " Terminal
-map <leader>fT <Action>(ActivateTerminalToolWindow)
-map <C-/> <Action>(ActivateTerminalToolWindow)
+nmap <leader>ft <Action>(ActivateTerminalToolWindow)
+nmap <C-/> <Action>(ActivateTerminalToolWindow)
 
 " ==================================================================================
 " ADVANCED FEATURES
@@ -221,15 +262,9 @@ xmap <leader><C-n> <Plug>AllWholeOccurrences
 nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
-" Popup Menu Navigation
-inoremap <C-j> <Action>(PopupMenu-selectNext)
-inoremap <C-k> <Action>(PopupMenu-selectPrev)
-imap <C-n> <Action>(EditorDown)
-imap <C-p> <Action>(EditorUp)
-
 " AI / Copilot
-map <leader>aa <Action>(copilot.chat.show)
-map <leader>aq <Action>(copilot.chat.inline)
+nmap <leader>aa <Action>(copilot.chat.show)
+nmap <leader>aq <Action>(copilot.chat.inline)
 
 " ==================================================================================
 " KEY HANDLER CONFLICTS
@@ -240,22 +275,21 @@ map <leader>aq <Action>(copilot.chat.inline)
 
 " IDE Handles All Modes
 sethandler <C-2> a:ide
-sethandler <C-S-2> a:ide
 sethandler <C-6> a:ide
-sethandler <C-S-6> a:ide
 sethandler <C-A> a:ide
 sethandler <C-C> a:ide
 sethandler <C-E> a:ide
 sethandler <C-G> a:ide
 sethandler <C-M> a:ide
 sethandler <C-S> a:ide
+sethandler <C-S-2> a:ide
+sethandler <C-S-6> a:ide
 sethandler <C-T> a:ide
 sethandler <C-X> a:ide
 sethandler <C-Y> a:ide
 sethandler <C-[> a:ide
 sethandler <C-\> a:ide
 sethandler <C-]> a:ide
-sethandler <C-P> a:ide
 sethandler <S-j> a:ide
 
 " Vim in Normal Mode, IDE in Insert/Visual (for window navigation)
@@ -265,19 +299,14 @@ sethandler <C-K> n:vim i-x-v:ide
 sethandler <C-L> n:vim i-x-v:ide
 
 " Vim Handles All Modes (core Vim functionality)
-sethandler <C-I> a:vim
 sethandler <C-B> a:vim
 sethandler <C-D> a:vim
-sethandler <C-F> n:vim i-x-v:ide 
+sethandler <C-F> n:vim i-x-v:ide
+sethandler <C-I> a:vim
 sethandler <C-N> a:vim
 sethandler <C-O> a:vim
+sethandler <C-P> a:vim
 sethandler <C-R> a:vim
 sethandler <C-U> a:vim
 sethandler <C-V> a:vim
 sethandler <C-W> a:vim
-
-" __AUTO_GENERATED_PRINT_VAR_START__
-echom ' ?:' ?| " __AUTO_GENERATED_PRINT_VAR_END__
-
-if &ide =~? 'intellij idea'
-endif
