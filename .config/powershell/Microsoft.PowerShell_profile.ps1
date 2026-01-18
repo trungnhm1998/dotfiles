@@ -66,6 +66,17 @@ function lta2 { eza -lTag --level=2 --icons $args }
 function lta3 { eza -lTag --level=3 --icons $args }
 
 Invoke-Expression (&starship init powershell)
+# integrate with wezterm because I use starship
+$prompt = ""
+function Invoke-Starship-PreCommand {
+    $current_location = $executionContext.SessionState.Path.CurrentLocation
+    if ($current_location.Provider.Name -eq "FileSystem") {
+        $ansi_escape = [char]27
+        $provider_path = $current_location.ProviderPath -replace "\\", "/"
+        $prompt = "$ansi_escape]7;file://${env:COMPUTERNAME}/${provider_path}$ansi_escape\"
+    }
+    $host.ui.Write($prompt)
+}
 # =============================================================================
 #
 # Utility functions for zoxide.
