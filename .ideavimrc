@@ -91,6 +91,7 @@ map <leader>w <c-w>
 map <leader>wd <c-w>c
 map <C-W>q :q<CR>
 map <leader>z <Action>(MaximizeEditorInSplit)
+inoremap <C-v> <Action>(RiderEditSourceInRightSplit)
 
 " Tab Navigation
 nnoremap <S-h> gT
@@ -144,6 +145,15 @@ map [e <Action>(ReSharperGotoPrevErrorInSolution)
 map K <Action>(ShowHoverInfo)
 map <leader>cr <Action>(RenameElement)
 map <leader>cf <Action>(ReformatCode)
+vmap <leader>r <Action>(Refactorings.QuickListPopupAction)
+
+" CODE Refactorings
+
+" parameter or argument using p or a?
+vmap <leader>rp <Action>(IntroduceParameter)
+vmap <leader>rv <Action>(IntroduceVariable)
+vmap <leader>rm <Action>(ExtractMethod)
+vmap <leader>rf <Action>(IntroduceField)
 
 " ==================================================================================
 " GIT / VERSION CONTROL
@@ -175,6 +185,8 @@ map <leader>db <Action>(ToggleLineBreakpoint)
 
 map <leader>uz <Action>(ToggleZenMode)
 map <leader>uw <Action>(EditorToggleUseSoftWraps)
+" For zen mode
+nmap <leader>ul <Action>(EditorGutterToggleGlobalLineNumbers)
 
 " Terminal
 map <leader>fT <Action>(ActivateTerminalToolWindow)
@@ -248,3 +260,6 @@ sethandler <C-R> a:vim
 sethandler <C-U> a:vim
 sethandler <C-V> a:vim
 sethandler <C-W> a:vim
+
+" __AUTO_GENERATED_PRINT_VAR_START__
+echom ' ?:' ?| " __AUTO_GENERATED_PRINT_VAR_END__
