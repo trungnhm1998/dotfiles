@@ -1,189 +1,217 @@
-" unmap space, by default it will move the cursor to the left 1 char
+" ==================================================================================
+" LEADER KEYS & CORE SETTINGS
+" ==================================================================================
+
+" Unmap space to prevent cursor movement, then set as leader
 nnoremap <space> <Nop>
 let mapleader="\<Space>"
 let maplocalleader = "\\"
 
-" ****************************************
-" Vim Config
-" ****************************************
-" Greatest remap EVER!! 
-" Let me explain, this remap while in visual mode
-" will delete what is currently highlighted and replace it 
-" with what is in the register BUT it will YANK (delete) it 
-" to a VOID register. Meaning I still have what I originally had
-" when I pasted. I don't loose the previous thing I YANKED!
-vnoremap <leader>pp "_dP
+" ==================================================================================
+" VIM BASIC SETTINGS
+" ==================================================================================
 
-" ******************************************
-" REMAP Y and P for clipboard usages
-" * for main clipboard
-" + for vim clipboard?
-" *****************************************
-" noremap <Leader>y "*y
-" noremap <Leader>p "*p
-" noremap <Leader>Y "+y
-" noremap <Leader>P "+p
+" Visual & Display
+set number
+set relativenumber
+set showmode
+set showcmd
+set visualbell
 
-" ****************************************
-" Plugins
-" ****************************************
+" Search Settings
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+
+" Behavior
+set scrolloff=5
+set so=5
+set history=1000
+set clipboard+=unnamed
+set exchange
+
+" Plugin: Highlighted Yank Configuration
+let g:highlightedyank_highlight_duration = 500
+
+" ==================================================================================
+" IDEAVIM SPECIFIC SETTINGS
+" ==================================================================================
+
+set notimeout
+set ideajoin
+set ideastatusicon=gray
+set idearefactormode=keep
+
+" ==================================================================================
+" PLUGINS
+" ==================================================================================
+
 set multiple-cursors
 set commentary
 set NERDTree
 set easymotion
 set surround
-set showmode
 set textobj-entire
 set ReplaceWithRegister
 set sneak
 set highlightedyank
 set which-key
 set quickscope
-set mini-ai " not AI but a and i
-set functiontextobj " work with dif, vaf, daf, caf function
-set argtextobj " work with arguments, daa via caa
-" set anyobject " this might be good too https://github.com/magidc/ideavim-anyobject/blob/release/README.md
+set mini-ai
+set functiontextobj
+set argtextobj
 set peekaboo
 
-" ****************************************
-" Basic
-" ****************************************
-set number          " Line numbers
-set relativenumber  " Relative line numbers
-set hlsearch        " Highlight whole word when searching
-set ignorecase      " Ignore case when searching...
-set smartcase       " ...except when search query contains a capital letter
-set scrolloff=5
-set so=5
-set history=1000
-set incsearch " search as soon as you type
-set nu
-set visualbell
-set exchange
-" set clipboard=unnamed " Copy to system clipboard
-set clipboard+=unnamed " Copy to system clipboard
-set g:highlightedyank_highlight_duration = 500
+" ==================================================================================
+" CORE VIM REMAPS
+" ==================================================================================
 
-" show relative line numbers in normal mode only
-" augroup linea
-"    autocmd!
-"     autocmd InsertEnter * set norelativenumber
-"     autocmd InsertLeave * set relativenumber
-" augroup END
+" Visual Mode: Paste without losing clipboard contents
+" Deletes highlighted text to void register, then pastes
+vnoremap <leader>pp "_dP
 
-""" Idea specific settings ------------------
-set notimeout
-set showmode
-set showcmd
-set ideajoin
-set ideastatusicon=gray
-set idearefactormode=keep
+" Search: Clear highlights with Escape
+nnoremap <Esc> :nohl<CR>
+inoremap <Esc> <Esc>:nohl<CR>
+snoremap <Esc> <Esc>:nohl<CR>
 
-" ******************************************
-" Remap Ctrl + h,j,k,l to move between windows
-" *****************************************
+" ==================================================================================
+" WINDOW, TAB & BUFFER MANAGEMENT
+" ==================================================================================
+
+" Window Navigation (Ctrl + hjkl)
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
-" remap gt and gT to move between tabs
+" Window Commands
+map <leader>w <c-w>
+map <leader>wd <c-w>c
+map <C-W>q :q<CR>
+map <leader>z <Action>(MaximizeEditorInSplit)
+
+" Tab Navigation
 nnoremap <S-h> gT
 nnoremap <S-l> gt
 
-map <leader>w <c-w>
-map <leader>wd <c-w>c
-map <leader>z <Action>(MaximizeEditorInSplit)
+" Buffer Management
+map <leader>bd <Action>(CloseContent)
+map <leader>bD <Action>(CloseAllEditors)
+map <leader>bo <Action>(CloseAllEditorsButActive)
+map <leader>bk <Action>(KeepTabOpen)
 
-" Fix multple cursor issue
-" Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
+" ==================================================================================
+" FILE & PROJECT NAVIGATION
+" ==================================================================================
+
+map <leader>ff <Action>(GotoFile)
+map <leader>sg <Action>(FindInPath)
+map <leader>s <Action>(SelectInProjectView)
+map <leader>ss <Action>(FileStructurePopup)
+map <leader>o <Action>(FileStructurePopup)
+nnoremap <leader>e :NERDTreeToggle<CR>
+
+" ==================================================================================
+" CODE NAVIGATION
+" ==================================================================================
+
+" Go to...
+map gh <Action>(QuickJavaDoc)
+map gr <Action>(FindUsages)
+map gI <Action>(GotoImplementation)
+map gy <Action>(GotoTypeDeclaration)
+
+" Quick Peek
+map gpi <Action>(QuickImplementations)
+map gpd <Action>(QuickImplementations)
+
+" Actions & Errors
+map ge <Action>(ShowErrorDescription)
+map gq <Action>(ShowIntentionActions)
+map gm <Action>(HideAllWindows)
+
+" Error Navigation
+map <S-Space> <Action>(GotoNextError)
+map ]e <Action>(ReSharperGotoNextErrorInSolution)
+map [e <Action>(ReSharperGotoPrevErrorInSolution)
+
+" ==================================================================================
+" CODE ACTIONS (LSP-LIKE)
+" ==================================================================================
+
+map K <Action>(ShowHoverInfo)
+map <leader>cr <Action>(RenameElement)
+map <leader>cf <Action>(ReformatCode)
+
+" ==================================================================================
+" GIT / VERSION CONTROL
+" ==================================================================================
+
+" Git Blame & Annotations
+map <leader>gb <Action>(Annotate)
+map <leader>ghb <Action>(GitToolBox.BlameDetails)
+
+" VCS History & Changes
+map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
+map <leader>gg <Action>(ActivateCommitToolWindow)
+
+" Change Markers Navigation
+map ]h <Action>(VcsShowNextChangeMarker)
+map [h <Action>(VcsShowPrevChangeMarker)
+
+" ==================================================================================
+" DEBUGGING
+" ==================================================================================
+
+map <leader>d <Action>(Debug)
+map <leader>c <Action>(Stop)
+map <leader>db <Action>(ToggleLineBreakpoint)
+
+" ==================================================================================
+" UI & EDITOR TOGGLES
+" ==================================================================================
+
+map <leader>uz <Action>(ToggleZenMode)
+map <leader>uw <Action>(EditorToggleUseSoftWraps)
+
+" Terminal
+map <leader>fT <Action>(ActivateTerminalToolWindow)
+map <C-/> <Action>(ActivateTerminalToolWindow)
+
+" ==================================================================================
+" ADVANCED FEATURES
+" ==================================================================================
+
+" Multiple Cursors (matching terryma/vim-multiple-cursors)
 nmap <C-n> <Plug>NextWholeOccurrence
 xmap <C-n> <Plug>NextWholeOccurrence
 nmap g<C-n> <Plug>NextOccurrence
 xmap g<C-n> <Plug>NextOccurrence
 xmap <C-x> <Plug>SkipOccurrence
 xmap <C-p> <Plug>RemoveOccurrence
-
-" Note that the default <A-n> and g<A-n> shortcuts don't work on Mac due to dead keys.
-" <A-n> is used to enter accented text e.g. ñ
-" Feel free to pick your own mappings that are not affected. I like to use <leader>
 nmap <leader><C-n> <Plug>AllWholeOccurrences
 xmap <leader><C-n> <Plug>AllWholeOccurrences
 nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
-" Using C-n and C-p to select
-" inoremap <expr> j ((pumvisible())?("\<C-n>"):("j"))
-" inoremap <expr> k ((pumvisible())?("\<C-p>"):("k"))
-
-" ******************************************
-" Remap for idea features
-" *****************************************
-map <C-W>q :q<CR>
-" Bind Escape to clear search highlights in normal, insert, and select modes
-nnoremap <Esc> :nohl<CR>
-inoremap <Esc> <Esc>:nohl<CR>
-snoremap <Esc> <Esc>:nohl<CR>
-map K <Action>(ShowHoverInfo)
-map <leader>d <Action>(Debug)
-map <leader>c <Action>(Stop)
-map <leader>uz <Action>(ToggleDistractionFreeMode)
-map <leader>ss <Action>(FileStructurePopup)
-" map <leader><space> <Action>(GotoFile)
-map <leader>ff <Action>(GotoFile)
-map <leader>fT <Action>(ActivateTerminalToolWindow)
-noremap <C-/> <Action>(ActiveTerminalToolWindow)
-map <leader>cr <Action>(RenameElement)
-map <leader>cf <Action>(ReformatCode)
-
-map <leader>sg <Action>(FindInPath)
-
-map <leader>aa <Action>(copilot.chat.show)
-map <leader>aq <Action>(copilot.chat.inline)
-
-" Popup navigation
+" Popup Menu Navigation
 inoremap <C-j> <Action>(PopupMenu-selectNext)
 inoremap <C-k> <Action>(PopupMenu-selectPrev)
 
-map <leader>s <Action>(SelectInProjectView)
-map <leader>ghB <Action>(Annotate)
-map <leader>ghb <Action>(GitToolBox.BlameDetails)
-map <leader>gb <Action>(Annotate)
-map <leader>uw <Action>(EditorToggleUseSoftWraps)
+" AI / Copilot
+map <leader>aa <Action>(copilot.chat.show)
+map <leader>aq <Action>(copilot.chat.inline)
 
-map <leader>h <Action>(Vcs.ShowTabbedFileHistory)
-map <S-Space> <Action>(GotoNextError)
+" ==================================================================================
+" KEY HANDLER CONFLICTS
+" ==================================================================================
+" Controls whether IDE or Vim handles specific key combinations
+" Format: sethandler <key> a:ide (IDE handles all modes)
+"         sethandler <key> n:vim i-x-v:ide (Vim in normal, IDE in insert/visual)
 
-map <leader>bd <Action>(CloseContent)
-map <leader>bD <Action>(CloseAllEditors)
-map <leader>bo <Action>(CloseAllEditorsButActive)
-map <leader>bk <Action>(KeepTabOpen)
-
-map <leader>uz <Action>(ToggleZenMode)
-
-map <leader>db <Action>(ToggleLineBreakpoint)
-map <leader>o <Action>(FileStructurePopup)
-map <leader>ss <Action>(FileStructurePopup)
-
-map gh <Action>(QuickJavaDoc)
-map ge <Action>(ShowErrorDescription)
-map gm <Action>(HideAllWindows)
-map gr <Action>(FindUsages)
-map gI <Action>(GotoImplementation)
-map gpi <Action>(QuickImplementations)
-map gpd <Action>(QuickImplementations)
-map gq <Action>(ShowIntentionActions)
-map gy <Action>(GotoTypeDeclaration)
-
-map ]e <Action>(ReSharperGotoNextErrorInSolution)
-map [e <Action>(ReSharperGotoPrevErrorInSolution)
-map ]h <Action>(VcsShowNextChangeMarker)
-map [h <Action>(VcsShowPrevChangeMarker)
-map <C-/> <Action>(ActivateTerminalToolWindow)
-
-" ******************************************
-" Remap for conflicts
-" *****************************************
+" IDE Handles All Modes
 sethandler <C-2> a:ide
 sethandler <C-S-2> a:ide
 sethandler <C-6> a:ide
@@ -203,10 +231,13 @@ sethandler <C-]> a:ide
 sethandler <C-P> a:ide
 sethandler <S-j> a:ide
 
+" Vim in Normal Mode, IDE in Insert/Visual (for window navigation)
 sethandler <C-H> n:vim i-x-v:ide
 sethandler <C-J> n:vim i-x-v:ide
 sethandler <C-K> n:vim i-x-v:ide
 sethandler <C-L> n:vim i-x-v:ide
+
+" Vim Handles All Modes (core Vim functionality)
 sethandler <C-I> a:vim
 sethandler <C-B> a:vim
 sethandler <C-D> a:vim
@@ -217,10 +248,3 @@ sethandler <C-R> a:vim
 sethandler <C-U> a:vim
 sethandler <C-V> a:vim
 sethandler <C-W> a:vim
-
-" ******************************************
-" NERD Tree Keybinding
-" ******************************************
-" Toggle NERDTree and go to file with Find
-" map NERDTree to Ctrl+Shift+E
-nnoremap <leader>e :NERDTreeToggle<CR>
