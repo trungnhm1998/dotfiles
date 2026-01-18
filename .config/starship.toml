@@ -1,3 +1,6 @@
+## Timeouts in milliseconds
+scan_timeout = 2000        # 2 seconds
+command_timeout = 2000     # for git, node, ruby, etc.
 # Get editor completions based on the config schema
 "$schema" = 'https://starship.rs/config-schema.json'
 

@@ -1,3 +1,4 @@
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 export PATH=$HOME/Library/Android/sdk/platform-tools:$PATH # macos
 export PATH=$HOME/bin:usr/local/bin:$PATH
 export PATH=$HOME/.local/share/umake/bin:$PATH
@@ -18,17 +19,17 @@ if [ -x "$(command -v vivid)" ]; then
 fi
 
 # --- pyenv ---
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
+# export PYENV_ROOT="$HOME/.pyenv"
+# export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init --path)"
 
 # --- ruby env ---
-export PATH=$HOME/.gem/ruby/2.6.0/bin:$PATH
-export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
+# export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+# export PATH=$HOME/.gem/ruby/2.6.0/bin:$PATH
+# if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
 
-export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
-export PATH="$PATH:$GEM_HOME/bin"
+# export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
+# export PATH="$PATH:$GEM_HOME/bin"
 
 # --- yazi cd to directory after exit ---
 function y() {
@@ -65,7 +66,8 @@ source ~/dotfiles/zsh/keybindings.sh
 
 # ---- FZF ----
 # Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
+# source <(fzf --zsh)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_OPTS="--style full --preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse"
 
 # -- Use fs instead of fzf --
@@ -101,4 +103,4 @@ alias lta1="eza -lTag --level=1 --icons"
 alias lta2="eza -lTag --level=2 --icons"
 alias lta3="eza -lTag --level=3 --icons"
 
-eval $(thefuck --alias)
+# eval $(thefuck --alias)
