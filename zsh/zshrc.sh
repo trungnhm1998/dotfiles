@@ -6,6 +6,7 @@ export PATH=$PATH:/usr/local/nodejs/bin
 export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
+export YAZI_CONFIG=$HOME/.config/yazi
 
 # --- nvim ---
 export NVM_DIR="$HOME/.nvm"
@@ -19,9 +20,9 @@ if [ -x "$(command -v vivid)" ]; then
 fi
 
 # --- pyenv ---
-# export PYENV_ROOT="$HOME/.pyenv"
-# export PATH="$PYENV_ROOT/bin:$PATH"
-# eval "$(pyenv init --path)"
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 
 # --- ruby env ---
 # export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
