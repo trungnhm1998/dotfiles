@@ -61,7 +61,7 @@ plugins+=(
 )
 #alias tmux="TERM=screen-256color-bce tmux"
 
-source $ZSH/oh-my-zsh.sh
+source "$ZSH/oh-my-zsh.sh"
 eval "$(starship init zsh)"
 source ~/dotfiles/zsh/keybindings.sh
 

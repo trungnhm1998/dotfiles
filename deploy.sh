@@ -4,17 +4,17 @@ prompt_install() {
   old_stty_cfg=$(stty -g)
   stty raw -echo
   answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-  stty $old_stty_cfg && echo
+  stty "$old_stty_cfg" && echo
   if echo "$answer" | grep -iq "^y"; then
     # This could def use community support
     if [ -x "$(command -v apt-get)" ]; then
-      sudo apt-get install $1 -y
+      sudo apt-get install "$1" -y
     elif [ -x "$(command -v brew)" ]; then
-      brew install $1
+      brew install "$1"
     elif [ -x "$(command -v pkg)" ]; then
-      sudo pkg install $1
+      sudo pkg install "$1"
     elif [ -x "$(command -v pacman)" ]; then
-      sudo pacman -S $1
+      sudo pacman -S "$1"
     else
       echo "I'm not sure what your package manager is! Please install $1 on your own and run this deploy script again. Tests for package managers are in the deploy script you just ran starting at line 13. Feel free to make a pull request at https://github.com/parth/dotfiles :)"
     fi
@@ -23,8 +23,8 @@ prompt_install() {
 
 check_for_software() {
   echo "Checking to see if $1 is installed"
-  if ! [ -x "$(command -v $1)" ]; then
-    prompt_install $1
+  if ! [ -x "$(command -v "$1")" ]; then
+    prompt_install "$1"
   else
     echo "$1 is installed."
   fi
@@ -38,9 +38,9 @@ check_default_shell() {
     old_stty_cfg=$(stty -g)
     stty raw -echo
     answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-    stty $old_stty_cfg && echo
+    stty "$old_stty_cfg" && echo
     if echo "$answer" | grep -iq "^y"; then
-      chsh -s $(which zsh)
+      chsh -s "$(which zsh)"
     else
       echo "Warning: Your configuration won't work properly. If you exec zsh, it'll exec tmux which will exec your default shell which isn't zsh."
     fi
@@ -100,8 +100,8 @@ DIRECTORY="${ZSH_CUSTOM}/themes/spaceship-prompt"
 if [ ! -d "$DIRECTORY" ]; then
   echo
   echo "Unable to find $DIRECTORY"
-  git clone https://github.com/denysdovhan/spaceship-prompt.git $ZSH_CUSTOM/themes/spaceship-prompt
-  ln -s "${ZSH_CUSTOM}/themes/spaceship-prompt/spaceship.zsh-theme" $ZSH_CUSTOM/themes/spaceship.zsh-theme
+  git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
+  ln -s "${ZSH_CUSTOM}/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
 fi
 
 # install zsh-autosuggestions
@@ -109,15 +109,15 @@ DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-autosuggestions"
 if [ ! -d "$DIRECTORY" ]; then
   echo
   echo "Unable to find $DIRECTORY"
-  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
+  git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM}/plugins/zsh-autosuggestions"
 fi
 
-# install zsh-sytanx-highlightning
+# install zsh-syntax-highlighting
 DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting"
 if [ ! -d "$DIRECTORY" ]; then
   echo
   echo "Unable to find $DIRECTORY"
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting"
 fi
 
 # install zsh-vi-mode
@@ -125,7 +125,7 @@ DIRECTORY="${ZSH_CUSTOM}/plugins/zsh-vi-mode"
 if [ ! -d "$DIRECTORY" ]; then
   echo
   echo "Unable to find $DIRECTORY"
-  git clone https://github.com/jeffreytse/zsh-vi-mode ${ZSH_CUSTOM}/plugins/zsh-vi-mode
+  git clone https://github.com/jeffreytse/zsh-vi-mode "${ZSH_CUSTOM}/plugins/zsh-vi-mode"
 fi
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -138,7 +138,7 @@ echo -n "Would you like to backup your current dotfiles? (y/n) "
 old_stty_cfg=$(stty -g)
 stty raw -echo
 answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-stty $old_stty_cfg
+stty "$old_stty_cfg"
 if echo "$answer" | grep -iq "^y"; then
   mv ~/.zshrc ~/.zshrc.old
   mv ~/.tmux.conf ~/.tmux.conf.old
@@ -151,11 +151,11 @@ printf "source $HOME/dotfiles/zsh/zshrc_manager.sh" >~/.zshrc
 printf "so $HOME/dotfiles/vim/vimrc.vim" >~/.vimrc
 printf "so $HOME/dotfiles/.ideavimrc" >~/.ideavimrc
 printf "source-file $HOME/dotfiles/tmux/tmux.conf" >~/.tmux.conf
-ln -sf $HOME/dotfiles/.config/starship.toml $HOME/.config/starship.toml
-ln -sf $HOME/dotfiles/.config/yazi $HOME/.config/yazi
-ln -sf $HOME/dotfiles/.config/nvim $HOME/.config/nvim
-ln -sf $HOME/dotfiles/.config/powershell $HOME/.config/powershell
-ln -sf $HOME/dotfiles/.config/wezterm $HOME/.config/wezterm
+ln -sf "$HOME/dotfiles/.config/starship.toml" "$HOME/.config/starship.toml"
+ln -sf "$HOME/dotfiles/.config/yazi" "$HOME/.config/yazi"
+ln -sf "$HOME/dotfiles/.config/nvim" "$HOME/.config/nvim"
+ln -sf "$HOME/dotfiles/.config/powershell" "$HOME/.config/powershell"
+ln -sf "$HOME/dotfiles/.config/wezterm" "$HOME/.config/wezterm"
 
 check_default_shell
 
