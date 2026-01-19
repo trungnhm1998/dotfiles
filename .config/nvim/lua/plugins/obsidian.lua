@@ -1,3 +1,6 @@
+if vim.fn.has("wsl") then
+    return {}
+end
 local path_to_workspace = ""
 
 if vim.fn.has("unix") == 1 then
