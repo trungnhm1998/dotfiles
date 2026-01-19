@@ -11,6 +11,7 @@ local launch_menu = {}
 -- Helper to check if current pane is in a WSL domain
 local function is_wsl_pane(pane)
     local domain_name = pane:get_domain_name()
+    print("is_wsl_pane: " .. tostring(domain_name))
     return domain_name and domain_name:find("WSL") ~= nil
 end
 
@@ -23,6 +24,7 @@ config.use_fancy_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
 config.set_environment_variables = {}
 config.front_end = "Software"
+config.notification_handling = "AlwaysShow"
 
 local ShellTypes = {
     NONE = 0,
@@ -52,7 +54,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     -- WSL2 default distro
     table.insert(launch_menu, {
         label = "WSL2 (default)",
-        args = { "wsl.exe" },
+        domain = { DomainName = "WSL:Ubuntu" },
     })
 
     -- Cmder (adjust path to your actual cmder_root if needed)
@@ -95,12 +97,12 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 
     if shellType == ShellTypes.WSL then
         config.default_domain = "WSL:Ubuntu"
-        config.default_prog = {
-            "wsl.exe",
-            "--distribution",
-            "Ubuntu",
-            "--cd",
-            "~",
+        config.wsl_domains = {
+            {
+                name = "WSL:Ubuntu",
+                distribution = "Ubuntu",
+                default_cwd = "~",
+            },
         }
     end
 end
@@ -110,6 +112,8 @@ config.keys = {
     { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
     { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
     { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
+    -- emoji??
+    { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
 }
 
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
@@ -257,5 +261,9 @@ config.inactive_pane_hsb = {
 }
 
 config.launch_menu = launch_menu
--- and finally, return the configuration to wezterm
+
+wezterm.on('window-config-reloaded', function(window, pane)
+  window:toast_notification('wezterm', 'Configuration reloaded! ✅', nil, 4000)
+end)
+
 return config
