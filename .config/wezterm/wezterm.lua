@@ -270,9 +270,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" and shellType ~= ShellTypes
     -- vim smart splits
     vim_smart_splits.apply_to_config(config, {
         -- directional keys to use in order of: left, down, up, right
-        direction_keys = { "h", "j", "k", "l" },
-        -- if you want to use separate direction keys for move vs. resize, you
-        -- can also do this:
+        -- separate direction keys for move vs. resize
         direction_keys = {
             move = { "h", "j", "k", "l" },
             resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },

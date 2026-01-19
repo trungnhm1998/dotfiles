@@ -1,12 +1,12 @@
-if vim.fn.has("wsl") then
+if vim.fn.has("wsl") == 1 then
     return {}
 end
 local path_to_workspace = ""
 
-if vim.fn.has("unix") == 1 then
-  path_to_workspace = "/Users/trungnhm1998/trung.nguyenhoangminh1998@gmail.com - Google Drive/My Drive/ObsidianVaults"
+if vim.fn.has("mac") == 1 then
+    path_to_workspace = "/Users/trungnhm1998/trung.nguyenhoangminh1998@gmail.com - Google Drive/My Drive/ObsidianVaults"
 elseif vim.fn.has("win32") == 1 then
-  path_to_workspace = "Z:\\My Drive\\ObsidianVaults\\"
+    path_to_workspace = "Z:\\My Drive\\ObsidianVaults\\"
 end
 
 return {
