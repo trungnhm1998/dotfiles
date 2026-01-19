@@ -210,6 +210,14 @@ end
 - Backup existing configs before overwriting
 - Use `-DryRun` flag when available to preview changes
 
+## Architecture & Design Patterns
+
+**VSCode Keymaps OCP Architecture:**
+- See `docs/VSCODE_KEYMAPS_OCP_REFACTORING.md` for detailed documentation on the Open-Closed Principle implementation
+- Configuration-driven editor variant detection (Cursor, Antigravity, VSCode)
+- Automatic fallback mechanism to VSCode defaults
+- When adding new commands or editor variants, follow the patterns documented in the refactoring guide
+
 ## No Cursor/Copilot Rules
 
 No `.cursorrules` or `.github/copilot-instructions.md` files exist in this repository. Follow the guidelines in this file and CLAUDE.md.
