@@ -266,6 +266,8 @@ xmap <leader>g<C-n> <Plug>AllOccurrences
 " AI / Copilot
 nmap <leader>aa <Action>(copilot.chat.show)
 nmap <leader>aq <Action>(copilot.chat.inline)
+vmap <leader>aa <Action>(copilot.chat.show)
+vmap <leader>aq <Action>(copilot.chat.inline)
 
 " ==================================================================================
 " KEY HANDLER CONFLICTS
