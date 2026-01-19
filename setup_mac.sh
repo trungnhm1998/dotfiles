@@ -1,6 +1,6 @@
-xcode-select --install
 #!/bin/zsh
 # install homebrew first
+# Run: xcode-select --install (before running this script)
 # maybe check for homebrew exist?
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
