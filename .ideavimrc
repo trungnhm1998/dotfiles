@@ -219,6 +219,7 @@ nmap <leader>di <Action>(StepInto)
 nmap <leader>do <Action>(StepOut)
 nmap <leader>dt <Action>(Stop)
 nmap <leader>dd <Action>(Debug)
+" ActivateDebugToolWindow
 
 " ==================================================================================
 " UNIT TESTING
