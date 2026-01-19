@@ -9,14 +9,16 @@ is_ide_terminal() {
 if ! is_ide_terminal; then
   time_out() { perl -e 'alarm shift; exec @ARGV' "$@"; }
 
-  # Run tmux if exists
+  # Run tmux if exists (non-fatal)
   if command -v tmux >/dev/null; then
-    [ -z "$TMUX" ] && exec tmux
+    if [ -z "$TMUX" ]; then
+      tmux attach 2>/dev/null || tmux new-session
+    fi
   else
     echo "tmux not installed. Run ./deploy to configure dependencies"
   fi
 
-  echo "Updating configuration"
+  # echo "Updating configuration"
 fi
 # (cd ~/dotfiles && time_out 3 git pull && time_out 3 git submodule update --init --recursive)
 # (cd ~/dotfiles && git pull && git submodule update --init --recursive)
