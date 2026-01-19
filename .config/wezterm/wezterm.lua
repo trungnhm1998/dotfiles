@@ -41,14 +41,14 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     table.insert(launch_menu, {
         label = "PowerShell 7",
         args = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" },
-        domain = { DomainName = "PowershellCore" },
+        domain = { DomainName = "local" },
     })
 
     -- Windows PowerShell (5.1)
     table.insert(launch_menu, {
         label = "Windows PowerShell",
         args = { "powershell.exe", "-NoLogo" },
-        domain = { DomainName = "Powershell" },
+        domain = { DomainName = "local" },
     })
 
     -- WSL2 default distro
@@ -62,7 +62,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     table.insert(launch_menu, {
         label = "Cmder",
         args = { "cmd.exe", "/s", "/k", cmder_root .. "\\vendor\\init.bat" },
-        domain = { DomainName = "Cmder" },
+        domain = { DomainName = "local" },
     })
 
     -- because my tmux on macos have bottom tab bar
