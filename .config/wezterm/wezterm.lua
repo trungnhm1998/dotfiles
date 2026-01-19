@@ -8,6 +8,12 @@ local config = wezterm.config_builder()
 local act = wezterm.action
 local launch_menu = {}
 
+-- Helper to check if current pane is in a WSL domain
+local function is_wsl_pane(pane)
+    local domain_name = pane:get_domain_name()
+    return domain_name and domain_name:find("WSL") ~= nil
+end
+
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
@@ -77,10 +83,8 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         }
 
         local initBat = os.getenv("cmder_root") .. "\\vendor\\init.bat"
-        -- TODO: might need to remove
         config.set_environment_variables["prompt"] =
             "$E]7;file://localhost/$P$E\\$E[32m$T$E[0m $E[35m$P$E[36m$_$G$E[0m "
-        -- TODO: might need to remove
         config.set_environment_variables["DIRCMD"] = "/d"
         config.default_prog = { "cmd.exe", "/s", "/k", initBat }
     end
@@ -108,164 +112,103 @@ config.keys = {
     { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
 }
 
-if wezterm.target_triple == "x86_64-pc-windows-msvc" and shellType ~= ShellTypes.WSL then
-    config.leader = {
+if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+    -- Debug overlay (non-leader key, add to config.keys)
+    table.insert(config.keys, { key = "L", mods = "CTRL", action = wezterm.action.ShowDebugOverlay })
+
+    -- Conditional Ctrl+Space: WSL pane passes to tmux, others activate leader key table
+    table.insert(config.keys, {
         key = " ",
         mods = "CTRL",
-        timeout_milliseconds = 1000,
-    }
+        action = wezterm.action_callback(function(window, pane)
+            if is_wsl_pane(pane) then
+                -- WSL pane: pass Ctrl+Space through to tmux
+                window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
+            else
+                -- Non-WSL pane: activate wezterm leader key table
+                window:perform_action(act.ActivateKeyTable({
+                    name = "leader",
+                    one_shot = true,
+                    timeout_milliseconds = 1000,
+                }), pane)
+            end
+        end),
+    })
 
-    -- local direction_keys = {
-    --     h = "Left",
-    --     j = "Down",
-    --     k = "Up",
-    --     l = "Right",
-    -- }
-    -- local function split_nav(key)
-    --     return {
-    --         key = key,
-    --         mods = "CTRL",
-    --         action = wezterm.action_callback(function(win, pane)
-    --             if pane.Get_users_vars ~= nil and type(pane.Get_users.vars) == "function" then
-    --                 -- pass the keys through to vim/nvim
-    --                 if pane:Get_users_vars().IS_NVIM == "true" then
-    --                   win:perform_action({
-    --                       SendKey = { key = key, mods = "CTRL" },
-    --                   }, pane)
-    --                 end
-    --             else
-    --                 win:perform_action({ ActivatePaneDirection = direction_keys[key] }, pane)
-    --             end
-    --         end),
-    --     }
-    -- end
-
-    config.keys = {
-        {
-            key = "T",
-            mods = "LEADER|SHIFT",
-            action = act.ShowLauncher,
-        },
-        -- CTRL-SHIFT-l activates the debug overlay
-        { key = "L", mods = "CTRL", action = wezterm.action.ShowDebugOverlay },
-        -- Split horizontal
-        {
-            key = "|",
-            mods = "LEADER|SHIFT",
-            action = wezterm.action({ SplitHorizontal = { domain = "CurrentPaneDomain" } }),
-        },
-        {
-            key = "v",
-            mods = "LEADER",
-            action = wezterm.action({ SplitHorizontal = { domain = "CurrentPaneDomain" } }),
-        },
-        -- Split Vertical
-        {
-            key = "-",
-            mods = "LEADER|SHIFT",
-            action = wezterm.action({ SplitVertical = { domain = "CurrentPaneDomain" } }),
-        },
-        {
-            key = "s",
-            mods = "LEADER",
-            action = wezterm.action({ SplitVertical = { domain = "CurrentPaneDomain" } }),
-        },
-        -- Move between panes, mimic 'christoome/vim-tmux-navigator'
-        -- split_nav("h"),
-        -- split_nav("j"),
-        -- split_nav("k"),
-        -- split_nav("l"),
-        -- Switch to new or existing workspace
-        -- Similar to when you attach to or switch tmux sessions
-        {
-            key = "W",
-            mods = "LEADER|SHIFT",
-            action = wezterm.action.PromptInputLine({
-                description = wezterm.format({
-                    { Attribute = { Intensity = "Bold" } },
-                    { Foreground = { AnsiColor = "Fuchsia" } },
-                    { Text = "Enter name for new workspace." },
+    -- Define leader key table with all leader bindings
+    config.key_tables = {
+        leader = {
+            -- Escape to cancel leader mode
+            { key = "Escape", action = act.PopKeyTable },
+            -- Launcher
+            { key = "T", mods = "SHIFT", action = act.ShowLauncher },
+            -- Split horizontal
+            { key = "|", mods = "SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+            { key = "v", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+            -- Split vertical
+            { key = "-", mods = "SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+            { key = "s", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+            -- Switch to new or existing workspace
+            {
+                key = "W",
+                mods = "SHIFT",
+                action = act.PromptInputLine({
+                    description = wezterm.format({
+                        { Attribute = { Intensity = "Bold" } },
+                        { Foreground = { AnsiColor = "Fuchsia" } },
+                        { Text = "Enter name for new workspace." },
+                    }),
+                    action = wezterm.action_callback(function(window, pane, line)
+                        if line then
+                            window:perform_action(act.SwitchToWorkspace({ name = line }), pane)
+                        end
+                    end),
                 }),
-                action = wezterm.action_callback(function(window, pane, line)
-                    -- line will be `nil` if they hit escape without entering anything
-                    -- An empty string if they just hit enter
-                    -- Or the actual line of text they wrote
-                    if line then
-                        window:perform_action(
-                            wezterm.action.SwitchToWorkspace({
-                                name = line,
-                            }),
-                            pane
-                        )
-                    end
-                end),
-            }),
-        },
-        {
-            key = "s",
-            mods = "LEADER|SHIFT",
-            action = wezterm.action.ShowLauncherArgs({ flags = "WORKSPACES" }),
-        },
-        {
-            key = "x",
-            mods = "LEADER",
-            action = wezterm.action({ CloseCurrentPane = { confirm = true } }),
-        },
-        {
-            key = "&",
-            mods = "LEADER|SHIFT",
-            action = wezterm.action({ CloseCurrentTab = { confirm = true } }),
-        },
-        {
-            key = ",",
-            mods = "LEADER",
-            action = wezterm.action.PromptInputLine({
-                description = "Enter new name for tab",
-                action = wezterm.action_callback(function(window, pane, line)
-                    if line then
-                        window:active_tab():set_title(line)
-                    end
-                end),
-            }),
-        },
-        {
-            key = "t",
-            mods = "LEADER",
-            action = wezterm.action.SpawnTab("CurrentPaneDomain"),
-        },
-        {
-            key = "p",
-            mods = "LEADER",
-            action = wezterm.action.ActivateTabRelative(-1),
-        },
-        {
-            key = "n",
-            mods = "LEADER",
-            action = wezterm.action.ActivateTabRelative(1),
+            },
+            { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "WORKSPACES" }) },
+            -- Pane/Tab management
+            { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
+            { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
+            {
+                key = ",",
+                action = act.PromptInputLine({
+                    description = "Enter new name for tab",
+                    action = wezterm.action_callback(function(window, pane, line)
+                        if line then
+                            window:active_tab():set_title(line)
+                        end
+                    end),
+                }),
+            },
+            -- Tab navigation
+            { key = "t", action = act.SpawnTab("CurrentPaneDomain") },
+            { key = "p", action = act.ActivateTabRelative(-1) },
+            { key = "n", action = act.ActivateTabRelative(1) },
         },
     }
 
-    -- tab switching
+    -- Tab switching keys 1-9
     for i = 1, 9 do
-        table.insert(config.keys, {
+        table.insert(config.key_tables.leader, {
             key = tostring(i),
-            mods = "LEADER",
-            action = wezterm.action.ActivateTab(i - 1),
+            action = act.ActivateTab(i - 1),
         })
     end
-    -- Create a status bar on the top right that shows the current workspace and date
-    ---comment
+
+    -- Create a status bar on the top right that shows the current workspace, leader status, and date
     ---@param window Window
     ---@param pane Pane
     wezterm.on("update-right-status", function(window, pane)
         local date = wezterm.strftime("%d-%m-%Y %H:%M:%S")
+        local key_table = window:active_key_table()
+        local leader_status = key_table and "[" .. key_table .. "] " or ""
 
-        -- Make it italic and underlined
         window:set_right_status(wezterm.format({
             { Attribute = { Underline = "Single" } },
             { Attribute = { Italic = true } },
             { Attribute = { Intensity = "Bold" } },
             { Foreground = { AnsiColor = "Fuchsia" } },
+            { Text = leader_status },
             { Text = window:active_workspace() },
             { Text = "   " },
             { Text = date },
