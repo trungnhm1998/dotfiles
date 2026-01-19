@@ -95,10 +95,32 @@ map({ "n", "x" }, "<leader>gB", function ()
     action("gitlens.openFileOnRemote")
 end, { desc = "Git Browser" })
 
+map("n", "]h", function () action("workbench.action.editor.nextChange") end)
+map("n", "[h", function () action("workbench.action.editor.previousChange") end)
 -- Search
-map("x", "<leader>sw", function ()
+map("v", "<leader>sw", function ()
+    action("actions.find")
+end, { desc = "Search Word in Files" })
+
+map("v", "<leader>sW", function ()
     action("workbench.action.findInFiles")
 end, { desc = "Search Word in Files" })
+
+map("v", "<C-f>", function ()
+    action("actions.find")
+end)
+
+map("v", "<C-h>", function ()
+    action("editor.action.startFindReplaceAction")
+end)
+
+map("v", "<leader>sr", function ()
+    action("editor.action.startFindReplaceAction")
+end)
+
+map("v", "<leader>sR", function ()
+    action("workbench.action.replaceInFiles")
+end)
 
 -- Multi-cursor
 map({ "n", "x" }, "<leader>r", function ()
@@ -166,6 +188,7 @@ map({ "n", "x" }, "<leader>wj", function () action("workbench.action.navigateDow
 map({ "n", "x" }, "<leader>wk", function () action("workbench.action.navigateUp") end)
 map({ "n", "x" }, "<leader>wl", function () action("workbench.action.navigateRight") end)
 
+map("n", "<leader>wD", function () action("workbench.action.closeEditorsInGroup") end)
 map("n", "<leader>wd", function () action("workbench.action.closeEditorsInGroup") end)
 map("n", "<leader>wq", function () action("workbench.action.closeEditorsInGroup") end)
 map("n", "<leader>wo", function () action("workbench.action.closeEditorsInOtherGroups") end)

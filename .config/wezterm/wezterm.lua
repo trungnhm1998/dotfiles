@@ -12,12 +12,11 @@ local launch_menu = {}
 
 -- For example, changing the color scheme:
 config.color_scheme = "Catppuccin Frappe"
-
 config.window_decorations = "RESIZE"
 config.use_fancy_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
-
 config.set_environment_variables = {}
+config.front_end = "Software"
 
 local ShellTypes = {
     NONE = 0,
@@ -47,12 +46,6 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         label = "WSL2 (default)",
         args = { "wsl.exe" },
     })
-
-    -- Example: WSL2 Ubuntu specifically
-    -- table.insert(launch_menu, {
-    --   label = "WSL2 (Ubuntu)",
-    --   args = { "wsl.exe", "--distribution", "Ubuntu" },
-    -- })
 
     -- Cmder (adjust path to your actual cmder_root if needed)
     local cmder_root = os.getenv("cmder_root") or "C:\\tools\\cmder"
@@ -95,12 +88,21 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 
     if shellType == ShellTypes.WSL then
         config.default_domain = "WSL:Ubuntu"
+        config.default_prog = {
+            "wsl.exe",
+            "--distribution",
+            "Ubuntu",
+            "--cd",
+            "~",
+        }
     end
 end
 
 -- unbind alt enter
 config.keys = {
     { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
+    { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
+    { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
 }
 
 if wezterm.target_triple == "x86_64-pc-windows-msvc" and shellType ~= ShellTypes.WSL then
