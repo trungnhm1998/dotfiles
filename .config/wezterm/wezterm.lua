@@ -294,6 +294,7 @@ end
 local font = wezterm.font_with_fallback({
     "JetBrains Mono",
     "JetBrainsMono Nerd Font",
+    "Fira Code Nerd Font"
 })
 local macbookFontSize = 13
 local windowsFontSize = 10
