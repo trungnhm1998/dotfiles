@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "workspace": {
+    "library": [
+      "${3rd}/luv/library",
+      "${env:LOCALAPPDATA}\\nvim-data\\lazy\\LazyVim",
+      "${env:LOCALAPPDATA}\\nvim-data\\lazy\\lazy.nvim",
+      "${env:userprofile}\\.vscode\\extensions\\asvetliakov.vscode-neovim-1.18.24\\runtime\\lua"
+    ],
+    "userThirdParty": [
+    ],
+    "checkThirdParty": false
+  },
+  "runtime": {
+    "version": "LuaJIT",
+    "special": {
+      "require": "require"
+    }
+  },
+  "diagnostics": {
+    "globals": [
+      "vim"
+    ]
+  }
+}
