@@ -57,7 +57,7 @@ echo "Let's get started? (y/n)"
 old_stty_cfg=$(stty -g)
 stty raw -echo
 answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-stty $old_stty_cfg
+stty "$old_stty_cfg"
 if echo "$answer" | grep -iq "^y"; then
   echo
 else
@@ -69,16 +69,28 @@ check_for_software zsh
 echo
 check_for_software vim
 # Install VimPlug
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+if [ ! -f ~/.vim/autoload/plug.vim ]; then
+  echo "Installing VimPlug..."
+  curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim || echo "Failed to install VimPlug"
+fi
 echo
 check_for_software tmux
-# TMP
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-git clone https://github.com/junegunn/fzf-git.sh ~/fzf-git
+# TPM
+if [ ! -d ~/.tmux/plugins/tpm ]; then
+  echo "Installing TPM (Tmux Plugin Manager)..."
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm || echo "Failed to install TPM"
+fi
+if [ ! -d ~/fzf-git ]; then
+  echo "Installing fzf-git.sh..."
+  git clone https://github.com/junegunn/fzf-git.sh ~/fzf-git || echo "Failed to install fzf-git"
+fi
 # default tmux theme
-mkdir -p ~/.config/tmux/plugins/catppuccin
-git clone -b v2.1.2 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux
+if [ ! -d ~/.config/tmux/plugins/catppuccin ]; then
+  echo "Installing catppuccin tmux theme..."
+  mkdir -p ~/.config/tmux/plugins/catppuccin
+  git clone -b v2.1.2 https://github.com/catppuccin/tmux.git ~/.config/tmux/plugins/catppuccin/tmux || echo "Failed to install catppuccin theme"
+fi
 echo
 check_for_software curl
 echo
