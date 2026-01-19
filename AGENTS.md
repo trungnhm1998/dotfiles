@@ -6,7 +6,7 @@ Guidelines for agentic coding tools working in this dotfiles repository.
 
 This is a personal dotfiles repository managing terminal-based configurations across macOS, Linux, and Windows. It includes:
 - **Editors**: Neovim (LazyVim), IdeaVim
-- **Terminals**: Wezterm, Tmux (macOS/Linux), Alacritty
+- **Terminals**: Wezterm, Tmux (macOS/Linux)
 - **Window Managers**: Yabai (macOS), Komorebi (Windows)
 - **Shell**: Zsh with custom configurations
 - **Utilities**: Yazi (file manager), Lazygit, Starship (prompt), Zoxide (cd replacement)
