@@ -8,6 +8,9 @@ local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabl
 local config = wezterm.config_builder()
 local act = wezterm.action
 
+local is_window = wezterm.target_triple == "x86_64-pc-windows-msvc"
+local is_mac_os = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
+
 -- max fps
 config.max_fps = 240
 config.animation_fps = 240
@@ -33,7 +36,7 @@ local ShellTypes = {
 local shellType = ShellTypes.WSL
 local pwsh = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 -- uncomment if I want to use clink only
-if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+if is_window then
     -- PowerShell 7
     table.insert(launch_menu, {
         label = "PowerShell 7",
@@ -114,7 +117,7 @@ config.keys = {
     { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
 }
 
-if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+if is_window then
     -- Helper to check if current pane is in a WSL domain
     local function is_wsl_pane(pane)
         local domain_name = pane:get_domain_name()
@@ -290,7 +293,6 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     })
 end
 
--- local font_family = "JetBrains Mono" -- or JetBrainsMono Nerd Font, Fira Code
 local font = wezterm.font_with_fallback({
     "JetBrains Mono",
     "JetBrainsMono Nerd Font",
@@ -298,18 +300,14 @@ local font = wezterm.font_with_fallback({
 })
 local macbookFontSize = 13
 local windowsFontSize = 10
-local isMacOS = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
-    or false
 config.font = font
-config.font_size = isMacOS and macbookFontSize or windowsFontSize
+config.font_size = is_mac_os and macbookFontSize or windowsFontSize
 
 --ref: https://wezfurlong.org/wezterm/config/lua/config/freetype_pcf_long_family_names.html#why-doesnt-wezterm-use-the-distro-freetype-or-match-its-configuration
 config.freetype_load_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
 config.freetype_render_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
 
 config.inactive_pane_hsb = {
-    hue = 0.5,
-    saturation = 0.5,
     brightness = 0.6,
 }
 
