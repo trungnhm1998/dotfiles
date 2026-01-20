@@ -1,4 +1,6 @@
 $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
+$env:EDITOR = "nvim"
+$env:VISUAL = "nvim"
 # $poshThemesDir = "$(scoop prefix oh-my-posh)\themes"
 # $randomTheme = "clean-detailed.omp.json", "spaceship.omp.json" | Get-Random
 # oh-my-posh init pwsh --config  $poshThemesDir\$randomTheme | Invoke-Expression
