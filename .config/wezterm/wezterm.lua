@@ -130,7 +130,7 @@ config.keys = {
     { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
 }
 
-if is_window then
+if is_windows then
     -- Helper to check if current pane is in a WSL domain
     local function is_wsl_pane(pane)
         local domain_name = pane:get_domain_name()
