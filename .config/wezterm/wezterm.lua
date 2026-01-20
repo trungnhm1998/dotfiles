@@ -12,8 +12,8 @@ local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
 local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
 
 -- max fps
-config.max_fps = 240
-config.animation_fps = 240
+config.max_fps = 144
+config.animation_fps = 144
 local launch_menu = {}
 
 config.color_scheme = "Catppuccin Frappe"
