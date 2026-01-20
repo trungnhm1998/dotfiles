@@ -22,46 +22,6 @@ config.set_environment_variables = {}
 config.front_end = "Software"
 config.notification_handling = "AlwaysShow"
 
--- Catppuccin Frappe color palette
-local scheme_colors = {
-    rosewater = "#f2d5cf",
-    flamingo = "#eebebe",
-    pink = "#f4b8e4",
-    mauve = "#ca9ee6",
-    red = "#e78284",
-    maroon = "#ea999c",
-    peach = "#ef9f76",
-    yellow = "#e5c890",
-    green = "#a6d189",
-    teal = "#81c8be",
-    sky = "#99d1db",
-    sapphire = "#85c1dc",
-    blue = "#8caaee",
-    lavender = "#babbf1",
-    text = "#c6d0f5",
-    subtext1 = "#b5bfe2",
-    subtext0 = "#a5adce",
-    overlay2 = "#949cbb",
-    overlay1 = "#838ba7",
-    overlay0 = "#737994",
-    surface2 = "#626880",
-    surface1 = "#51576d",
-    surface0 = "#414559",
-    base = "#303446",
-    mantle = "#292c3c",
-    crust = "#232634",
-}
-
--- Colors for UI elements
-local colors = {
-    border = scheme_colors.lavender,
-    tab_bar_active_tab_fg = scheme_colors.mauve,
-    tab_bar_active_tab_bg = scheme_colors.crust,
-    tab_bar_text = scheme_colors.crust,
-    arrow_foreground_leader = scheme_colors.lavender,
-    arrow_background_leader = scheme_colors.crust,
-}
-
 local ShellTypes = {
     NONE = 0,
     CMD = 1,
@@ -71,12 +31,13 @@ local ShellTypes = {
 }
 
 local shellType = ShellTypes.WSL
+local pwsh = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 -- uncomment if I want to use clink only
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     -- PowerShell 7
     table.insert(launch_menu, {
         label = "PowerShell 7",
-        args = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" },
+        args = { pwsh, "-NoLogo" },
         domain = { DomainName = "local" },
     })
 
@@ -128,12 +89,12 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     end
 
     if shellType == ShellTypes.PowerShell then
-        config.default_prog = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" }
+        config.default_prog = { pwsh, "-NoLogo" }
     end
 
     if shellType == ShellTypes.WSL then
         config.default_domain = "WSL:Ubuntu"
-        config.default_prog = { "wsl.exe", "-d", "Ubuntu" }
+        config.default_prog = { pwsh, "-NoLogo" }
         config.wsl_domains = {
             {
                 name = "WSL:Ubuntu",
@@ -188,22 +149,18 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 
     local function split_current_pane(direction)
         return wezterm.action_callback(function(window, pane)
-            local cwd = pane:get_current_working_dir()
-            local command = {
-                domain = "CurrentPaneDomain",
-            }
+            local command = { domain = "CurrentPaneDomain" }
 
+            if pane:get_domain_name() == "local" then
+                command.args = { pwsh, "-NoLogo" }
+            end
+
+            local cwd = pane:get_current_working_dir()
             if cwd then
                 command.cwd = cwd
             end
 
-            window:perform_action(
-                act.SplitPane({
-                    direction = direction,
-                    command = command,
-                }),
-                pane
-            )
+            window:perform_action(act.SplitPane({ direction = direction, command = command }), pane)
         end)
     end
 
@@ -226,7 +183,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 mods = "SHIFT",
                 action = act.PromptInputLine({
                     description = wezterm.format({
-                        { Attribute = { Intensity = "Bold" } },
+                        { Attribute = { Underline = "Double" } },
                         { Foreground = { AnsiColor = "Fuchsia" } },
                         { Text = "Enter name for new workspace." },
                     }),
@@ -253,7 +210,16 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 }),
             },
             -- Tab navigation
-            { key = "t", action = act.SpawnTab("CurrentPaneDomain") },
+            {
+                key = "t",
+                action = wezterm.action_callback(function(window, pane)
+                    local command = { domain = "CurrentPaneDomain" }
+                    if pane:get_domain_name() == "local" then
+                        command.args = { pwsh, "-NoLogo" }
+                    end
+                    window:perform_action(act.SpawnCommandInNewTab(command), pane)
+                end),
+            },
             { key = "p", action = act.ActivateTabRelative(-1) },
             { key = "n", action = act.ActivateTabRelative(1) },
         },
@@ -315,8 +281,9 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 { "zoomed", padding = 0 },
             },
             tab_inactive = { "index", { "process", padding = { left = 0, right = 1 } } },
-            tabline_x = { "ram", "cpu" },
-            tabline_y = { "datetime", "battery" },
+            -- tabline_x = { "ram", "cpu" },
+            tabline_x = {},
+            tabline_y = { "datetime" },
             tabline_z = { "domain" },
         },
         extensions = {},
