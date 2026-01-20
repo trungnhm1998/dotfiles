@@ -30,6 +30,41 @@ check_for_software() {
 	fi
 }
 
+# Install software with package manager-specific package names
+# Usage: install_package <command_name> <apt_pkg> <brew_pkg> <pacman_pkg>
+install_package() {
+  local cmd_name="$1"
+  local apt_pkg="$2"
+  local brew_pkg="$3"
+  local pacman_pkg="$4"
+
+  echo "Checking to see if $cmd_name is installed"
+  if [ -x "$(command -v "$cmd_name")" ]; then
+    echo "$cmd_name is installed."
+    return
+  fi
+
+  echo -n "$cmd_name is not installed. Would you like to install it? (y/n) " >&2
+  old_stty_cfg=$(stty -g)
+  stty raw -echo
+  answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
+  stty "$old_stty_cfg" && echo
+
+  if echo "$answer" | grep -iq "^y"; then
+    if [ -x "$(command -v apt-get)" ]; then
+      sudo apt-get install "$apt_pkg" -y
+    elif [ -x "$(command -v brew)" ]; then
+      brew install "$brew_pkg"
+    elif [ -x "$(command -v pkg)" ]; then
+      sudo pkg install "$brew_pkg"  # FreeBSD pkg often uses same names as brew
+    elif [ -x "$(command -v pacman)" ]; then
+      sudo pacman -S "$pacman_pkg"
+    else
+      echo "I'm not sure what your package manager is! Please install $cmd_name on your own."
+    fi
+  fi
+}
+
 check_default_shell() {
 	if [ -z "${SHELL##*zsh*}" ]; then
 		echo "Default shell is zsh."
@@ -109,8 +144,30 @@ wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/
 bat cache --build
 echo
 
-check_for_software fd-find
-sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd # TODO: check for fdfind
+# Packages with different names across package managers
+# install_package <command> <apt_pkg> <brew_pkg> <pacman_pkg>
+install_package ffmpeg ffmpeg ffmpeg ffmpeg
+echo
+install_package 7z p7zip-full p7zip p7zip
+echo
+install_package jq jq jq jq
+echo
+install_package pdftotext poppler-utils poppler poppler
+echo
+install_package fd fd-find fd fd
+
+if [ -x "$(command -v "fdfind")" ]; then
+    sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd
+return
+fi
+echo
+install_package rg ripgrep ripgrep ripgrep
+echo
+install_package fzf fzf fzf fzf
+echo
+install_package zoxide zoxide zoxide zoxide
+echo
+install_package magick imagemagick imagemagick imagemagick
 echo
 
 ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
