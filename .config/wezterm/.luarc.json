@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "workspace": {
     "library": [
-      "${env:LOCALAPPDATA}\\nvim-data\\lazy\\wezterm-types"
+      "${env:LOCALAPPDATA}\\nvim-data\\lazy\\wezterm-types\\lua\\wezterm"
     ],
     "userThirdParty": [
     ],
