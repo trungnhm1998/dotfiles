@@ -90,6 +90,8 @@ _fzf_compgen_dir() {
 
 source "$HOME/fzf-git.sh/fzf-git.sh"
 
+alias fd='fdfind' # this might break on mac
+
 # --- zoxide ---
 eval "$(zoxide init zsh)"
 alias cd='z'

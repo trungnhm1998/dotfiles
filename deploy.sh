@@ -110,7 +110,7 @@ bat cache --build
 echo
 
 check_for_software fd-find
-alias fd='fdfind' # this might break on mac
+sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd # TODO: check for fdfind
 echo
 
 ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
