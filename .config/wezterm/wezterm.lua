@@ -2,6 +2,7 @@
 local wezterm = require("wezterm")
 
 local vim_smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smart-splits.nvim")
+local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabline.wez")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -12,39 +13,14 @@ config.max_fps = 240
 config.animation_fps = 240
 local launch_menu = {}
 
--- Helper to check if current pane is in a WSL domain
-local function is_wsl_pane(pane)
-    local domain_name = pane:get_domain_name()
-    print("is_wsl_pane: " .. tostring(domain_name))
-    return domain_name and domain_name:find("WSL") ~= nil
-end
-
--- This is where you actually apply your config choices
-
--- For example, changing the color scheme:
 config.color_scheme = "Catppuccin Frappe"
 config.window_decorations = "RESIZE"
 config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
-config.tab_and_split_indices_are_zero_based = true
+config.tab_and_split_indices_are_zero_based = false
 config.set_environment_variables = {}
 config.front_end = "Software"
 config.notification_handling = "AlwaysShow"
-
---[[
-============================
-Custom Configuration
-============================
-]]--
-
-local TAB_STYLES = {
-    ROUNDED = 1,
-    SQUARE = 2
-}
-local tab_style = TAB_STYLES.SQUARE
-
--- Leader active indicator prefix (ocean wave emoji)
-local leader_prefix = utf8.char(0x1f30a)
 
 -- Catppuccin Frappe color palette
 local scheme_colors = {
@@ -178,6 +154,13 @@ config.keys = {
 }
 
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+    -- Helper to check if current pane is in a WSL domain
+    local function is_wsl_pane(pane)
+        local domain_name = pane:get_domain_name()
+        print("is_wsl_pane: " .. tostring(domain_name))
+        return domain_name and domain_name:find("WSL") ~= nil
+    end
+
     -- Debug overlay (non-leader key, add to config.keys)
     table.insert(config.keys, { key = "L", mods = "CTRL", action = wezterm.action.ShowDebugOverlay })
 
@@ -191,11 +174,14 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
             else
                 -- Non-WSL pane: activate wezterm leader key table
-                window:perform_action(act.ActivateKeyTable({
-                    name = "leader",
-                    one_shot = true,
-                    timeout_milliseconds = 1000,
-                }), pane)
+                window:perform_action(
+                    act.ActivateKeyTable({
+                        name = "leader",
+                        one_shot = true,
+                        timeout_milliseconds = 1000,
+                    }),
+                    pane
+                )
             end
         end),
     })
@@ -211,10 +197,13 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
                 command.cwd = cwd
             end
 
-            window:perform_action(act.SplitPane({
-                direction = direction,
-                command = command,
-            }), pane)
+            window:perform_action(
+                act.SplitPane({
+                    direction = direction,
+                    command = command,
+                }),
+                pane
+            )
         end)
     end
 
@@ -278,103 +267,6 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         })
     end
 
-    --[[
-    ============================
-    Tab Bar - Custom Tab Title Formatting
-    ============================
-    ]]--
-    local function tab_title(tab_info)
-        local title = tab_info.tab_title
-        -- if the tab title is explicitly set, take that
-        if title and #title > 0 then
-            return title
-        end
-        -- Otherwise, use the title from the active pane in that tab
-        return tab_info.active_pane.title
-    end
-
-    wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-        local title = " " .. tab.tab_index .. ": " .. tab_title(tab) .. " "
-        local left_edge_text = ""
-        local right_edge_text = ""
-
-        if tab_style == TAB_STYLES.ROUNDED then
-            title = tab.tab_index .. ": " .. tab_title(tab)
-            title = wezterm.truncate_right(title, max_width - 2)
-            left_edge_text = wezterm.nerdfonts.ple_left_half_circle_thick
-            right_edge_text = wezterm.nerdfonts.ple_right_half_circle_thick
-        end
-
-        if tab.is_active then
-            return {
-                { Background = { Color = colors.tab_bar_active_tab_bg } },
-                { Foreground = { Color = colors.tab_bar_active_tab_fg } },
-                { Text = left_edge_text },
-                { Background = { Color = colors.tab_bar_active_tab_fg } },
-                { Foreground = { Color = colors.tab_bar_text } },
-                { Text = title },
-                { Background = { Color = colors.tab_bar_active_tab_bg } },
-                { Foreground = { Color = colors.tab_bar_active_tab_fg } },
-                { Text = right_edge_text },
-            }
-        end
-    end)
-
-    -- Create a status bar on the top right that shows the current workspace, leader status, and date
-    ---@param window Window
-    ---@param pane Pane
-    wezterm.on("update-right-status", function(window, pane)
-        local date = wezterm.strftime("%d-%m-%Y %H:%M:%S")
-        local key_table = window:active_key_table()
-        local leader_status = key_table and "[" .. key_table .. "] " or ""
-
-        window:set_right_status(wezterm.format({
-            { Attribute = { Underline = "Single" } },
-            { Attribute = { Italic = true } },
-            { Attribute = { Intensity = "Bold" } },
-            { Foreground = { AnsiColor = "Fuchsia" } },
-            { Text = leader_status },
-            { Text = window:active_workspace() },
-            { Text = "   " },
-            { Text = date },
-        }))
-    end)
-
-    --[[
-    ============================
-    Leader Active Indicator (Left Status)
-    ============================
-    ]]--
-    wezterm.on("update-status", function(window, _)
-        local solid_left_arrow = ""
-        local prefix = " " .. leader_prefix .. " "
-        local prefix_bg = colors.arrow_background_leader
-        local prefix_fg = scheme_colors.overlay1
-
-        -- Determine arrow style based on tab_style
-        if tab_style == TAB_STYLES.ROUNDED then
-            solid_left_arrow = wezterm.nerdfonts.ple_right_half_circle_thick
-        else
-            solid_left_arrow = wezterm.nerdfonts.pl_left_hard_divider
-        end
-
-        -- credit to https://github.com/dragonlobster/wezterm-config
-        -- leader is active - highlight background
-        if window:active_key_table() == "leader" then
-            prefix_bg = colors.arrow_foreground_leader
-            prefix_fg = scheme_colors.crust
-        end
-
-        window:set_left_status(wezterm.format({
-            { Background = { Color = prefix_bg } },
-            { Foreground = { Color = prefix_fg } },
-            { Text = prefix },
-            { Foreground = { Color = prefix_bg } },
-            { Background = { Color = colors.arrow_background_leader } },
-            { Text = solid_left_arrow },
-        }))
-    end)
-
     -- vim smart splits
     vim_smart_splits.apply_to_config(config, {
         -- directional keys to use in order of: left, down, up, right
@@ -391,13 +283,51 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         -- log level to use: info, warn, error
         log_level = "info",
     })
+
+    tabline.setup({
+        options = {
+            icons_enabled = true,
+            theme = "Catppuccin Frappe",
+            tabs_enabled = true,
+            theme_overrides = {},
+            section_separators = {
+                left = wezterm.nerdfonts.pl_left_hard_divider,
+                right = wezterm.nerdfonts.pl_right_hard_divider,
+            },
+            component_separators = {
+                left = wezterm.nerdfonts.pl_left_soft_divider,
+                right = wezterm.nerdfonts.pl_right_soft_divider,
+            },
+            tab_separators = {
+                left = wezterm.nerdfonts.pl_left_hard_divider,
+                right = wezterm.nerdfonts.pl_right_hard_divider,
+            },
+        },
+        sections = {
+            tabline_a = { "mode" },
+            tabline_b = { "workspace" },
+            tabline_c = { "" },
+            tab_active = {
+                "index",
+                { "parent", padding = 0 },
+                "/",
+                { "cwd", padding = { left = 0, right = 1 } },
+                { "zoomed", padding = 0 },
+            },
+            tab_inactive = { "index", { "process", padding = { left = 0, right = 1 } } },
+            tabline_x = { "ram", "cpu" },
+            tabline_y = { "datetime", "battery" },
+            tabline_z = { "domain" },
+        },
+        extensions = {},
+    })
 end
 
 -- local font_family = "JetBrains Mono" -- or JetBrainsMono Nerd Font, Fira Code
 local font = wezterm.font_with_fallback({
     "JetBrains Mono",
     "JetBrainsMono Nerd Font",
-    "Fira Code Nerd Font"
+    "Fira Code Nerd Font",
 })
 local macbookFontSize = 13
 local windowsFontSize = 10
@@ -417,9 +347,5 @@ config.inactive_pane_hsb = {
 }
 
 config.launch_menu = launch_menu
-
-wezterm.on('window-config-reloaded', function(window, pane)
-  window:toast_notification('wezterm', 'Configuration reloaded! ✅', nil, 4000)
-end)
 
 return config
