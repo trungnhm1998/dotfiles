@@ -8,8 +8,8 @@ local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabl
 local config = wezterm.config_builder()
 local act = wezterm.action
 
-local is_window = wezterm.target_triple == "x86_64-pc-windows-msvc"
-local is_mac_os = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
+local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
+local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
 
 -- max fps
 config.max_fps = 240
@@ -34,9 +34,22 @@ local ShellTypes = {
 }
 
 local shellType = ShellTypes.WSL
-local pwsh = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+-- Detect PowerShell 7 path dynamically
+local pwsh_paths = {
+    "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "C:\\Program Files\\PowerShell\\pwsh.exe",
+}
+local pwsh = pwsh_paths[1] -- default
+for _, path in ipairs(pwsh_paths) do
+    local f = io.open(path, "r")
+    if f then
+        f:close()
+        pwsh = path
+        break
+    end
+end
 -- uncomment if I want to use clink only
-if is_window then
+if is_windows then
     -- PowerShell 7
     table.insert(launch_menu, {
         label = "PowerShell 7",
@@ -57,8 +70,8 @@ if is_window then
         domain = { DomainName = "WSL:Ubuntu" },
     })
 
-    -- Cmder (adjust path to your actual cmder_root if needed)
-    local cmder_root = os.getenv("cmder_root") or "C:\\tools\\cmder"
+    -- Cmder (use environment variable or fallback to default path)
+    local cmder_root = os.getenv("cmder_root") or os.getenv("CMDER_ROOT") or "C:\\tools\\cmder"
     table.insert(launch_menu, {
         label = "Cmder",
         args = { "cmd.exe", "/s", "/k", cmder_root .. "\\vendor\\init.bat" },
@@ -301,7 +314,7 @@ local font = wezterm.font_with_fallback({
 local macbookFontSize = 13
 local windowsFontSize = 10
 config.font = font
-config.font_size = is_mac_os and macbookFontSize or windowsFontSize
+config.font_size = is_macos and macbookFontSize or windowsFontSize
 
 --ref: https://wezfurlong.org/wezterm/config/lua/config/freetype_pcf_long_family_names.html#why-doesnt-wezterm-use-the-distro-freetype-or-match-its-configuration
 config.freetype_load_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
