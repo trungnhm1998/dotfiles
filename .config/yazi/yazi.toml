@@ -2,19 +2,43 @@
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
+# Opener Strategy:
+# - edit: Uses $EDITOR (respects user preference) or fallback to vi/code
+# - nvim: Explicitly calls nvim binary
+# - code: VSCode in non-blocking orphan mode
+# - cursor: Cursor AI editor in non-blocking orphan mode
+# - markdown: Glow TUI preview, with nvim/vscode fallbacks
+# - play: Default system handler for media
+# - open: System default application
+# - reveal: Show in file manager
+#
+# Opener Modes:
+# - block: Yazi waits for editor to close before continuing (good for terminal editors)
+# - orphan: Editor runs independently, Yazi continues immediately (good for GUI apps)
+
 [mgr]
 show_hidden = true
 
 [opener]
+# Default editor - respects $EDITOR environment variable
 edit = [
     { run = "${EDITOR:-vi} %s", desc = "$EDITOR", for = "unix", block = true },
     { run = "code -w %s", desc = "code (block)", for = "windows", block = true },
 ]
+# Neovim - explicit binary call (no platform restriction needed, same command everywhere)
 nvim = [
-    { run = "${EDITOR:-vi} %s", desc = "NVim", block = true },
+    { run = "nvim %s", desc = "NVim", block = true },
 ]
-code = [{ run = "code %s", desc = "code", orphan = true }]
-cursor = [{ run = "cursor %s", desc = "cursorai", orphan = true }]
+# VSCode - non-blocking GUI mode
+code = [{ run = "code %s", desc = "VSCode", orphan = true }]
+# Cursor AI - non-blocking GUI mode
+cursor = [{ run = "cursor %s", desc = "Cursor", orphan = true }]
+# Markdown - TUI preview with glow, fallback to editors
+markdown = [
+    { run = "glow -p %s", desc = "Glow", block = true },
+    { run = "nvim %s", desc = "NVim", block = true },
+    { run = "code %s", desc = "VSCode", orphan = true },
+]
 
 [open]
 rules = [
@@ -22,6 +46,15 @@ rules = [
     { url = "*/", use = [
         "edit",
         "open",
+        "reveal",
+    ] },
+    # Markdown - must be BEFORE text/* to match first (more specific rule)
+    { mime = "text/markdown", use = [
+        "markdown",
+        "nvim",
+        "edit",
+        "code",
+        "cursor",
         "reveal",
     ] },
     # Text
