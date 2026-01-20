@@ -98,6 +98,16 @@ check_for_software wget
 echo
 check_for_software git
 echo
+check_for_software bat
+echo
+mkdir -p ~/.local/bin
+ln -s /usr/bin/batcat ~/.local/bin/bat
+mkdir -p "$(bat --config-dir)/themes"
+wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Latte.tmTheme
+wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Frappe.tmTheme
+wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Macchiato.tmTheme
+wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
+bat cache --build
 
 ZSH_CUSTOM=~/.oh-my-zsh/custom
 
@@ -168,6 +178,7 @@ ln -sf "$HOME/dotfiles/.config/yazi" "$HOME/.config/yazi"
 ln -sf "$HOME/dotfiles/.config/nvim" "$HOME/.config/nvim"
 ln -sf "$HOME/dotfiles/.config/powershell" "$HOME/.config/powershell"
 ln -sf "$HOME/dotfiles/.config/wezterm" "$HOME/.config/wezterm"
+ln -sf "$HOME/dotfiles/.config/bat/config" "$HOME/.config/bat/config"
 
 check_default_shell
 
