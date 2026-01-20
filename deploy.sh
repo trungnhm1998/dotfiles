@@ -31,38 +31,51 @@ check_for_software() {
 }
 
 # Install software with package manager-specific package names
-# Usage: install_package <command_name> <apt_pkg> <brew_pkg> <pacman_pkg>
+# Usage: install_package <command_name> <apt_pkg> <brew_pkg> <pacman_pkg> [custom_installer_func]
+# Use "-" or "0" as package name to skip that package manager (will fall through to custom installer)
 install_package() {
-  local cmd_name="$1"
-  local apt_pkg="$2"
-  local brew_pkg="$3"
-  local pacman_pkg="$4"
+	local cmd_name="$1"
+	local apt_pkg="$2"
+	local brew_pkg="$3"
+	local pacman_pkg="$4"
+	local custom_installer="$5"
 
-  echo "Checking to see if $cmd_name is installed"
-  if [ -x "$(command -v "$cmd_name")" ]; then
-    echo "$cmd_name is installed."
-    return
-  fi
+	echo "Checking to see if $cmd_name is installed"
+	if [ -x "$(command -v "$cmd_name")" ]; then
+		echo "$cmd_name is installed."
+		return
+	fi
 
-  echo -n "$cmd_name is not installed. Would you like to install it? (y/n) " >&2
-  old_stty_cfg=$(stty -g)
-  stty raw -echo
-  answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-  stty "$old_stty_cfg" && echo
+	echo -n "$cmd_name is not installed. Would you like to install it? (y/n) " >&2
+	old_stty_cfg=$(stty -g)
+	stty raw -echo
+	answer=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
+	stty "$old_stty_cfg" && echo
 
-  if echo "$answer" | grep -iq "^y"; then
-    if [ -x "$(command -v apt-get)" ]; then
-      sudo apt-get install "$apt_pkg" -y
-    elif [ -x "$(command -v brew)" ]; then
-      brew install "$brew_pkg"
-    elif [ -x "$(command -v pkg)" ]; then
-      sudo pkg install "$brew_pkg"  # FreeBSD pkg often uses same names as brew
-    elif [ -x "$(command -v pacman)" ]; then
-      sudo pacman -S "$pacman_pkg"
-    else
-      echo "I'm not sure what your package manager is! Please install $cmd_name on your own."
-    fi
-  fi
+	if echo "$answer" | grep -iq "^y"; then
+		local installed=false
+
+		if [ -x "$(command -v apt-get)" ] && [ "$apt_pkg" != "-" ] && [ "$apt_pkg" != "0" ]; then
+			sudo apt-get install "$apt_pkg" -y
+			installed=true
+		elif [ -x "$(command -v brew)" ] && [ "$brew_pkg" != "-" ] && [ "$brew_pkg" != "0" ]; then
+			brew install "$brew_pkg"
+			installed=true
+		elif [ -x "$(command -v pkg)" ] && [ "$brew_pkg" != "-" ] && [ "$brew_pkg" != "0" ]; then
+			sudo pkg install "$brew_pkg" # FreeBSD pkg often uses same names as brew
+			installed=true
+		elif [ -x "$(command -v pacman)" ] && [ "$pacman_pkg" != "-" ] && [ "$pacman_pkg" != "0" ]; then
+			sudo pacman -S "$pacman_pkg"
+			installed=true
+		fi
+
+		# If no package manager handled it and we have a custom installer, use it
+		if [ "$installed" = false ] && [ -n "$custom_installer" ]; then
+			$custom_installer
+		elif [ "$installed" = false ]; then
+			echo "I'm not sure what your package manager is! Please install $cmd_name on your own."
+		fi
+	fi
 }
 
 check_default_shell() {
@@ -118,7 +131,7 @@ if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 fi
 if [ ! -d "$HOME/fzf-git" ]; then
 	echo "Installing fzf-git.sh..."
-	git clone https://github.com/junegunn/fzf-git.sh "$HOME/fzf-git" || echo "Failed to install fzf-git"
+	git clone --depth 1 https://github.com/junegunn/fzf-git.sh "$HOME/fzf-git" || echo "Failed to install fzf-git"
 fi
 # default tmux theme
 if [ ! -d "$HOME/.config/tmux/plugins/catppuccin" ]; then
@@ -157,13 +170,24 @@ echo
 install_package fd fd-find fd fd
 
 if [ -x "$(command -v "fdfind")" ]; then
-    sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd
-return
+	sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd
+	return
 fi
 echo
 install_package rg ripgrep ripgrep ripgrep
 echo
-install_package fzf fzf fzf fzf
+# fzf: Install via git clone on apt systems for latest version with better integration
+install_fzf_git() {
+	if [ ! -d "$HOME/.fzf" ]; then
+		echo "Installing fzf via git..."
+		git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+		"$HOME/.fzf/install" --all
+	else
+		echo "fzf directory exists, running install script..."
+		"$HOME/.fzf/install" --all
+	fi
+}
+install_package fzf - fzf fzf install_fzf_git
 echo
 install_package zoxide zoxide zoxide zoxide
 echo
