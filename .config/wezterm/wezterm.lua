@@ -6,6 +6,10 @@ local vim_smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/
 -- This will hold the configuration.
 local config = wezterm.config_builder()
 local act = wezterm.action
+
+-- max fps
+config.max_fps = 240
+config.animation_fps = 240
 local launch_menu = {}
 
 -- Helper to check if current pane is in a WSL domain
@@ -20,11 +24,67 @@ end
 -- For example, changing the color scheme:
 config.color_scheme = "Catppuccin Frappe"
 config.window_decorations = "RESIZE"
-config.use_fancy_tab_bar = true
+config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
+config.tab_and_split_indices_are_zero_based = true
 config.set_environment_variables = {}
 config.front_end = "Software"
 config.notification_handling = "AlwaysShow"
+
+--[[
+============================
+Custom Configuration
+============================
+]]--
+
+local TAB_STYLES = {
+    ROUNDED = 1,
+    SQUARE = 2
+}
+local tab_style = TAB_STYLES.SQUARE
+
+-- Leader active indicator prefix (ocean wave emoji)
+local leader_prefix = utf8.char(0x1f30a)
+
+-- Catppuccin Frappe color palette
+local scheme_colors = {
+    rosewater = "#f2d5cf",
+    flamingo = "#eebebe",
+    pink = "#f4b8e4",
+    mauve = "#ca9ee6",
+    red = "#e78284",
+    maroon = "#ea999c",
+    peach = "#ef9f76",
+    yellow = "#e5c890",
+    green = "#a6d189",
+    teal = "#81c8be",
+    sky = "#99d1db",
+    sapphire = "#85c1dc",
+    blue = "#8caaee",
+    lavender = "#babbf1",
+    text = "#c6d0f5",
+    subtext1 = "#b5bfe2",
+    subtext0 = "#a5adce",
+    overlay2 = "#949cbb",
+    overlay1 = "#838ba7",
+    overlay0 = "#737994",
+    surface2 = "#626880",
+    surface1 = "#51576d",
+    surface0 = "#414559",
+    base = "#303446",
+    mantle = "#292c3c",
+    crust = "#232634",
+}
+
+-- Colors for UI elements
+local colors = {
+    border = scheme_colors.lavender,
+    tab_bar_active_tab_fg = scheme_colors.mauve,
+    tab_bar_active_tab_bg = scheme_colors.crust,
+    tab_bar_text = scheme_colors.crust,
+    arrow_foreground_leader = scheme_colors.lavender,
+    arrow_background_leader = scheme_colors.crust,
+}
 
 local ShellTypes = {
     NONE = 0,
@@ -140,6 +200,24 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         end),
     })
 
+    local function split_current_pane(direction)
+        return wezterm.action_callback(function(window, pane)
+            local cwd = pane:get_current_working_dir()
+            local command = {
+                domain = "CurrentPaneDomain",
+            }
+
+            if cwd then
+                command.cwd = cwd
+            end
+
+            window:perform_action(act.SplitPane({
+                direction = direction,
+                command = command,
+            }), pane)
+        end)
+    end
+
     -- Define leader key table with all leader bindings
     config.key_tables = {
         leader = {
@@ -148,11 +226,11 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
             -- Launcher
             { key = "T", mods = "SHIFT", action = act.ShowLauncher },
             -- Split horizontal
-            { key = "|", mods = "SHIFT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-            { key = "v", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+            { key = "|", mods = "SHIFT", action = split_current_pane("Right") },
+            { key = "v", action = split_current_pane("Right") },
             -- Split vertical
-            { key = "-", mods = "SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-            { key = "s", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+            { key = "-", mods = "SHIFT", action = split_current_pane("Down") },
+            { key = "s", action = split_current_pane("Down") },
             -- Switch to new or existing workspace
             {
                 key = "W",
@@ -200,6 +278,48 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
         })
     end
 
+    --[[
+    ============================
+    Tab Bar - Custom Tab Title Formatting
+    ============================
+    ]]--
+    local function tab_title(tab_info)
+        local title = tab_info.tab_title
+        -- if the tab title is explicitly set, take that
+        if title and #title > 0 then
+            return title
+        end
+        -- Otherwise, use the title from the active pane in that tab
+        return tab_info.active_pane.title
+    end
+
+    wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+        local title = " " .. tab.tab_index .. ": " .. tab_title(tab) .. " "
+        local left_edge_text = ""
+        local right_edge_text = ""
+
+        if tab_style == TAB_STYLES.ROUNDED then
+            title = tab.tab_index .. ": " .. tab_title(tab)
+            title = wezterm.truncate_right(title, max_width - 2)
+            left_edge_text = wezterm.nerdfonts.ple_left_half_circle_thick
+            right_edge_text = wezterm.nerdfonts.ple_right_half_circle_thick
+        end
+
+        if tab.is_active then
+            return {
+                { Background = { Color = colors.tab_bar_active_tab_bg } },
+                { Foreground = { Color = colors.tab_bar_active_tab_fg } },
+                { Text = left_edge_text },
+                { Background = { Color = colors.tab_bar_active_tab_fg } },
+                { Foreground = { Color = colors.tab_bar_text } },
+                { Text = title },
+                { Background = { Color = colors.tab_bar_active_tab_bg } },
+                { Foreground = { Color = colors.tab_bar_active_tab_fg } },
+                { Text = right_edge_text },
+            }
+        end
+    end)
+
     -- Create a status bar on the top right that shows the current workspace, leader status, and date
     ---@param window Window
     ---@param pane Pane
@@ -217,6 +337,41 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
             { Text = window:active_workspace() },
             { Text = "   " },
             { Text = date },
+        }))
+    end)
+
+    --[[
+    ============================
+    Leader Active Indicator (Left Status)
+    ============================
+    ]]--
+    wezterm.on("update-status", function(window, _)
+        local solid_left_arrow = ""
+        local prefix = " " .. leader_prefix .. " "
+        local prefix_bg = colors.arrow_background_leader
+        local prefix_fg = scheme_colors.overlay1
+
+        -- Determine arrow style based on tab_style
+        if tab_style == TAB_STYLES.ROUNDED then
+            solid_left_arrow = wezterm.nerdfonts.ple_right_half_circle_thick
+        else
+            solid_left_arrow = wezterm.nerdfonts.pl_left_hard_divider
+        end
+
+        -- credit to https://github.com/dragonlobster/wezterm-config
+        -- leader is active - highlight background
+        if window:active_key_table() == "leader" then
+            prefix_bg = colors.arrow_foreground_leader
+            prefix_fg = scheme_colors.crust
+        end
+
+        window:set_left_status(wezterm.format({
+            { Background = { Color = prefix_bg } },
+            { Foreground = { Color = prefix_fg } },
+            { Text = prefix },
+            { Foreground = { Color = prefix_bg } },
+            { Background = { Color = colors.arrow_background_leader } },
+            { Text = solid_left_arrow },
         }))
     end)
 
