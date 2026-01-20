@@ -22,7 +22,7 @@ config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_and_split_indices_are_zero_based = false
 config.set_environment_variables = {}
-config.front_end = "Software"
+config.front_end = "WebGpu"
 config.notification_handling = "AlwaysShow"
 
 local ShellTypes = {
