@@ -94,7 +94,7 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 
     if shellType == ShellTypes.WSL then
         config.default_domain = "WSL:Ubuntu"
-        config.default_prog = { pwsh, "-NoLogo" }
+        config.default_prog = { "wsl.exe" }
         config.wsl_domains = {
             {
                 name = "WSL:Ubuntu",
