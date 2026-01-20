@@ -73,7 +73,8 @@ source "$HOME/dotfiles/zsh/keybindings.sh"
 # Set up fzf key bindings and fuzzy completion
 # source <(fzf --zsh)
 [ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
-export FZF_DEFAULT_OPTS="--style full --preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse"
+# Use tmux popup (center, 90% size) when in tmux, otherwise normal mode
+export FZF_DEFAULT_OPTS="--style full --preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse --tmux center,90%,90%"
 
 # -- Use fs instead of fzf --
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
