@@ -145,7 +145,7 @@ nnoremap <leader>e :NERDTreeToggle<CR>
 
 " Go to...
 nmap gh <Action>(QuickJavaDoc)
-nmap gr <Action>(FindUsages)
+nmap <leader>gr <Action>(FindUsages)
 nmap gu <Action>(ShowUsages)
 nmap gi <Action>(GotoImplementation)
 nmap gI <Action>(QuickImplementations)
