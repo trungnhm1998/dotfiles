@@ -1,0 +1,8 @@
+# Lazygit state files (local user data)
+# Contains recent repos, command history, and user preferences
+state.yml
+
+# Backup files
+*.backup
+*.backup_*
+*.bak

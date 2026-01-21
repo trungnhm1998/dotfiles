@@ -1,7 +1,7 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "4e55902"
-hash = "f59b1487ee5bfa5f1486988b8057a825"
+rev = "de33976"
+hash = "36a484acf6a0a0219c543ccb4cee218f"
 
 [[plugin.deps]]
 use = "AnirudhG07/rich-preview"
@@ -20,20 +20,20 @@ hash = "59ab6275308202d17e3b5383d03ce5b4"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:piper"
-rev = "4e55902"
-hash = "c43a03c39a04b81bc9a80188d25bbc38"
+rev = "de33976"
+hash = "76ea4ff62db6ebe62e4653c2de95cbd"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-macchiato"
-rev = "fd85060"
-hash = ""
+rev = "ca61658"
+hash = "2f60298d6c26b6d388c8091a9389fa8f"
 
 [[flavor.deps]]
 use = "dangooddd/kanagawa"
-rev = "d98f0c3"
-hash = ""
+rev = "04985d1"
+hash = "c69a63981e254a3a06a11c2bf0e6af1d"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
-rev = "fd85060"
-hash = ""
+rev = "ca61658"
+hash = "e25fb61c14484de843b52430a72b5196"

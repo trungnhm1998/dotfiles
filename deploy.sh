@@ -96,11 +96,6 @@ install_lazygit_binary() {
 	sudo install /tmp/lazygit -D -t /usr/local/bin/
 	rm -f /tmp/lazygit.tar.gz /tmp/lazygit
 
-	# Install Catppuccin Frappe theme
-	echo "Installing Catppuccin Frappe theme for Lazygit..."
-	mkdir -p "$HOME/.config/lazygit"
-	curl -Lo "$HOME/.config/lazygit/config.yml" "https://raw.githubusercontent.com/catppuccin/lazygit/main/themes/frappe/blue.yml"
-
 	echo "Lazygit installed successfully!"
 }
 
@@ -350,6 +345,7 @@ ln -sf "$HOME/dotfiles/.config/nvim" "$HOME/.config/nvim"
 ln -sf "$HOME/dotfiles/.config/powershell" "$HOME/.config/powershell"
 ln -sf "$HOME/dotfiles/.config/wezterm" "$HOME/.config/wezterm"
 ln -sf "$HOME/dotfiles/.config/bat/config" "$HOME/.config/bat/config"
+ln -sf "$HOME/dotfiles/.config/lazygit" "$HOME/.config/lazygit"
 
 check_default_shell
 

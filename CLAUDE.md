@@ -98,6 +98,7 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 | Yabai | `.config/yabai/yabairc` |
 | SKHD | `.config/skhd/skhdrc` |
 | Tmux | `tmux/tmux.conf` |
+| Lazygit | `.config/lazygit/config.yml` |
 | Zsh | `zsh/zshrc.sh` (main), `zsh/zshrc_manager.sh` (entry point) |
 | Starship | `.config/starship.toml` |
 | IDEVim | `.ideavimrc` |
