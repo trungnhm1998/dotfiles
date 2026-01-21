@@ -211,7 +211,12 @@ install_package zoxide zoxide zoxide zoxide
 echo
 install_package magick imagemagick imagemagick imagemagick
 echo
-install_package starship starship starship starship
+# starship: Install via official installer for system-wide installation (works on macOS and Linux)
+install_starship_curl() {
+	echo "Installing starship via official installer (system-wide to /usr/local/bin)..."
+	curl -sS https://starship.rs/install.sh | sh -s -- --bin-dir /usr/local/bin --yes
+}
+install_package starship - - - install_starship_curl
 echo
 install_package eza eza eza eza
 echo
