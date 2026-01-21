@@ -19,6 +19,11 @@ if [ -x "$(command -v vivid)" ]; then
 	export LS_COLORS=$LS_COLORS:"tw=30;42:ow=30;42"
 fi
 
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 # --- pyenv ---
 # Skip if pyenv is a Windows executable (WSL2 PATH pollution)
 if command -v pyenv >/dev/null 2>&1; then
