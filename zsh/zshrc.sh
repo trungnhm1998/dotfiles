@@ -11,6 +11,7 @@ export PATH=$PATH:/usr/local/nodejs/bin
 export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
