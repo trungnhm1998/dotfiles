@@ -78,6 +78,52 @@ install_package() {
 	fi
 }
 
+# lazygit: Install latest from GitHub releases (apt version is outdated or unavailable)
+install_lazygit_binary() {
+	echo "Installing latest Lazygit from GitHub releases..."
+
+	LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": *"v\K[^"]*')
+
+	if [ -z "$LAZYGIT_VERSION" ]; then
+		echo "Failed to fetch latest Lazygit version"
+		return 1
+	fi
+
+	echo "Latest version: v${LAZYGIT_VERSION}"
+
+	curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+	tar xf /tmp/lazygit.tar.gz -C /tmp lazygit
+	sudo install /tmp/lazygit -D -t /usr/local/bin/
+	rm -f /tmp/lazygit.tar.gz /tmp/lazygit
+
+	# Install Catppuccin Frappe theme
+	echo "Installing Catppuccin Frappe theme for Lazygit..."
+	mkdir -p "$HOME/.config/lazygit"
+	curl -Lo "$HOME/.config/lazygit/config.yml" "https://raw.githubusercontent.com/catppuccin/lazygit/main/themes/frappe/blue.yml"
+
+	echo "Lazygit installed successfully!"
+}
+
+# neovim: Install latest from GitHub releases (apt version 0.9.5 is outdated)
+install_neovim_tarball() {
+	echo "Installing latest Neovim from GitHub releases..."
+
+	curl -Lo /tmp/nvim-linux-x86_64.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+
+	if [ ! -f /tmp/nvim-linux-x86_64.tar.gz ]; then
+		echo "Failed to download Neovim"
+		return 1
+	fi
+
+	sudo rm -rf /opt/nvim-linux-x86_64
+	sudo tar -C /opt -xzf /tmp/nvim-linux-x86_64.tar.gz
+	sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+	rm -f /tmp/nvim-linux-x86_64.tar.gz
+
+	echo "Neovim installed successfully!"
+	nvim --version
+}
+
 check_default_shell() {
 	if [ -z "${SHELL##*zsh*}" ]; then
 		echo "Default shell is zsh."
@@ -221,6 +267,21 @@ echo
 install_package eza eza eza eza
 echo
 install_package yazi - - yazi
+echo
+
+install_lazygit() {
+	echo "Installing latest Lazygit..."
+	LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+	curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+	tar xf lazygit.tar.gz lazygit
+	sudo install lazygit /usr/local/bin
+	rm lazygit lazygit.tar.gz
+}
+install_package lazygit - lazygit lazygit install_lazygit
+echo
+install_package lazygit - lazygit lazygit install_lazygit_binary
+echo
+install_package nvim - neovim neovim install_neovim_tarball
 echo
 
 ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
