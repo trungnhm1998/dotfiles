@@ -193,10 +193,6 @@ if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
 	echo "Installing TPM (Tmux Plugin Manager)..."
 	git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" || echo "Failed to install TPM"
 fi
-if [ ! -d "$HOME/fzf-git" ]; then
-	echo "Installing fzf-git.sh..."
-	git clone --depth 1 https://github.com/junegunn/fzf-git.sh "$HOME/fzf-git" || echo "Failed to install fzf-git"
-fi
 # default tmux theme
 if [ ! -d "$HOME/.config/tmux/plugins/catppuccin" ]; then
 	echo "Installing catppuccin tmux theme..."
@@ -251,7 +247,7 @@ install_fzf_git() {
 		"$HOME/.fzf/install" --all
 	fi
 }
-install_package fzf - fzf fzf install_fzf_git
+install_package fzf install_fzf_git fzf fzf
 echo
 install_package zoxide zoxide zoxide zoxide
 echo
