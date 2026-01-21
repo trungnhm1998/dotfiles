@@ -25,9 +25,16 @@ if [ -x "$(command -v vivid)" ]; then
 fi
 
 # --- pyenv ---
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
+# Skip if pyenv is a Windows executable (WSL2 PATH pollution)
+if command -v pyenv >/dev/null 2>&1; then
+    pyenv_path=$(command -v pyenv)
+    # Skip if pyenv is in /mnt/c (Windows drive in WSL)
+    if [[ "$pyenv_path" != /mnt/c* ]]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init --path)"
+    fi
+fi
 
 # --- ruby env ---
 # export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
@@ -89,9 +96,7 @@ _fzf_compgen_dir() {
 	fd --type=d --hidden --exclude .git . "$1"
 }
 
-source "$HOME/fzf-git.sh/fzf-git.sh"
-
-alias fd='fdfind' # this might break on mac
+[ -f "$HOME/fzf-git/fzf-git.sh" ] && source "$HOME/fzf-git/fzf-git.sh"
 
 # --- zoxide ---
 eval "$(zoxide init zsh)"

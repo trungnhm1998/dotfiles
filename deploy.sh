@@ -113,6 +113,24 @@ else
 	exit 0
 fi
 
+# Detect WSL2 and warn about Windows PATH pollution
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo
+    echo "========================================="
+    echo "⚠️  WSL2 Environment Detected"
+    echo "========================================="
+    echo "Windows programs in your PATH may cause conflicts."
+    echo ""
+    echo "Common issues:"
+    echo "  • pyenv-win instead of Linux pyenv"
+    echo "  • Windows commands executed instead of Linux versions"
+    echo ""
+    echo "This script will install Linux versions of all tools."
+    echo "The zsh configuration includes guards to prevent conflicts."
+    echo "========================================="
+    echo
+fi
+
 check_for_software zsh
 echo
 check_for_software vim
@@ -168,10 +186,10 @@ echo
 install_package pdftotext poppler-utils poppler poppler
 echo
 install_package fd fd-find fd fd
-
-if [ -x "$(command -v "fdfind")" ]; then
-	sudo ln -s "$(command -v fdfind)" /usr/local/bin/fd
-	return
+# Create fd symlink if fdfind exists (Ubuntu package name is fd-find)
+if [ -x "$(command -v fdfind)" ] && [ ! -x "$(command -v fd)" ]; then
+    echo "Creating fd symlink for fdfind..."
+    sudo ln -sf "$(command -v fdfind)" /usr/local/bin/fd
 fi
 echo
 install_package rg ripgrep ripgrep ripgrep
@@ -192,6 +210,12 @@ echo
 install_package zoxide zoxide zoxide zoxide
 echo
 install_package magick imagemagick imagemagick imagemagick
+echo
+install_package starship starship starship starship
+echo
+install_package eza eza eza eza
+echo
+install_package yazi - - yazi
 echo
 
 ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
