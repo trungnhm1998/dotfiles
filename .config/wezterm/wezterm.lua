@@ -9,7 +9,8 @@ local config = wezterm.config_builder()
 local act = wezterm.action
 
 local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
-local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin") or false
+local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
+    or false
 
 -- max fps
 config.max_fps = 144
@@ -50,6 +51,9 @@ for _, path in ipairs(pwsh_paths) do
 end
 -- uncomment if I want to use clink only
 if is_windows then
+    local distro = "Ubuntu-24.04"
+    local wsl_domain = "WSL:" .. distro
+
     -- PowerShell 7
     table.insert(launch_menu, {
         label = "PowerShell 7",
@@ -67,7 +71,7 @@ if is_windows then
     -- WSL2 default distro
     table.insert(launch_menu, {
         label = "WSL2 (default)",
-        domain = { DomainName = "WSL:Ubuntu" },
+        domain = { DomainName = wsl_domain },
     })
 
     -- Cmder (use environment variable or fallback to default path)
@@ -109,12 +113,12 @@ if is_windows then
     end
 
     if shellType == ShellTypes.WSL then
-        config.default_domain = "WSL:Ubuntu"
+        config.default_domain = wsl_domain
         config.default_prog = { "wsl.exe" }
         config.wsl_domains = {
             {
-                name = "WSL:Ubuntu",
-                distribution = "Ubuntu",
+                name = wsl_domain,
+                distribution = distro,
                 default_cwd = "~",
             },
         }
