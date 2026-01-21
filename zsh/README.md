@@ -165,3 +165,50 @@ Windows uses **PowerShell 7** (configured in `.config/powershell/`) because:
 - Verify tmux is installed: `which tmux`
 - Check `zshrc_manager.sh` for correct tmux logic
 - Ensure not running in IDE terminal
+
+### FZF Unknown Option Errors
+
+**Symptoms:**
+- Error: `unknown option: --style` when sourcing ~/.zshrc
+- Error: `unknown option: --tmux` when sourcing ~/.zshrc
+
+**Root Cause:**
+The `FZF_DEFAULT_OPTS` environment variable in `zshrc.sh` (line 84) contains options that are only available in newer fzf versions:
+- `--style full` - Not a valid fzf option (belongs to bat)
+- `--tmux center,90%,90%` - Requires fzf >= 0.44.0
+
+**System-Specific Versions:**
+- **Debian/Ubuntu**: apt installs fzf 0.42.0 (older, lacks `--tmux`)
+- **fzf-git repo**: May have newer features but requires manual install
+- **Homebrew**: Typically has latest version
+
+**Solutions:**
+
+1. **Remove incompatible flags** (current approach in repo):
+   ```bash
+   export FZF_DEFAULT_OPTS="--preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse"
+   ```
+
+2. **Upgrade fzf** (if tmux integration is needed):
+   ```bash
+   # Remove apt version
+   sudo apt remove fzf
+   
+   # Install latest from git
+   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+   ~/.fzf/install --all
+   
+   # Or use fzf-tmux wrapper directly
+   export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+   export FZF_DEFAULT_OPTS="--preview 'fzf-preview.sh {}' --layout=reverse"
+   # Use fzf-tmux for tmux integration instead of --tmux flag
+   ```
+
+3. **Check installed fzf version:**
+   ```bash
+   fzf --version
+   ```
+
+**Reference:**
+- Issue encountered 2026-01-21: Debian fzf 0.42.0 lacks `--tmux` support
+- `--style` is a bat option (line 47 of fzf-preview.sh), not an fzf option

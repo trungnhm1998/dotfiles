@@ -11,7 +11,6 @@ export PATH=$PATH:/usr/local/nodejs/bin
 export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
-export YAZI_CONFIG=$HOME/.config/yazi
 
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
@@ -78,10 +77,10 @@ source "$HOME/dotfiles/zsh/keybindings.sh"
 
 # ---- FZF ----
 # Set up fzf key bindings and fuzzy completion
-# source <(fzf --zsh)
 [ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
+source <(fzf --zsh)
 # Use tmux popup (center, 90% size) when in tmux, otherwise normal mode
-export FZF_DEFAULT_OPTS="--style full --preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse --tmux center,90%,90%"
+export FZF_DEFAULT_OPTS="--preview 'fzf-preview.sh {}' --bind 'focus:transform-header:file --brief {}' --layout=reverse"
 
 # -- Use fs instead of fzf --
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
