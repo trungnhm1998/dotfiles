@@ -238,6 +238,8 @@ if is_windows then
             },
             { key = "p", action = act.ActivateTabRelative(-1) },
             { key = "n", action = act.ActivateTabRelative(1) },
+            -- Zoom pane toggle (mimics tmux prefix + z)
+            { key = "z", action = act.TogglePaneZoomState },
         },
     }
 
@@ -294,7 +296,7 @@ if is_windows then
                 { "parent", padding = 0 },
                 "/",
                 { "cwd", padding = { left = 0, right = 1 } },
-                { "zoomed", padding = 0 },
+                { "zoomed", padding = 0, icons = { zoomed = "🔍" } },
             },
             tab_inactive = { "index", { "process", padding = { left = 0, right = 1 } } },
             -- tabline_x = { "ram", "cpu" },
