@@ -45,14 +45,14 @@ fi
 # export PATH="$PATH:$GEM_HOME/bin"
 
 # --- yazi cd to directory after exit ---
-# function y() {
-# 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-# 	yazi "$@" --cwd-file="$tmp"
-# 	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-# 		builtin cd -- "$cwd"
-# 	fi
-# 	rm -f -- "$tmp"
-# }
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
 
 # --- zsh and oh-my-zsh ---
 
@@ -88,7 +88,7 @@ export FZF_DEFAULT_OPTS=" \
 --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 \
 --color=selected-bg:#51576D \
 --color=border:#737994,label:#C6D0F5 \
---height 50%
+--height 50% \
 --layout reverse --border top \
 --inline-info \
 --tmux center" # Open in tmux popup if on tmux, otherwise use --height mode
