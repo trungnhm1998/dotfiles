@@ -10,22 +10,23 @@ Import-Module Terminal-Icons
 Import-Module PSReadLine
 Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
+$env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
+
 Set-PSReadLineOption -EditMode vi
+Set-PSReadLineOption -ViModeIndicator Cursor
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
 
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
-Set-PSReadLineOption -ViModeIndicator Cursor
+# Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+# Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 # F2: enter screen capture/selection mode (scroll + select + Enter to copy)
-Set-PSReadLineKeyHandler -Key F2 -Function CaptureScreen
+# Set-PSReadLineKeyHandler -Key F2 -Function CaptureScreen
 # Vi-mode friendly copy/paste on Space+y / Space+p in command mode
-Set-PSReadLineKeyHandler -Key 'y' -Function Copy  -ViMode Command
-Set-PSReadLineKeyHandler -Key 'p' -Function Paste -ViMode Command
+# Set-PSReadLineKeyHandler -Key 'y' -Function Copy  -ViMode Command
+# Set-PSReadLineKeyHandler -Key 'p' -Function Paste -ViMode Command
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
