@@ -344,23 +344,6 @@ if is_windows then
         })
     end
 
-    -- vim smart splits
-    vim_smart_splits.apply_to_config(config, {
-        -- directional keys to use in order of: left, down, up, right
-        -- separate direction keys for move vs. resize
-        direction_keys = {
-            move = { "h", "j", "k", "l" },
-            resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
-        },
-        -- modifier keys to combine with direction_keys
-        modifiers = {
-            move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
-            resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
-        },
-        -- log level to use: info, warn, error
-        log_level = "info",
-    })
-
     tabline.setup({
         options = {
             icons_enabled = true,
@@ -408,6 +391,23 @@ if is_windows then
         },
     })
 end
+
+-- vim smart splits
+vim_smart_splits.apply_to_config(config, {
+    -- directional keys to use in order of: left, down, up, right
+    -- separate direction keys for move vs. resize
+    direction_keys = {
+        move = { "h", "j", "k", "l" },
+        resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
+    },
+    -- modifier keys to combine with direction_keys
+    modifiers = {
+        move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
+        resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
+    },
+    -- log level to use: info, warn, error
+    log_level = "info",
+})
 
 local font = wezterm.font_with_fallback({
     "JetBrains Mono",
