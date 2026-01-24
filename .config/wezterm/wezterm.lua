@@ -35,21 +35,8 @@ local ShellTypes = {
     WSL = 4,
 }
 
-local shellType = ShellTypes.WSL
--- Detect PowerShell 7 path dynamically
-local pwsh_paths = {
-    "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-    "C:\\Program Files\\PowerShell\\pwsh.exe",
-}
-local pwsh = pwsh_paths[1] -- default
--- for _, path in ipairs(pwsh_paths) do
---     local f = io.open(path, "r")
---     if f then
---         f:close()
---         pwsh = path
---         break
---     end
--- end
+local shellType = ShellTypes.PowerShell
+local pwsh = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 -- uncomment if I want to use clink only
 if is_windows then
     local distro = "Ubuntu-24.04"
