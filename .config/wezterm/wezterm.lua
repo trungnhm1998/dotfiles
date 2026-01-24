@@ -36,11 +36,86 @@ local ShellTypes = {
 }
 
 local shellType = ShellTypes.PowerShell
-local pwsh = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
--- uncomment if I want to use clink only
+
+-- WSL Configuration: Set your default distro here
+local WSL_DEFAULT_DISTRO = "Ubuntu-24.04"
+
+-- Function to detect installed WSL distributions
+local function get_wsl_distros()
+    local distros = {}
+    local success, output, stderr = wezterm.run_child_process({ "wsl.exe", "-l", "--quiet" })
+
+    if not success then
+        wezterm.log_warn("Failed to detect WSL distros: " .. (stderr or "unknown error"))
+        return distros
+    end
+
+    -- WSL outputs in UTF-16LE with spaces between characters
+    -- Parse the output line by line
+    for line in output:gmatch("[^\r\n]+") do
+        -- Remove null bytes and extra spaces from UTF-16LE encoding
+        local distro_name = line:gsub("%z", ""):gsub("^%s+", ""):gsub("%s+$", "")
+
+        -- Check if this is the default distro (marked with *)
+        local is_default = false
+        if distro_name:match("^%*") then
+            is_default = true
+            distro_name = distro_name:gsub("^%*%s*", "")
+        end
+
+        -- Only add non-empty distro names
+        if distro_name ~= "" then
+            table.insert(distros, {
+                name = distro_name,
+                is_default = is_default,
+            })
+        end
+    end
+
+    return distros
+end
+
+-- Detect PowerShell 7 path dynamically
+local pwsh_paths = {
+    "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "C:\\Program Files\\PowerShell\\pwsh.exe",
+}
+local pwsh = pwsh_paths[1] -- default
+for _, path in ipairs(pwsh_paths) do
+    local f = io.open(path, "r")
+    if f then
+        f:close()
+        pwsh = path
+        break
+    end
+end
+
 if is_windows then
-    local distro = "Ubuntu-24.04"
-    local wsl_domain = "WSL:" .. distro
+    -- Detect available WSL distros
+    local wsl_distros = get_wsl_distros()
+    local default_distro = WSL_DEFAULT_DISTRO
+    local default_wsl_domain = "WSL:" .. default_distro
+
+    -- Validate that the default distro exists in detected distros
+    if #wsl_distros > 0 then
+        local found_default = false
+        for _, distro_info in ipairs(wsl_distros) do
+            if distro_info.name == default_distro then
+                found_default = true
+                break
+            end
+        end
+        if not found_default then
+            wezterm.log_warn(
+                "Default distro '"
+                    .. default_distro
+                    .. "' not found in detected WSL distros. Using first available: "
+                    .. wsl_distros[1].name
+            )
+            default_distro = wsl_distros[1].name
+            default_wsl_domain = "WSL:" .. default_distro
+        end
+    end
 
     -- PowerShell 7
     table.insert(launch_menu, {
@@ -63,11 +138,27 @@ if is_windows then
         domain = { DomainName = "local" },
     })
 
-    -- WSL2 default distro
-    table.insert(launch_menu, {
-        label = "WSL2 (default)",
-        domain = { DomainName = wsl_domain },
-    })
+    -- Add all detected WSL distros to launcher menu
+    for _, distro_info in ipairs(wsl_distros) do
+        local distro_name = distro_info.name
+        local wsl_domain = "WSL:" .. distro_name
+        local label = "WSL: " .. distro_name
+
+        -- Mark the configured default distro
+        if distro_name == default_distro then
+            label = label .. " (default)"
+        end
+
+        -- Also mark WSL's system default with an asterisk
+        if distro_info.is_default then
+            label = label .. " *"
+        end
+
+        table.insert(launch_menu, {
+            label = label,
+            domain = { DomainName = wsl_domain },
+        })
+    end
 
     -- Cmder (use environment variable or fallback to default path)
     local cmder_root = os.getenv("cmder_root") or os.getenv("CMDER_ROOT") or "C:\\tools\\cmder"
@@ -108,15 +199,18 @@ if is_windows then
     end
 
     if shellType == ShellTypes.WSL then
-        config.default_domain = wsl_domain
-        config.default_prog = { "wsl.exe" }
-        config.wsl_domains = {
-            {
-                name = wsl_domain,
-                distribution = distro,
+        config.default_domain = default_wsl_domain
+        config.default_prog = { "wsl.exe", "-d", default_distro }
+
+        -- Set up wsl_domains for all detected distros
+        config.wsl_domains = {}
+        for _, distro_info in ipairs(wsl_distros) do
+            table.insert(config.wsl_domains, {
+                name = "WSL:" .. distro_info.name,
+                distribution = distro_info.name,
                 default_cwd = "~",
-            },
-        }
+            })
+        end
     end
 end
 
@@ -274,16 +368,16 @@ if is_windows then
             tabs_enabled = true,
             theme_overrides = {},
             section_separators = {
-                left = '',
-                right = '',
+                left = "",
+                right = "",
             },
             component_separators = {
-                left = '',
-                right = '',
+                left = "",
+                right = "",
             },
             tab_separators = {
-                left = '',
-                right = '',
+                left = "",
+                right = "",
             },
         },
         sections = {
@@ -335,4 +429,3 @@ config.inactive_pane_hsb = {
 
 config.launch_menu = launch_menu
 return config
-
