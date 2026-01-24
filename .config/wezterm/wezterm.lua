@@ -42,14 +42,14 @@ local pwsh_paths = {
     "C:\\Program Files\\PowerShell\\pwsh.exe",
 }
 local pwsh = pwsh_paths[1] -- default
-for _, path in ipairs(pwsh_paths) do
-    local f = io.open(path, "r")
-    if f then
-        f:close()
-        pwsh = path
-        break
-    end
-end
+-- for _, path in ipairs(pwsh_paths) do
+--     local f = io.open(path, "r")
+--     if f then
+--         f:close()
+--         pwsh = path
+--         break
+--     end
+-- end
 -- uncomment if I want to use clink only
 if is_windows then
     local distro = "Ubuntu-24.04"
@@ -59,6 +59,13 @@ if is_windows then
     table.insert(launch_menu, {
         label = "PowerShell 7",
         args = { pwsh, "-NoLogo" },
+        domain = { DomainName = "local" },
+    })
+
+    -- PowerShell 7
+    table.insert(launch_menu, {
+        label = "PowerShell 7 no profile",
+        args = { pwsh, "--noprofile" },
         domain = { DomainName = "local" },
     })
 

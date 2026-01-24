@@ -26,6 +26,20 @@ This is a personal dotfiles repository managing configurations for a complete de
 ./deploy.sh  # Installs dependencies, oh-my-zsh, creates symlinks
 ```
 
+## Validation Commands
+
+```bash
+# Shell scripts - syntax check
+bash -n deploy.sh
+shellcheck script.sh
+
+# Neovim - verify plugins and health
+nvim -c ':Lazy sync' -c ':checkhealth'
+
+# PowerShell - syntax check
+powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
+```
+
 ## Architecture
 
 ### Windows Symlink Mappings
@@ -35,13 +49,13 @@ This is a personal dotfiles repository managing configurations for a complete de
 | `.config/nvim` | `$HOME\.config\nvim` |
 | `.config/wezterm` | `$HOME\.config\wezterm` |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
-| `.config/yazi` | `$env:APPDATA\yazi\config` |
+| `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
 | `.config/lazygit` | `$env:APPDATA\lazygit` |
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
 | `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` |
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 
-**Environment Variables:**
+**Environment Variables (set by deploy script):**
 | Variable | Value |
 |----------|-------|
 | `XDG_CONFIG_HOME` | `$HOME\.config` |

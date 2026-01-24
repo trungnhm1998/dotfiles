@@ -124,6 +124,11 @@
       "kind": "Exe",
       "id": "dopus.exe",
       "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "claude.exe",
+      "matching_strategy": "Equals"
     }
   ],
   "tray_and_multi_window_applications": [
@@ -135,6 +140,11 @@
     {
       "kind": "Exe",
       "id": "Surfshark.exe",
+      "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "claude.exe",
       "matching_strategy": "Equals"
     }
   ]
