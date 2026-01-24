@@ -7,19 +7,19 @@ $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 
 Import-Module posh-git
 Import-Module Terminal-Icons
+# Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
 Import-Module PSReadLine
 Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
+
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
 
-Set-PSReadLineOption -EditMode vi
-Set-PSReadLineOption -ViModeIndicator Cursor
+Set-PSReadLineKeyHandler -Key Tab -Function Complete
+Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
+# only use 1 of below it's conflicting with each order
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
-
-Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-Set-PSReadLineOption -PredictionViewStyle ListView
 # Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 # Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 # F2: enter screen capture/selection mode (scroll + select + Enter to copy)
@@ -203,3 +203,4 @@ Set-Alias -Name zi -Value __zoxide_zi -Option AllScope -Scope Global -Force
 # Alias for zoxide
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
+Write-Host "PROFILE LOADED: $([DateTime]::Now)"
