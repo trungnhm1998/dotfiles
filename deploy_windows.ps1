@@ -99,6 +99,12 @@ $symlinks = @(
         IsDirectory = $true
         Description = "Lazygit"
     }
+    @{
+        Source      = "$dotfilesRoot\.config\bat"
+        Target      = "$HOME\.config\bat"
+        IsDirectory = $true
+        Description = "Bat a Cat replacement"
+    }
 
     # File symlinks
     @{
@@ -392,6 +398,63 @@ if (-not $SkipPackages) {
                 Write-Host "  [DRY RUN] Would run: Install-Module -Name $module" -ForegroundColor DarkGray
             }
         }
+    }
+
+    # Install Catppuccin themes for bat
+    Write-Host "`n--- Installing Bat Themes ---" -ForegroundColor Cyan
+    if (Get-Command bat -ErrorAction SilentlyContinue) {
+        $batConfigDir = (bat --config-dir)
+        $batThemesDir = Join-Path $batConfigDir "themes"
+
+        if (-not (Test-Path $batThemesDir)) {
+            if ($DryRun) {
+                Write-Host "  [DRY RUN] Would create directory: $batThemesDir" -ForegroundColor DarkGray
+            } else {
+                New-Item -ItemType Directory -Path $batThemesDir -Force | Out-Null
+                Write-Status "Created themes directory: $batThemesDir" -Type Success
+            }
+        }
+
+        $themes = @("Latte", "Frappe", "Macchiato", "Mocha")
+        foreach ($theme in $themes) {
+            $themeFile = Join-Path $batThemesDir "Catppuccin $theme.tmTheme"
+            $themeUrl = "https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20$theme.tmTheme"
+
+            if (Test-Path $themeFile) {
+                Write-Status "Catppuccin $theme theme already exists" -Type Success
+            } else {
+                Write-Status "Downloading Catppuccin $theme theme..." -Type Info
+                if ($DryRun) {
+                    Write-Host "  [DRY RUN] Would download: $themeUrl" -ForegroundColor DarkGray
+                } else {
+                    try {
+                        Invoke-WebRequest -Uri $themeUrl -OutFile $themeFile -UseBasicParsing
+                        Write-Status "Downloaded Catppuccin $theme theme" -Type Success
+                    } catch {
+                        Write-Status "Failed to download Catppuccin $theme theme: $($_.Exception.Message)" -Type Error
+                    }
+                }
+            }
+        }
+
+        Write-Status "Rebuilding bat cache..." -Type Info
+        if ($DryRun) {
+            Write-Host "  [DRY RUN] Would run: bat cache --build" -ForegroundColor DarkGray
+        } else {
+            bat cache --build
+        }
+
+        Write-Status "Verifying bat themes..." -Type Info
+        if (-not $DryRun) {
+            $installedThemes = bat --list-themes
+            if ($installedThemes -match "Catppuccin") {
+                Write-Status "Catppuccin themes installed successfully!" -Type Success
+            } else {
+                Write-Status "Warning: Catppuccin themes may not be installed correctly" -Type Warning
+            }
+        }
+    } else {
+        Write-Status "bat is not installed, skipping theme installation" -Type Warning
     }
 }
 

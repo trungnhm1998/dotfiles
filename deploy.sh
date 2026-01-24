@@ -203,13 +203,40 @@ check_for_software git
 echo
 check_for_software bat
 mkdir -p "$HOME/.local/bin"
-ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
-mkdir -p "$(bat --config-dir)/themes"
-wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Latte.tmTheme
-wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Frappe.tmTheme
-wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Macchiato.tmTheme
-wget -P "$(bat --config-dir)/themes" https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20Mocha.tmTheme
-bat cache --build
+# Create batcat symlink if needed (Ubuntu/Debian package name)
+if [ -x "$(command -v batcat)" ] && [ ! -x "$(command -v bat)" ]; then
+	ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+fi
+
+# Install Catppuccin themes for bat
+install_bat_themes() {
+	echo "Installing Catppuccin themes for bat..."
+	local bat_themes_dir
+	bat_themes_dir="$(bat --config-dir)/themes"
+	mkdir -p "$bat_themes_dir"
+
+	local themes=("Latte" "Frappe" "Macchiato" "Mocha")
+	for theme in "${themes[@]}"; do
+		local theme_file="$bat_themes_dir/Catppuccin ${theme}.tmTheme"
+		if [ ! -f "$theme_file" ]; then
+			echo "Downloading Catppuccin ${theme} theme..."
+			wget -q -P "$bat_themes_dir" "https://github.com/catppuccin/bat/raw/main/themes/Catppuccin%20${theme}.tmTheme"
+		else
+			echo "Catppuccin ${theme} theme already exists."
+		fi
+	done
+
+	echo "Rebuilding bat cache..."
+	bat cache --build
+
+	echo "Verifying bat themes..."
+	if bat --list-themes | grep -q "Catppuccin"; then
+		echo "Catppuccin themes installed successfully!"
+	else
+		echo "Warning: Catppuccin themes may not be installed correctly."
+	fi
+}
+install_bat_themes
 echo
 
 # Packages with different names across package managers
