@@ -246,7 +246,7 @@ if is_windows then
                 -- Non-WSL pane: activate wezterm leader key table
                 window:perform_action(
                     act.ActivateKeyTable({
-                        name = "leader",
+                        name = "leader_mode",
                         one_shot = true,
                         timeout_milliseconds = 1000,
                     }),
@@ -275,7 +275,7 @@ if is_windows then
 
     -- Define leader key table with all leader bindings
     config.key_tables = {
-        leader = {
+        leader_mode = {
             -- Escape to cancel leader mode
             { key = "Escape", action = act.PopKeyTable },
             -- Launcher
@@ -338,7 +338,7 @@ if is_windows then
 
     -- Tab switching keys 1-9
     for i = 1, 9 do
-        table.insert(config.key_tables.leader, {
+        table.insert(config.key_tables.leader_mode, {
             key = tostring(i),
             action = act.ActivateTab(i - 1),
         })
@@ -349,7 +349,6 @@ if is_windows then
             icons_enabled = true,
             theme = "Catppuccin Frappe",
             tabs_enabled = true,
-            theme_overrides = {},
             section_separators = {
                 left = "",
                 right = "",
@@ -362,9 +361,50 @@ if is_windows then
                 left = "",
                 right = "",
             },
+            right = "",
         },
         sections = {
-            tabline_a = { "mode" },
+            tabline_a = {
+                {
+                    "mode",
+                    --- format call back
+                    --- I'm going for "icon mode" eg. " LEADER"
+                    --- if we want icon only then it would be "icon"
+                    --- but if the keys table doesn't have to mode
+                    --- fallback to "mode" event if you has icon for it
+                    --- icon at https://wezterm.org/config/lua/wezterm/nerdfonts.html
+                    --- or https://www.nerdfonts.com/cheat-sheet
+                    ---@param mode any
+                    ---@param window Window
+                    ---@return string
+                    fmt = function(mode, window)
+                        local icon_only = true
+                        local icon = nil
+
+                        if mode == "LEADER" then
+                            icon = wezterm.nerdfonts.md_keyboard_outline
+                        elseif mode == "NORMAL" then
+                            icon = wezterm.nerdfonts.cod_terminal
+                        elseif mode == "COPY" then
+                            icon = wezterm.nerdfonts.md_scissors_cutting
+                        elseif mode == "SEARCH" then
+                            icon = wezterm.nerdfonts.oct_search
+                        end
+
+                        -- fallback
+                        if icon_only and icon == nil then
+                            return mode
+                        end
+
+                        -- adding space to icon then mode if support mode
+                        return string.format(
+                            "%s%s",
+                            icon and icon .. (icon_only and "" or " ") or "",
+                            icon_only and "" or mode
+                        )
+                    end,
+                },
+            },
             tabline_b = { "workspace" },
             tabline_c = { " " },
             tab_active = {
@@ -388,6 +428,18 @@ if is_windows then
             "resurrect",
             "smart_workspace_switcher",
             "quick_domains",
+        },
+    })
+
+    local colors = tabline.get_theme().colors
+    local surface = colors.cursor and colors.cursor.bg or colors.ansi[1]
+    local background = colors.tab_bar and colors.tab_bar.inactive_tab and colors.tab_bar.inactive_tab.bg_color
+        or colors.background
+    tabline.set_theme({
+        leader_mode = {
+            a = { fg = background, bg = colors.ansi[6] },
+            b = { fg = colors.ansi[6], bg = surface },
+            c = { fg = colors.foreground, bg = background },
         },
     })
 end
