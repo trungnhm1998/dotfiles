@@ -54,6 +54,8 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
 | `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` |
 | `.ideavimrc` | `$HOME\.ideavimrc` |
+| `zed/settings.json` | `$env:APPDATA\Zed\settings.json` |
+| `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
 
 **Environment Variables (set by deploy script):**
 | Variable | Value |
@@ -117,3 +119,4 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 | Starship | `.config/starship.toml` |
 | IDEVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
+| Zed | `zed/settings.json`, `zed/keymap.json` |
