@@ -288,8 +288,7 @@ if is_windows then
             { key = "s", action = split_current_pane("Down") },
             -- Switch to new or existing workspace
             {
-                key = "W",
-                mods = "SHIFT",
+                key = "w",
                 action = act.PromptInputLine({
                     description = wezterm.format({
                         { Attribute = { Underline = "Double" } },
