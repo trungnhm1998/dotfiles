@@ -1,14 +1,11 @@
 $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
-# $env:EDITOR = "code --wait"
-# $env:VISUAL = "nvim"
-# $poshThemesDir = "$(scoop prefix oh-my-posh)\themes"
-# $randomTheme = "clean-detailed.omp.json", "spaceship.omp.json" | Get-Random
-# oh-my-posh init pwsh --config  $poshThemesDir\$randomTheme | Invoke-Expression
+$env:EDITOR = "nvim" # so can I press V and open nvim to edit commands
+$env:VISUAL = "nvim"
 
-Import-Module posh-git
-Import-Module Terminal-Icons
-# Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
-Import-Module PSReadLine
+# https://github.com/janikvonrotz/awesome-powershell
+Import-Module posh-git # Install-Module posh-git -Scope CurrentUser -Force
+Import-Module Terminal-Icons # Install-Module -Name Terminal-Icons -Repository PSGallery
+Import-Module PSReadLine # Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
 Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
 
@@ -16,17 +13,9 @@ $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info 
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
-# only use 1 of below it's conflicting with each order
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
-# Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-# Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-# F2: enter screen capture/selection mode (scroll + select + Enter to copy)
-# Set-PSReadLineKeyHandler -Key F2 -Function CaptureScreen
-# Vi-mode friendly copy/paste on Space+y / Space+p in command mode
-# Set-PSReadLineKeyHandler -Key 'y' -Function Copy  -ViMode Command
-# Set-PSReadLineKeyHandler -Key 'p' -Function Paste -ViMode Command
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
@@ -38,7 +27,6 @@ if (Test-Path($ChocolateyProfile)) {
   Import-Module "$ChocolateyProfile"
 }
 
-
 # Yazi
 function y {
     $tmp = [System.IO.Path]::GetTempFileName()
@@ -49,7 +37,6 @@ function y {
     }
     Remove-Item -Path $tmp
 }
-
 
 # --- eza ---
 function ls { eza --icons $args }
@@ -202,5 +189,3 @@ Set-Alias -Name zi -Value __zoxide_zi -Option AllScope -Scope Global -Force
 
 # Alias for zoxide
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
-
-Write-Host "PROFILE LOADED: $([DateTime]::Now)"
