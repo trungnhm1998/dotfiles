@@ -1139,4 +1139,107 @@
       "shift-g": "menu::SelectLast",
     },
   },
+  // ==========================================================================
+  // LazyVim-style Leader Key Bindings
+  // ==========================================================================
+  {
+    "context": "VimControl && vim_mode == normal && !menu",
+    "bindings": {
+      // Buffer Management (<leader>b)
+      "space b b": "tab_switcher::Toggle",
+      "space b o": "pane::CloseInactiveItems",
+      "space b d": "pane::CloseActiveItem",
+      "space b shift-d": "pane::CloseAllItems",
+
+      // Code Actions (<leader>c)
+      "space c f": "editor::Format",
+      "space c r": "editor::Rename",
+      "space c a": "editor::ToggleCodeActions",
+      "space c d": "diagnostics::Deploy",
+
+      // Debugging (<leader>d)
+      // "space d b": "debugger::ToggleBreakpoint",
+      "space d c": "debugger::Continue",
+      "space d i": "debugger::StepInto",
+      "space d o": "debugger::StepOut",
+      "space d shift-o": "debugger::StepOver",
+      "space d t": "debugger::Stop",
+      "space d d": "debugger::Start",
+      "space d r": "debugger::Restart",
+      "space d shift-p": "debugger::Pause",
+
+      // File Explorer (<leader>e)
+      "space e": "project_panel::ToggleFocus",
+
+      // File/Find (<leader>f)
+      "space f f": "file_finder::Toggle",
+      "space space": "file_finder::Toggle",
+      "space f n": "workspace::NewFile",
+      // "space f r": "recent_projects::OpenRecent",
+
+      // Git (<leader>g)
+      "space g g": "git_panel::ToggleFocus",
+      "space g shift-g": "git_panel::ToggleFocus",
+      "space g b": "editor::ToggleGitBlame",
+      // "space g f": "zed::OpenFileHistory",
+
+      // Search (<leader>s)
+      "space s w": "buffer_search::Deploy",
+      "space s shift-w": "pane::DeploySearch",
+      "space s r": "buffer_search::DeployReplace",
+      "space s g": "pane::DeploySearch",
+      "space s s": "outline::Toggle",
+      "space s shift-s": "project_symbols::Toggle",
+
+      // UI Toggles (<leader>u)
+      "space u w": "editor::ToggleSoftWrap",
+      "space u z": "workspace::ToggleCenteredLayout",
+      "space u shift-z": "workspace::ToggleZoom",
+      "space u b": "workspace::ToggleLeftDock",
+      "space u shift-b": "workspace::ToggleRightDock",
+      "space u n": "editor::ToggleLineNumbers",
+      "space u r": "editor::ToggleRelativeLineNumbers",
+
+      // Window Management (<leader>w)
+      "space w h": "workspace::ActivatePaneLeft",
+      "space w j": "workspace::ActivatePaneDown",
+      "space w k": "workspace::ActivatePaneUp",
+      "space w l": "workspace::ActivatePaneRight",
+      "space w shift-h": "workspace::MovePaneLeft",
+      "space w shift-j": "workspace::SwapPaneDown",
+      "space w shift-k": "workspace::SwapPaneUp",
+      "space w shift-l": "workspace::MovePaneRight",
+      "space w v": "pane::SplitRight",
+      "space w s": "pane::SplitDown",
+      "space w d": "pane::CloseActiveItem",
+      "space w q": "pane::CloseActiveItem",
+      "space w o": "workspace::CloseInactiveTabsAndPanes",
+      "space w x": "workspace::SwapPaneAdjacent",
+      "space w w": "workspace::ActivateNextPane",
+      "space w shift-w": "workspace::ActivatePreviousPane",
+      "space w m": "workspace::ToggleZoom",
+      "space w =": "vim::ResetPaneSizes",
+
+      // AI Assistant (<leader>a)
+      "space a a": "assistant::ToggleFocus",
+      "space a i": "assistant::InlineAssist",
+      "space a q": "assistant::InlineAssist",
+
+      // multi cursor
+      "space n": "editor::SelectNext",
+      "ctrl-n": "editor::SelectNext",
+    },
+  },
+  {
+    "context": "VimControl && vim_mode == visual",
+    "bindings": {
+      // Visual mode leader bindings
+      "space a s": "assistant::QuoteSelection",
+      "space a i": "assistant::InlineAssist",
+      "space s w": "buffer_search::Deploy",
+      "space s shift-w": "pane::DeploySearch",
+      "space s r": "buffer_search::DeployReplace",
+      "space c f": "editor::Format",
+    },
+  },
 ]
