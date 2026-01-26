@@ -15,6 +15,7 @@ opt.list = true
 opt.shiftwidth = 4
 opt.tabstop = 4
 
+vim.g.snacks_animate = false
 vim.g.autoformat = false
 
 -- Terminal configuration for Windows (PowerShell Core)
