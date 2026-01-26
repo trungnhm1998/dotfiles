@@ -125,6 +125,18 @@ $symlinks = @(
         IsDirectory = $false
         Description = "IdeaVim configuration"
     }
+    @{
+        Source      = "$dotfilesRoot\zed\settings.json"
+        Target      = "$env:APPDATA\Zed\settings.json"
+        IsDirectory = $false
+        Description = "Zed editor settings"
+    }
+    @{
+        Source      = "$dotfilesRoot\zed\keymap.json"
+        Target      = "$env:APPDATA\Zed\keymap.json"
+        IsDirectory = $false
+        Description = "Zed editor keybindings"
+    }
 )
 
 # =============================================================================

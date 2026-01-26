@@ -373,6 +373,8 @@ ln -sf "$HOME/dotfiles/.config/powershell" "$HOME/.config/powershell"
 ln -sf "$HOME/dotfiles/.config/wezterm" "$HOME/.config/wezterm"
 ln -sf "$HOME/dotfiles/.config/bat/config" "$HOME/.config/bat/config"
 ln -sf "$HOME/dotfiles/.config/lazygit" "$HOME/.config/lazygit"
+ln -sf "$HOME/dotfiles/zed/settings.json" "$HOME/.config/zed/settings.json"
+ln -sf "$HOME/dotfiles/zed/keymap.json" "$HOME/.config/zed/keymap.json"
 
 check_default_shell
 
