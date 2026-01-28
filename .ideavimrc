@@ -139,13 +139,21 @@ nmap <leader>ss <Action>(FileStructurePopup)
 nmap <leader>o <Action>(FileStructurePopup)
 nnoremap <leader>e :NERDTreeToggle<CR>
 
+xmap <Leader>sw <Action>(FindInPath)
+xmap <Leader>sW <Action>(FindInPath)
+
+" replace with register plugin
+nmap <Leader>gr  <Plug>ReplaceWithRegisterOperator
+nmap <Leader>grr <Plug>ReplaceWithRegisterLine
+xmap <Leader>gr  <Plug>ReplaceWithRegisterVisual
+
 " ==================================================================================
 " CODE NAVIGATION
 " ==================================================================================
 
 " Go to...
 nmap gh <Action>(QuickJavaDoc)
-nmap <leader>gr <Action>(FindUsages)
+nnoremap gr <Action>(FindUsages)
 nmap gu <Action>(ShowUsages)
 nmap gi <Action>(GotoImplementation)
 nmap gI <Action>(QuickImplementations)
