@@ -86,39 +86,39 @@
         },
         {
           "name": "II",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "III",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "IV",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "V",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "VI",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "VII",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "VIII",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "IX",
-          "layout": "BSP"
+          "layout": "Rows"
         },
         {
           "name": "X",
-          "layout": "BSP"
+          "layout": "Rows"
         }
       ]
     }
