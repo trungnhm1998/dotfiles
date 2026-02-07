@@ -13,7 +13,9 @@ opt.listchars = {
 }
 opt.list = true
 opt.shiftwidth = 4
+opt.softtabstop = 4
 opt.tabstop = 4
+opt.expandtab = true
 
 vim.g.snacks_animate = false
 vim.g.autoformat = false
