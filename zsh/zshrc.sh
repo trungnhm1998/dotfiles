@@ -70,6 +70,14 @@ plugins+=(
 	pyenv
 	vi-mode
 	tmux
+    z
+    sudo
+    colored-man-pages
+    history-substring-search
+    npm
+    aws
+    extract
+    aliases
 )
 
 source "$ZSH/oh-my-zsh.sh"
