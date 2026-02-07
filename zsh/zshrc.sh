@@ -12,6 +12,8 @@ export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 export XDG_CONFIG_HOME="$HOME/.config"
+export TERM=xterm-256color
+export COLORTERM=truecolor
 
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
