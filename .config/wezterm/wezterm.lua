@@ -26,6 +26,7 @@ config.set_environment_variables = {}
 config.front_end = "OpenGL"
 config.notification_handling = "AlwaysShow"
 config.tab_max_width = 100
+config.term = "xterm-256color"
 
 local ShellTypes = {
     NONE = 0,
@@ -221,6 +222,7 @@ config.keys = {
     { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
     -- emoji??
     { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
+    { key = "n", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
 }
 
 if is_windows then
@@ -461,9 +463,8 @@ vim_smart_splits.apply_to_config(config, {
 })
 
 local font = wezterm.font_with_fallback({
-    "JetBrains Mono",
     "JetBrainsMono Nerd Font",
-    "Fira Code Nerd Font",
+    "JetBrains Mono",
 })
 local macbookFontSize = 13
 local windowsFontSize = 10
