@@ -63,6 +63,7 @@ set mini-ai
 set functiontextobj
 set argtextobj
 set peekaboo
+set anyobject
 
 " ==================================================================================
 " CORE VIM REMAPS
@@ -154,6 +155,7 @@ xmap <Leader>gr  <Plug>ReplaceWithRegisterVisual
 " Go to...
 nmap gh <Action>(QuickJavaDoc)
 nnoremap gr <Action>(FindUsages)
+nmap gR <Action>(FindUsages)
 nmap gu <Action>(ShowUsages)
 nmap gi <Action>(GotoImplementation)
 nmap gI <Action>(QuickImplementations)
