@@ -22,8 +22,8 @@ Komorebic(cmd) {
 !+]::Komorebic("cycle-focus next")
 
 ; Cycle workspace
-!p::Komorebic("cycle-workspace previous")
-!n::Komorebic("cycle-workspace next")
+; !p::Komorebic("cycle-workspace previous")
+; !n::Komorebic("cycle-workspace next")
 
 ; Move windows
 !+h::Komorebic("move left")
