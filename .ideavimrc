@@ -63,7 +63,7 @@ set mini-ai
 set functiontextobj
 set argtextobj
 set peekaboo
-set anyobject
+" set anyobject
 
 " ==================================================================================
 " CORE VIM REMAPS
@@ -142,6 +142,8 @@ nnoremap <leader>e :NERDTreeToggle<CR>
 
 xmap <Leader>sw <Action>(FindInPath)
 xmap <Leader>sW <Action>(FindInPath)
+xmap <Leader>sg <Action>(FindInPath)
+xmap <Leader>sG <Action>(FindInPath)
 
 " replace with register plugin
 nmap <Leader>gr  <Plug>ReplaceWithRegisterOperator
@@ -227,6 +229,7 @@ nmap <leader>dB <Action>(ViewBreakpoints)
 nmap <leader>dc <Action>(Resume)
 nmap <leader>di <Action>(StepInto)
 nmap <leader>do <Action>(StepOut)
+nmap <leader>dO <Action>(StepOver)
 nmap <leader>dt <Action>(Stop)
 nmap <leader>dd <Action>(Debug)
 nmap <leader>dC <Action>(RunToCursor)
