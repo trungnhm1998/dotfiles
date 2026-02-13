@@ -11,8 +11,6 @@ Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
 
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
 
-Set-PSReadLineKeyHandler -Key Tab -Function Complete
-Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
@@ -70,122 +68,10 @@ function Invoke-Starship-PreCommand {
 # Utility functions for zoxide.
 #
 
-# Call zoxide binary, returning the output as UTF-8.
-function global:__zoxide_bin {
-    $encoding = [Console]::OutputEncoding
-    try {
-        [Console]::OutputEncoding = [System.Text.Utf8Encoding]::new()
-        $result = zoxide @args
-        return $result
-    } finally {
-        [Console]::OutputEncoding = $encoding
-    }
-}
-
-# pwd based on zoxide's format.
-function global:__zoxide_pwd {
-    $cwd = Get-Location
-    if ($cwd.Provider.Name -eq "FileSystem") {
-        $cwd.ProviderPath
-    }
-}
-
-# cd + custom logic based on the value of _ZO_ECHO.
-function global:__zoxide_cd($dir, $literal) {
-    $dir = if ($literal) {
-        Set-Location -LiteralPath $dir -Passthru -ErrorAction Stop
-    } else {
-        if ($dir -eq '-' -and ($PSVersionTable.PSVersion -lt 6.1)) {
-            Write-Error "cd - is not supported below PowerShell 6.1. Please upgrade your version of PowerShell."
-        }
-        elseif ($dir -eq '+' -and ($PSVersionTable.PSVersion -lt 6.2)) {
-            Write-Error "cd + is not supported below PowerShell 6.2. Please upgrade your version of PowerShell."
-        }
-        else {
-            Set-Location -Path $dir -Passthru -ErrorAction Stop
-        }
-    }
-}
-
-# =============================================================================
-#
-# Hook configuration for zoxide.
-#
-
-# Hook to add new entries to the database.
-$global:__zoxide_oldpwd = __zoxide_pwd
-function global:__zoxide_hook {
-    $result = __zoxide_pwd
-    if ($result -ne $global:__zoxide_oldpwd) {
-        if ($null -ne $result) {
-            zoxide add "--" $result
-        }
-        $global:__zoxide_oldpwd = $result
-    }
-}
-
-# Initialize hook.
-$global:__zoxide_hooked = (Get-Variable __zoxide_hooked -ErrorAction Ignore -ValueOnly)
-if ($global:__zoxide_hooked -ne 1) {
-    $global:__zoxide_hooked = 1
-    $global:__zoxide_prompt_old = $function:prompt
-
-    function global:prompt {
-        if ($null -ne $__zoxide_prompt_old) {
-            & $__zoxide_prompt_old
-        }
-        $null = __zoxide_hook
-    }
-}
-
-# =============================================================================
-#
-# When using zoxide with --no-cmd, alias these internal functions as desired.
-#
-
-# Jump to a directory using only keywords.
-function global:__zoxide_z {
-    if ($args.Length -eq 0) {
-        __zoxide_cd ~ $true
-    }
-    elseif ($args.Length -eq 1 -and ($args[0] -eq '-' -or $args[0] -eq '+')) {
-        __zoxide_cd $args[0] $false
-    }
-    elseif ($args.Length -eq 1 -and (Test-Path -PathType Container -LiteralPath $args[0])) {
-        __zoxide_cd $args[0] $true
-    }
-    elseif ($args.Length -eq 1 -and (Test-Path -PathType Container -Path $args[0] )) {
-        __zoxide_cd $args[0] $false
-    }
-    else {
-        $result = __zoxide_pwd
-        if ($null -ne $result) {
-            $result = __zoxide_bin query --exclude $result "--" @args
-        }
-        else {
-            $result = __zoxide_bin query "--" @args
-        }
-        if ($LASTEXITCODE -eq 0) {
-            __zoxide_cd $result $true
-        }
-    }
-}
-
-# Jump to a directory using interactive search.
-function global:__zoxide_zi {
-    $result = __zoxide_bin query -i "--" @args
-    if ($LASTEXITCODE -eq 0) {
-        __zoxide_cd $result $true
-    }
-}
-
-# =============================================================================
-#
-# Commands for zoxide. Disable these using --no-cmd.
-#
-
-Set-Alias -Name z -Value __zoxide_z -Option AllScope -Scope Global -Force
-Set-Alias -Name zi -Value __zoxide_zi -Option AllScope -Scope Global -Force
-
 # Alias for zoxide
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
+
+Set-PSReadLineKeyHandler -Key Tab -Function Complete
+Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
+
+function claude-mem { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args }
