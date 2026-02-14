@@ -57,6 +57,11 @@ Komorebic(cmd) {
 ; Window manager options
 !+r::Komorebic("retile")
 !+q::Komorebic("toggle-pause")
+^!r::{
+    RunWait("komorebic.exe stop", , "Hide")
+    Sleep(1000)
+    RunWait("komorebic.exe start", , "Hide")
+}
 
 ; Layouts
 !x::Komorebic("flip-layout horizontal")
