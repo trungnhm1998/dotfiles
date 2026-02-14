@@ -19,8 +19,9 @@
     "bar_accent": "Base0D"
   },
   "display_index_preferences": {
-    "0": "GSM5BBF-5&37a6d80e&0&UID4355",
-    "1": "AUS278F-5&37a6d80e&0&UID4357"
+    "0": "301NTBK0Q901",
+    "1": "L3LMQS024562",
+    "2": "Default_Monitor-2&256d833f&0&UID256"
   },
   "bar_configurations": [
     "$Env:KOMOREBI_CONFIG_HOME/komorebi.bar.monitor1.json",
@@ -119,6 +120,50 @@
         {
           "name": "X",
           "layout": "Rows"
+        }
+      ]
+    },
+    {
+      "workspaces": [
+        {
+          "name": "I",
+          "layout": "BSP"
+        },
+        {
+          "name": "II",
+          "layout": "BSP"
+        },
+        {
+          "name": "III",
+          "layout": "BSP"
+        },
+        {
+          "name": "IV",
+          "layout": "BSP"
+        },
+        {
+          "name": "V",
+          "layout": "BSP"
+        },
+        {
+          "name": "VI",
+          "layout": "BSP"
+        },
+        {
+          "name": "VII",
+          "layout": "BSP"
+        },
+        {
+          "name": "VIII",
+          "layout": "BSP"
+        },
+        {
+          "name": "IX",
+          "layout": "BSP"
+        },
+        {
+          "name": "X",
+          "layout": "BSP"
         }
       ]
     }
