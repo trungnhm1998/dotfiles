@@ -11,9 +11,6 @@ Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
 
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
 
-# Ovrride vi mode ctrl r
-Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
-Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
 
 # Import the Chocolatey Profile that contains the necessary code to enable
 # tab-completions to function for `choco`.
@@ -75,3 +72,7 @@ Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
 
 function claude-mem { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args }
+
+# Ovrride vi mode ctrl r
+Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
+Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
