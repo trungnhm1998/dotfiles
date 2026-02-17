@@ -7,7 +7,7 @@ if vim.fn.has("mac") == 1 then
     -- Use environment variable or expand home directory to avoid hardcoded username
     path_to_workspace = vim.fn.expand("~/Google Drive/My Drive/ObsidianVaults")
 elseif vim.fn.has("win32") == 1 then
-    path_to_workspace = "Z:\\My Drive\\ObsidianVaults\\"
+    path_to_workspace = "C:\\ObsidianVaults\\"
 end
 
 return {
