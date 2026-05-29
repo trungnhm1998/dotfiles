@@ -24,8 +24,8 @@ alt - 7 : yabai -m space --focus 7
 alt - 8 : yabai -m space --focus 8
 alt - 9 : yabai -m space --focus 9
 alt - 0 : yabai -m space --focus 10
-alt - p : $HOME/.config/skhd/space_cycle_prev.sh
-alt - n : $HOME/.config/skhd/space_cycle_next.sh
+# alt - p : $HOME/.config/skhd/space_cycle_prev.sh  # disabled: conflicts with Claude model-switch shortcut
+# alt - n : $HOME/.config/skhd/space_cycle_next.sh  # disabled: conflicts with Claude shortcut
 
 # stack
 shift + alt - right : yabai -m window --stack east $(yabai -m query --windows --window | jq -r '.id')
