@@ -72,7 +72,6 @@ plugins+=(
 	pyenv
 	vi-mode
 	tmux
-    z
     sudo
     colored-man-pages
     history-substring-search
@@ -125,8 +124,9 @@ export FZF_ALT_C_OPTS="
 [ -f "$HOME/fzf-git/fzf-git.sh" ] && source "$HOME/fzf-git/fzf-git.sh"
 
 # --- zoxide ---
-eval "$(zoxide init zsh)"
-alias cd='z'
+# --cmd cd replaces `cd` with zoxide (and adds `cdi` for interactive fzf jumps).
+# Must run after compinit (oh-my-zsh.sh above) so completions register correctly.
+eval "$(zoxide init zsh --cmd cd)"
 
 # --- eza ---
 alias ls="eza --icons"
