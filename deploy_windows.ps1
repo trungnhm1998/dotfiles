@@ -181,12 +181,9 @@ $symlinks = @(
         IsDirectory = $true
         Description = "Claude Code hooks"
     }
-    @{
-        Source      = "$dotfilesRoot\claude\skills"
-        Target      = "$HOME\.claude\skills"
-        IsDirectory = $true
-        Description = "Claude Code skills"
-    }
+    # NOTE: Claude skills are intentionally NOT whole-dir symlinked here.
+    # ~\.claude\skills holds plugin-managed junctions; a directory symlink would
+    # destroy them. They are linked per-item below (see "Claude skills" loop).
 
     # --- opencode (XDG path on Windows: ~\.config\opencode) ---
     @{
@@ -547,6 +544,31 @@ if (-not $SkipSymlinks) {
         New-SafeSymlink -Source $link.Source -Target $link.Target `
                         -BackupExisting:$doBackup
     }
+
+    # Claude skills: per-item symlinks so we never clobber plugin-managed junctions.
+    # Link each repo skill into ~/.claude/skills/<name> ONLY if that name is free.
+    Write-Host "`nLinking: Claude Code skills (per-item, preserving plugin junctions)" -ForegroundColor Cyan
+    $skillsSrcDir = "$dotfilesRoot\claude\skills"
+    $skillsDstDir = "$HOME\.claude\skills"
+    if (Test-Path $skillsSrcDir) {
+        if (-not (Test-Path $skillsDstDir)) {
+            if ($DryRun) { Write-Host "  [DRY RUN] Would create directory: $skillsDstDir" -ForegroundColor DarkGray }
+            else { New-Item -ItemType Directory -Path $skillsDstDir -Force | Out-Null }
+        }
+        foreach ($skill in Get-ChildItem -Path $skillsSrcDir -Directory) {
+            $dst = Join-Path $skillsDstDir $skill.Name
+            if (Test-Path $dst) {
+                Write-Status "Skill '$($skill.Name)' already present (left as-is)" -Type Success
+                continue
+            }
+            if ($DryRun) {
+                Write-Host "  [DRY RUN] Would create symlink: $dst -> $($skill.FullName)" -ForegroundColor DarkGray
+            } else {
+                New-Item -ItemType SymbolicLink -Path $dst -Value $skill.FullName -Force | Out-Null
+                Write-Status "Linked skill: $($skill.Name)" -Type Success
+            }
+        }
+    }
 }
 
 # =============================================================================
@@ -558,6 +580,10 @@ Write-Host "`n=== Setting Environment Variables ===" -ForegroundColor Magenta
 $envVars = @{
     "KOMOREBI_CONFIG_HOME" = "$HOME\.config\komorebi"
     "XDG_CONFIG_HOME"      = "$HOME\.config"
+    # Windows-only: Claude Code routes through the local proxy on :8080. The synced
+    # ~/.claude/settings.json carries no proxy, so machines without this var (e.g. macOS)
+    # talk to the API directly.
+    "ANTHROPIC_BASE_URL"   = "http://localhost:8080"
 }
 
 foreach ($var in $envVars.GetEnumerator()) {
