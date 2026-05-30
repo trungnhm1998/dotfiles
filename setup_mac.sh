@@ -81,6 +81,9 @@ ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use m
 ln -sf $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
 ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
 
+# AI tool configs (Claude Code + opencode) — shared with deploy.sh
+bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
+
 brew services start svim
 brew services start sketchybar
 
