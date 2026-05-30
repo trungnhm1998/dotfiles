@@ -129,6 +129,11 @@ export FZF_ALT_C_OPTS="
 # --- zoxide ---
 # --cmd cd replaces `cd` with zoxide (and adds `cdi` for interactive fzf jumps).
 # Must run after compinit (oh-my-zsh.sh above) so completions register correctly.
+# _ZO_DOCTOR=0: silence zoxide's "possible configuration issue" doctor. It false-positives
+# in non-interactive subprocess shells (e.g. tools that source this file) — see
+# https://github.com/ajeetdsouza/zoxide/issues/1208 — even though placement here is correct
+# (__zoxide_hook is the sole chpwd hook). The check has nothing useful left to report.
+export _ZO_DOCTOR=0
 eval "$(zoxide init zsh --cmd cd)"
 
 # --- eza ---
