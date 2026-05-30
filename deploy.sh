@@ -136,6 +136,23 @@ check_default_shell() {
 	fi
 }
 
+# Symlink a repo config into place. If the target is a real file/dir, back it up first.
+# Uses -n so a directory symlink never gets created *inside* an existing dir.
+# Usage: link_config <source-in-repo> <target>
+link_config() {
+	local src="$1" target="$2"
+	if [ -L "$target" ]; then
+		ln -sfn "$src" "$target"
+		return
+	fi
+	if [ -e "$target" ]; then
+		echo "Backing up existing $target -> ${target}.old"
+		mv "$target" "${target}.old"
+	fi
+	mkdir -p "$(dirname "$target")"
+	ln -sfn "$src" "$target"
+}
+
 echo "We're going to do the following:"
 echo "1. Check to make sure you have zsh, vim, and tmux installed"
 echo "2. We'll help you install them if you don't"
@@ -375,6 +392,31 @@ ln -sf "$HOME/dotfiles/.config/bat/config" "$HOME/.config/bat/config"
 ln -sf "$HOME/dotfiles/.config/lazygit" "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/zed/settings.json" "$HOME/.config/zed/settings.json"
 ln -sf "$HOME/dotfiles/zed/keymap.json" "$HOME/.config/zed/keymap.json"
+
+# --- AI tool configs: Claude Code + opencode ---
+for item in CLAUDE.md settings.json statusline.sh statusline-command.sh agents commands hooks skills; do
+	link_config "$HOME/dotfiles/claude/$item" "$HOME/.claude/$item"
+done
+
+# opencode: track only opencode.jsonc; remove stale opencode.json (loaded first, would shadow/merge)
+rm -f "$HOME/.config/opencode/opencode.json"
+link_config "$HOME/dotfiles/.config/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
+
+# Bootstrap the gitignored secrets file from the template if it's missing
+if [ ! -f "$HOME/.config/dotfiles/secrets.env" ]; then
+	mkdir -p "$HOME/.config/dotfiles"
+	cp "$HOME/dotfiles/secrets.env.example" "$HOME/.config/dotfiles/secrets.env"
+	chmod 600 "$HOME/.config/dotfiles/secrets.env"
+	echo "Created ~/.config/dotfiles/secrets.env — edit it and fill in CONTEXT7_API_KEY."
+fi
+
+# Register context7 MCP for Claude Code (idempotent). Key injected at session time via ${CONTEXT7_API_KEY}.
+if [ -x "$(command -v claude)" ]; then
+	claude mcp remove context7 --scope user 2>/dev/null || true
+	claude mcp add --scope user --transport http context7 \
+		https://mcp.context7.com/mcp \
+		--header 'CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}'
+fi
 
 check_default_shell
 
