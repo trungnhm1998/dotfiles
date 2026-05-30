@@ -26,3 +26,7 @@ node_modules/
 
 # Platform-specific Trash
 .Trash-*/
+
+# Secrets (defense-in-depth; real secrets live in ~/.config/dotfiles/secrets.env, outside the repo)
+secrets.env
+**/settings.local.json

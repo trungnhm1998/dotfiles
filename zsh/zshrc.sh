@@ -15,6 +15,9 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export TERM=xterm-256color
 export COLORTERM=truecolor
 
+# --- secrets (gitignored; see secrets.env.example) ---
+[ -f "$HOME/.config/dotfiles/secrets.env" ] && source "$HOME/.config/dotfiles/secrets.env"
+
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
 	export LS_COLORS=$LS_COLORS:"$(vivid generate snazzy)"
