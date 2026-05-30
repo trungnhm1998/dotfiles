@@ -137,6 +137,64 @@ $symlinks = @(
         IsDirectory = $false
         Description = "Zed editor keybindings"
     }
+
+    # --- Claude Code (authored config) ---
+    @{
+        Source      = "$dotfilesRoot\claude\CLAUDE.md"
+        Target      = "$HOME\.claude\CLAUDE.md"
+        IsDirectory = $false
+        Description = "Claude Code global instructions"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\settings.json"
+        Target      = "$HOME\.claude\settings.json"
+        IsDirectory = $false
+        Description = "Claude Code settings"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\statusline.sh"
+        Target      = "$HOME\.claude\statusline.sh"
+        IsDirectory = $false
+        Description = "Claude Code statusline"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\statusline-command.sh"
+        Target      = "$HOME\.claude\statusline-command.sh"
+        IsDirectory = $false
+        Description = "Claude Code statusline command"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\agents"
+        Target      = "$HOME\.claude\agents"
+        IsDirectory = $true
+        Description = "Claude Code agents"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\commands"
+        Target      = "$HOME\.claude\commands"
+        IsDirectory = $true
+        Description = "Claude Code commands"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\hooks"
+        Target      = "$HOME\.claude\hooks"
+        IsDirectory = $true
+        Description = "Claude Code hooks"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\skills"
+        Target      = "$HOME\.claude\skills"
+        IsDirectory = $true
+        Description = "Claude Code skills"
+    }
+
+    # --- opencode (XDG path on Windows: ~\.config\opencode) ---
+    @{
+        Source      = "$dotfilesRoot\.config\opencode\opencode.jsonc"
+        Target      = "$HOME\.config\opencode\opencode.jsonc"
+        IsDirectory = $false
+        Description = "opencode configuration"
+    }
 )
 
 # =============================================================================
@@ -477,6 +535,13 @@ if (-not $SkipPackages) {
 if (-not $SkipSymlinks) {
     Write-Host "`n=== Creating Symlinks ===" -ForegroundColor Magenta
 
+    # opencode: remove stale opencode.json so it can't shadow/merge with the tracked .jsonc
+    $staleOpencode = "$HOME\.config\opencode\opencode.json"
+    if (Test-Path $staleOpencode) {
+      if ($DryRun) { Write-Host "  [DRY RUN] Would remove: $staleOpencode" -ForegroundColor DarkGray }
+      else { Remove-Item -Path $staleOpencode -Force }
+    }
+
     foreach ($link in $symlinks) {
         Write-Host "`nLinking: $($link.Description)" -ForegroundColor Cyan
         New-SafeSymlink -Source $link.Source -Target $link.Target `
@@ -507,6 +572,34 @@ foreach ($var in $envVars.GetEnumerator()) {
             Write-Host "  [DRY RUN] Would set environment variable" -ForegroundColor DarkGray
         }
     }
+}
+
+# --- AI tool secrets + context7 MCP registration ---
+$secretsFile = "$HOME\.config\dotfiles\secrets.env"
+if (Test-Path $secretsFile) {
+  # Parse `export KEY="value"` lines and set them as user env vars
+  Get-Content $secretsFile | ForEach-Object {
+    if ($_ -match '^\s*export\s+([A-Z_][A-Z0-9_]*)\s*=\s*"?([^"]*)"?\s*$') {
+      $name = $Matches[1]; $value = $Matches[2]
+      if ($DryRun) { Write-Host "  [DRY RUN] Would set env $name" -ForegroundColor DarkGray }
+      else { [Environment]::SetEnvironmentVariable($name, $value, "User"); Set-Item "env:$name" $value }
+    }
+  }
+} else {
+  New-Item -ItemType Directory -Path "$HOME\.config\dotfiles" -Force | Out-Null
+  Copy-Item "$dotfilesRoot\secrets.env.example" $secretsFile
+  Write-Status "Created $secretsFile - fill in CONTEXT7_API_KEY." -Type Warning
+}
+
+if (Get-Command claude -ErrorAction SilentlyContinue) {
+  if ($DryRun) {
+    Write-Host "  [DRY RUN] Would (re)register context7 MCP server" -ForegroundColor DarkGray
+  } else {
+    claude mcp remove context7 --scope user 2>$null
+    claude mcp add --scope user --transport http context7 `
+      https://mcp.context7.com/mcp `
+      --header 'CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}'
+  }
 }
 
 # =============================================================================
