@@ -1,16 +1,17 @@
 ---
-description: Teach a Unity/gamedev topic at intermediate level with verified sources
-argument-hint: [topic]
-model: inherit
+description: Start a learning/discussion session about a Unity/C# topic
+allowed-tools: Read, Grep, Glob, Bash(cat:*), Bash(find:*)
 ---
 
-Teach this topic to an intermediate Unity solo dev who wants the *why*: $ARGUMENTS
+Switch to Plan Mode mentally. This is a LEARNING session — do NOT write
+or modify any code.
 
-Structure your answer:
-1. **Concept** — what it is, in plain terms.
-2. **Why it matters** — when/why a gamedev reaches for it; the trade-offs.
-3. **Verified specifics** — confirm any Unity/package API or version detail via context7 + official docs (or dispatch the `docs-verifier` subagent). Cite sources.
-4. **Worked example** — one concrete, minimal Unity 6 / C# example.
-5. **Practice** — one small exercise to try in the editor.
+Delegate to the unity-mentor subagent for this session.
 
-Keep it focused; prefer one excellent example over many. End with 1–2 source links.
+Topic to learn: $ARGUMENTS
+
+Follow the teaching framework:
+1. Ask me what I already know about this topic (don't assume)
+2. Identify gaps in my understanding
+3. Teach using the PROBLEM → EXAMPLE → TRADE-OFFS → GAME SCENARIO flow
+4. Offer a small exercise at the end
