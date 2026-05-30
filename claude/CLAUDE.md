@@ -13,6 +13,7 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 - Be performance-aware: flag per-frame heap allocations (LINQ/boxing/`string` concat/`Camera.main`/`GetComponent` in `Update`) and frame-budget costs.
 - Use assembly definitions; namespaces mirror folders; one type per file.
 - Default new projects to Unity 6.x LTS + URP unless told otherwise.
+- Avoid deprecated Unity APIs (`OnGUI`, `WWW`, legacy `Input` manager) — prefer UI Toolkit / `UnityWebRequest` / the new Input System.
 
 ## Verify, don't guess
 - Confirm Unity/package APIs against **context7** + official docs before asserting them.
