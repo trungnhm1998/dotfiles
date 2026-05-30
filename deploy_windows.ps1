@@ -538,8 +538,8 @@ if (-not $SkipSymlinks) {
     # opencode: remove stale opencode.json so it can't shadow/merge with the tracked .jsonc
     $staleOpencode = "$HOME\.config\opencode\opencode.json"
     if (Test-Path $staleOpencode) {
-      if ($DryRun) { Write-Host "  [DRY RUN] Would remove: $staleOpencode" -ForegroundColor DarkGray }
-      else { Remove-Item -Path $staleOpencode -Force }
+        if ($DryRun) { Write-Host "  [DRY RUN] Would remove: $staleOpencode" -ForegroundColor DarkGray }
+        else { Remove-Item -Path $staleOpencode -Force }
     }
 
     foreach ($link in $symlinks) {
@@ -577,29 +577,33 @@ foreach ($var in $envVars.GetEnumerator()) {
 # --- AI tool secrets + context7 MCP registration ---
 $secretsFile = "$HOME\.config\dotfiles\secrets.env"
 if (Test-Path $secretsFile) {
-  # Parse `export KEY="value"` lines and set them as user env vars
-  Get-Content $secretsFile | ForEach-Object {
-    if ($_ -match '^\s*export\s+([A-Z_][A-Z0-9_]*)\s*=\s*"?([^"]*)"?\s*$') {
-      $name = $Matches[1]; $value = $Matches[2]
-      if ($DryRun) { Write-Host "  [DRY RUN] Would set env $name" -ForegroundColor DarkGray }
-      else { [Environment]::SetEnvironmentVariable($name, $value, "User"); Set-Item "env:$name" $value }
+    # Parse `export KEY="value"` lines and set them as user env vars
+    Get-Content $secretsFile | ForEach-Object {
+        if ($_ -match '^\s*export\s+([A-Z_][A-Z0-9_]*)\s*=\s*"?([^"]*)"?\s*$') {
+            $name = $Matches[1]; $value = $Matches[2]
+            if ($DryRun) { Write-Host "  [DRY RUN] Would set env $name" -ForegroundColor DarkGray }
+            else { [Environment]::SetEnvironmentVariable($name, $value, "User"); Set-Item "env:$name" $value }
+        }
     }
-  }
 } else {
-  New-Item -ItemType Directory -Path "$HOME\.config\dotfiles" -Force | Out-Null
-  Copy-Item "$dotfilesRoot\secrets.env.example" $secretsFile
-  Write-Status "Created $secretsFile - fill in CONTEXT7_API_KEY." -Type Warning
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would create $secretsFile from secrets.env.example" -ForegroundColor DarkGray
+    } else {
+        New-Item -ItemType Directory -Path "$HOME\.config\dotfiles" -Force | Out-Null
+        Copy-Item "$dotfilesRoot\secrets.env.example" $secretsFile
+        Write-Status "Created $secretsFile - fill in CONTEXT7_API_KEY." -Type Warning
+    }
 }
 
 if (Get-Command claude -ErrorAction SilentlyContinue) {
-  if ($DryRun) {
-    Write-Host "  [DRY RUN] Would (re)register context7 MCP server" -ForegroundColor DarkGray
-  } else {
-    claude mcp remove context7 --scope user 2>$null
-    claude mcp add --scope user --transport http context7 `
-      https://mcp.context7.com/mcp `
-      --header 'CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}'
-  }
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would (re)register context7 MCP server" -ForegroundColor DarkGray
+    } else {
+        claude mcp remove context7 --scope user 2>$null
+        claude mcp add --scope user --transport http context7 `
+            https://mcp.context7.com/mcp `
+            --header 'CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}'
+    }
 }
 
 # =============================================================================
