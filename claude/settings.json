@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "defaultMode": "auto"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -6,6 +11,17 @@
           {
             "type": "command",
             "command": "bash ~/.claude/hooks/unity-project-detect.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/claude-notify.sh"
           }
         ]
       }
@@ -18,19 +34,17 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true
-  },
-  "extraKnownMarketplaces": {
-    "superpowers-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers-marketplace"
-      }
-    }
+    "everything-claude-code@everything-claude-code": false,
+    "claude-mem@thedotmack": false,
+    "lua-lsp@claude-plugins-official": false,
+    "superpowers@claude-plugins-official": true
   },
   "effortLevel": "high",
+  "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "latest",
   "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true
 }
