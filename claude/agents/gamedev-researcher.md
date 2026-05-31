@@ -2,7 +2,7 @@
 name: gamedev-researcher
 description: Use this agent when market, competitive, or best-practice research is needed for a game or game business decision. Typical triggers include "how do other games solve X", Steam market reads (how similar games are positioned/priced), validating a design reference with sources, researching an audience or genre trend, or "what do successful games in this niche do". Do not invoke for Unity implementation questions (use unity-architect or unity-engineering), for in-editor work (use Unity MCP directly), or for opinion questions that don't require external sources.
 tools: Read, Grep, Glob, WebSearch, WebFetch
-model: inherit
+model: claude-opus-4-8
 color: green
 ---
 

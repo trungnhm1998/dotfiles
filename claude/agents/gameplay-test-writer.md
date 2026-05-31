@@ -2,7 +2,7 @@
 name: gameplay-test-writer
 description: Use this agent when writing or expanding tests for Unity/C# code — EditMode unit tests, PlayMode integration tests, or when practicing TDD ("write a failing test first"). Uses Unity Test Framework + NUnit, follows red-green-refactor, and targets behavior not implementation.
 tools: Read, Grep, Glob, Write, Edit, Bash
-model: sonnet
+model: claude-sonnet-4-6
 color: green
 ---
 

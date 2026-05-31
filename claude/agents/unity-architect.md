@@ -2,7 +2,7 @@
 name: unity-architect
 description: Use this agent when you need to design or critique the architecture of a Unity system or feature — choosing patterns, structuring code, and giving a verdict on how to organize it. Typical triggers include the user asking how to structure a feature/system, whether to use MonoBehaviours vs services, ScriptableObject or dependency-injection choices, or proactively before building a sizable new system. Do not invoke for line-level code review (use unity-code-reviewer) or pure art/shader questions.
 tools: Read, Grep, Glob, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: inherit
+model: claude-opus-4-8
 color: cyan
 ---
 

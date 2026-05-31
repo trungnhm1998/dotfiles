@@ -2,7 +2,7 @@
 name: unity-code-reviewer
 description: Use this agent when reviewing C#/Unity code for correctness, performance, and architecture — after writing or changing gameplay systems, before merging, or when the user says "review this". Specializes in GC allocations, struct layout, Burst compatibility, SOLID, and Unity 6 lifecycle pitfalls. Read-only: it reports findings, it does not edit.
 tools: Read, Grep, Glob
-model: opus
+model: claude-opus-4-8
 color: blue
 ---
 

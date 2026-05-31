@@ -2,7 +2,7 @@
 name: shader-graphics-specialist
 description: Use this agent for rendering and shader work in Unity 6 — URP/HDRP shaders (HLSL or Shader Graph), Scriptable Render Features, render passes, GPU performance, batching (SRP Batcher, GPU instancing), and visual effects. Writes shader code and explains GPU-side cost.
 tools: Read, Grep, Glob, Write, Edit, mcp__context7__resolve-library-id, mcp__context7__query-docs, WebSearch
-model: sonnet
+model: claude-sonnet-4-6
 color: purple
 ---
 

@@ -2,7 +2,7 @@
 name: docs-verifier
 description: Use this agent to verify that an API, method signature, package version, or claimed Unity/C# behavior is real and current before relying on it. Typical triggers include being about to assert an unfamiliar API, the user asking "is this API correct / does this method exist", checking how a package or Unity version behaves, or an explicit /verify-api request. Proactively verify when about to state an API you are not certain about. Do not invoke for opinion or design questions.
 tools: Read, Grep, Glob, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: inherit
+model: claude-opus-4-8
 color: yellow
 ---
 

@@ -2,7 +2,7 @@
 name: game-design-critic
 description: Use this agent for game-design judgment, not code — critiquing mechanics, game feel, moment-to-moment loops, progression/economy, difficulty curves, and UX/onboarding. Ask it "does this mechanic work", "is this loop fun", "critique this progression". Read-only: it analyzes and advises, it does not write code.
 tools: Read, Grep, Glob
-model: opus
+model: claude-opus-4-8
 color: pink
 ---
 

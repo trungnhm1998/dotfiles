@@ -2,7 +2,7 @@
 name: perf-optimizer
 description: Use this agent when investigating performance — frame-time spikes, GC pressure, draw-call counts, slow loads, or "why is this slow / make this faster". Analyzes hot paths, allocations, and job/Burst opportunities, and can run profiler/test commands. Reports a prioritized, measured optimization plan.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: claude-opus-4-8
 color: orange
 ---
 

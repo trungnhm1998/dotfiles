@@ -2,7 +2,7 @@
 name: engine-docs-researcher
 description: Use this agent when you need authoritative Unity 6 API, package, or migration information rather than recalled-from-memory answers — "what's the current API for X", "how do I configure package Y", "did this change in Unity 6", version-specific behavior, or third-party tool docs (VContainer, UniTask, Addressables, Odin). Grounds answers in Context7 docs and the web, with version notes and sources.
 tools: mcp__context7__resolve-library-id, mcp__context7__query-docs, WebSearch, WebFetch, Read, Grep, Glob
-model: sonnet
+model: claude-sonnet-4-6
 color: cyan
 ---
 
