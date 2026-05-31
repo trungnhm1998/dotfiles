@@ -65,8 +65,10 @@ function Invoke-Starship-PreCommand {
 # Utility functions for zoxide.
 #
 
-# Alias for zoxide
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
+# --cmd cd replaces `cd` with zoxide (and adds `cdi` for interactive jumps),
+# mirroring the zsh setup (`zoxide init zsh --cmd cd`). Real `cd` paths/.. still
+# work; only unknown args fall through to the zoxide database. No alias hack needed.
+Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
