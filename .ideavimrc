@@ -42,7 +42,6 @@ set notimeout
 set ideajoin
 set ideamarks
 set ideastatusicon=gray
-set idearefactormode=normal
 
 " ==================================================================================
 " PLUGINS
@@ -156,7 +155,7 @@ xmap <Leader>gr  <Plug>ReplaceWithRegisterVisual
 
 " Go to...
 nmap gh <Action>(QuickJavaDoc)
-nnoremap gr <Action>(FindUsages)
+nmap gr <Action>(FindUsages)
 nmap gR <Action>(FindUsages)
 nmap gu <Action>(ShowUsages)
 nmap gi <Action>(GotoImplementation)
