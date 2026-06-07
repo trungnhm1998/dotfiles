@@ -29,6 +29,16 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 ## Don't reinvent
 - Use my existing tools: superpowers (brainstorming, TDD, systematic-debugging, writing-plans, code-review) and context7. Build on them.
 
+## Memory — my Obsidian vault IS the memory store
+My durable, cross-project memory lives in the Obsidian vault at `C:\ObsidianVaults` — PARA notes (my hand-curated, in my voice) + the **agent-owned LLM-Wiki at `05.Wiki/`** (governed by `C:\ObsidianVaults\CLAUDE.md` and `05.Wiki\CLAUDE.md`). **Do NOT use Claude Code's file-based auto-memory** (`~/.claude/projects/*/memory/`) — it's been retired and wiped. The vault is the single source of truth for what I know, prefer, and have decided. This applies in **every** project, whatever the working directory.
+
+- **Recall:** when a question is about *my* knowledge, preferences, past decisions, or cross-project learnings ("what do I know about X", "did I note Y", "how did I solve Z before"), read the vault — start at `_Home` or `05.Wiki/index.md`, then follow `[[links]]`. Don't detour into the vault for ordinary in-repo coding; reach for it when the question is about my own knowledge.
+- **Persist (instead of auto-memory):** whenever a session produces durable knowledge worth keeping — a learned convention, a hard-won gotcha, a project fact, my feedback — write it into the vault, not to auto-memory:
+  - Agent-compiled reference / lessons / project facts → **`05.Wiki/`** (you own it; follow the LLM-Wiki ingest rules in `05.Wiki\CLAUDE.md` — update existing pages don't duplicate, link liberally, refresh `index.md`, append `log.md`).
+  - Notes in *my* voice → PARA, **Inbox-first** per the vault's `CLAUDE.md`.
+- **Ingest on request:** when I drop a source into `05.Wiki/raw/` or share something in chat and ask you to capture/ingest it, follow the `05.Wiki\CLAUDE.md` ingest flow (read → discuss → write → link → log).
+- If you can't write to `C:\ObsidianVaults` from the current project (directory-access prompt), say so and ask me to grant it — don't silently fall back to auto-memory.
+
 ## Git
 - Never add `Co-Authored-By` trailers or AI-attribution footers (e.g. "Generated with Claude Code") to commits.
 

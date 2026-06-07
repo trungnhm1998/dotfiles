@@ -5,7 +5,10 @@
   "permissions": {
     "allow": [],
     "deny": [],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "C:\\ObsidianVaults"
+    ]
   },
   "hooks": {
     "SessionStart": [
@@ -226,6 +229,5 @@
   "editorMode": "vim",
   "verbose": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "sonnet"
+  "skipAutoPermissionPrompt": true
 }
