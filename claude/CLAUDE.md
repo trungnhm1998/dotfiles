@@ -1,4 +1,4 @@
-# Trung — Solo Unity Indie Dev
+# Max — Solo Unity Indie Dev
 
 I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up — explain the *why* so I learn, don't just hand me answers.
 
@@ -15,6 +15,9 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 - Default new projects to Unity 6.x LTS + URP unless told otherwise.
 - Avoid deprecated Unity APIs (`OnGUI`, `WWW`, legacy `Input` manager) — prefer UI Toolkit / `UnityWebRequest` / the new Input System.
 
+## Testing
+- Name unit tests **`UnitUnderTest_StateUnderTest_Expected`** (e.g. `Aggregate_WithNoModifiers_ReturnsBase`) — the method/type under test, the scenario, then the expected outcome; PascalCase segments joined by `_`.
+
 ## Verify, don't guess
 - Confirm Unity/package APIs against **context7** + official docs before asserting them.
 - When a Unity project is open, use the **Unity MCP** bridge to check the Editor / console / play mode rather than guessing.
@@ -26,5 +29,23 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 ## Don't reinvent
 - Use my existing tools: superpowers (brainstorming, TDD, systematic-debugging, writing-plans, code-review) and context7. Build on them.
 
+## Git
+- Never add `Co-Authored-By` trailers or AI-attribution footers (e.g. "Generated with Claude Code") to commits.
+
 ## Safety
 - Ask before destructive actions: deleting scenes/assets/prefabs, large refactors, or rewriting git history.
+
+## Code Intelligence
+
+Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files:
+- `workspaceSymbol` to find where something is defined
+- `findReferences` to see all usages across the codebase
+- `goToDefinition` / `goToImplementation` to jump to source
+- `hover` for type info without reading the file
+
+Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
+
+After writing or editing code, check LSP diagnostics and fix errors before proceeding.
+# graphify
+- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
