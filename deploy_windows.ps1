@@ -138,13 +138,23 @@ $symlinks = @(
         Description = "Zed editor keybindings"
     }
 
-    # --- Claude Code (authored config) ---
+    # --- Global agent instructions: one canonical file (claude\AGENTS.md) ---
+    # Single source of truth shared by Claude Code, Codex, and opencode. Claude Code
+    # reads it under the CLAUDE.md name; Codex/opencode read it as AGENTS.md (see below).
     @{
-        Source      = "$dotfilesRoot\claude\CLAUDE.md"
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
         Target      = "$HOME\.claude\CLAUDE.md"
         IsDirectory = $false
-        Description = "Claude Code global instructions"
+        Description = "Claude Code global instructions (canonical claude\AGENTS.md)"
     }
+    @{
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Target      = "$HOME\.claude\AGENTS.md"
+        IsDirectory = $false
+        Description = "Global agent instructions (~\.claude\AGENTS.md)"
+    }
+
+    # --- Claude Code (other authored config) ---
     @{
         Source      = "$dotfilesRoot\claude\settings.json"
         Target      = "$HOME\.claude\settings.json"
@@ -185,12 +195,26 @@ $symlinks = @(
     # ~\.claude\skills holds plugin-managed junctions; a directory symlink would
     # destroy them. They are linked per-item below (see "Claude skills" loop).
 
+    # --- Codex (global instructions at ~\.codex\AGENTS.md) ---
+    @{
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Target      = "$HOME\.codex\AGENTS.md"
+        IsDirectory = $false
+        Description = "Codex global instructions (canonical claude\AGENTS.md)"
+    }
+
     # --- opencode (XDG path on Windows: ~\.config\opencode) ---
     @{
         Source      = "$dotfilesRoot\.config\opencode\opencode.jsonc"
         Target      = "$HOME\.config\opencode\opencode.jsonc"
         IsDirectory = $false
         Description = "opencode configuration"
+    }
+    @{
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Target      = "$HOME\.config\opencode\AGENTS.md"
+        IsDirectory = $false
+        Description = "opencode global instructions (canonical claude\AGENTS.md)"
     }
 )
 

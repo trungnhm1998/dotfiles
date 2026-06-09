@@ -24,8 +24,17 @@ link_config() {
 	ln -sfn "$src" "$target"
 }
 
-# --- AI tool configs: Claude Code + opencode ---
-for item in CLAUDE.md settings.json statusline.sh statusline-command.sh agents commands hooks skills; do
+# --- Global agent instructions: one canonical file (claude/AGENTS.md) ---
+# Single source of truth shared by Claude Code, Codex, and opencode. Claude Code reads
+# it under the CLAUDE.md name; Codex and opencode read it as AGENTS.md at their own paths.
+# (Cursor has no global rules file — paste it into User Rules via scripts/copy-agents-rules.sh.)
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/AGENTS.md"
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.codex/AGENTS.md"
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
+
+# --- Other Claude Code authored config ---
+for item in settings.json statusline.sh statusline-command.sh agents commands hooks skills; do
 	link_config "$DOTFILES/claude/$item" "$HOME/.claude/$item"
 done
 

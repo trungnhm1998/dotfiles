@@ -1,6 +1,7 @@
 {
   "env": {
-    "ENABLE_LSP_TOOL": "1"
+    "ENABLE_LSP_TOOL": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1"
   },
   "permissions": {
     "allow": [],
@@ -11,12 +12,34 @@
     ]
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/vault-recall.sh",
+            "timeout": 10,
+            "statusMessage": "vault recall search"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "bash ~/.claude/hooks/unity-project-detect.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/vault-map.sh",
+            "timeout": 10,
+            "statusMessage": "loading vault map"
           }
         ]
       },
@@ -186,6 +209,16 @@
             "timeout": 2
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/wiki-capture-nudge.sh",
+            "timeout": 5,
+            "statusMessage": "wiki capture check"
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -225,6 +258,7 @@
   "effortLevel": "high",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": true,

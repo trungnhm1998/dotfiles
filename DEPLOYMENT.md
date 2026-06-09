@@ -159,6 +159,34 @@ chmod +x deploy.sh
 
 ---
 
+## AI Tool Configs (Claude Code, Codex, opencode, Cursor)
+
+All the CLI agents share **one canonical file**: `claude/AGENTS.md`. Edit it once and every
+agent picks it up on next launch. The deploy scripts (`deploy_windows.ps1` on Windows,
+`scripts/sync-ai-configs.sh` on macOS/Linux) symlink it into each tool's global location:
+
+| Symlink | → Target |
+|---------|----------|
+| `~/.claude/CLAUDE.md` | `claude/AGENTS.md` (Claude Code) |
+| `~/.claude/AGENTS.md` | `claude/AGENTS.md` |
+| `~/.codex/AGENTS.md` | `claude/AGENTS.md` (Codex) |
+| `~/.config/opencode/AGENTS.md` | `claude/AGENTS.md` (opencode) |
+
+### Cursor (manual, one-time)
+
+Cursor has **no global rules file** to symlink — its global "User Rules" live in Cursor's
+synced settings, not on disk. To give Cursor the same instructions:
+
+1. Copy `claude/AGENTS.md` to your clipboard:
+   - macOS/Linux/Git-Bash: `bash scripts/copy-agents-rules.sh`
+   - PowerShell: `Get-Content $HOME\.claude\AGENTS.md -Raw | Set-Clipboard`
+2. In Cursor: **Settings → Rules → User Rules** → paste → save.
+
+Re-run after editing `AGENTS.md` to resync Cursor. (Per-project alternative: drop an
+`AGENTS.md` at a project root — Cursor reads that automatically, but it's project-scoped.)
+
+---
+
 ## Choosing the Right Script
 
 ### Use `deploy_windows.ps1` if:

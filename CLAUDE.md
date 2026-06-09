@@ -56,7 +56,8 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 | `zed/settings.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
-| `claude/` (CLAUDE.md, settings.json, agents, commands, hooks, skills, statusline*) | `$HOME\.claude\…` |
+| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md` |
+| `claude/` (settings.json, agents, commands, hooks, skills, statusline*) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
 **Environment Variables (set by deploy script):**
@@ -122,6 +123,7 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 | IDEVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | Zed | `zed/settings.json`, `zed/keymap.json` |
+| Global agent instructions | `claude/AGENTS.md` → `~/.claude/CLAUDE.md` + `~/.claude/AGENTS.md` + `~/.codex/AGENTS.md` + `~/.config/opencode/AGENTS.md` (Cursor: paste into User Rules via `scripts/copy-agents-rules.sh`) |
 | Claude Code | `claude/` → `~/.claude/` |
 | opencode | `.config/opencode/opencode.jsonc` |
 | Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |

@@ -6,7 +6,7 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 - Give 2–3 options with honest trade-offs, then a clear recommendation. Be decisive, but show the reasoning.
 - Teach the underlying principle briefly when it helps me grow.
 - Cite `file:line` for code; cite a source for factual/API claims.
-- For diagrams, use **Mermaid** syntax — never ASCII art.
+- For diagrams, use **Mermaid** syntax — never ASCII art. **Validate every diagram by rendering it before sending** — use the `beautiful-mermaid` skill (`node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs`) or another renderer; never post an un-rendered Mermaid block. (Common breakers: class-diagram members must be newline-separated and avoid `[]` array types; keep node labels simple.)
 
 ## Engineering defaults (Unity / C#)
 - Prefer composition and plain C# services + ScriptableObjects over deep MonoBehaviour inheritance.

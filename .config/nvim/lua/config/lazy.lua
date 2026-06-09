@@ -31,8 +31,14 @@ require("lazy").setup({
         -- version = "*", -- try installing the latest stable version for plugins that support semver
     },
     install = { colorscheme = { "tokyonight", "habamax" } },
+    -- Cap concurrent git jobs. Default is unbounded, so a sync/update of ~70 plugins
+    -- spawns 150-300+ git.exe at once -- the "300 git processes" storm. 8 keeps it sane.
+    concurrency = 8,
     checker = {
-        enabled = true, -- check for plugin updates periodically
+        -- Was true: ran a background `git fetch` of ALL plugins hourly, spawning the
+        -- storm even without opening nvim. Disabled -> run `:Lazy update` manually.
+        -- To re-enable but tame it: enabled = true, frequency = 86400 (once/day).
+        enabled = false,
         notify = false, -- notify on update
     }, -- automatically check for plugin updates
     performance = {

@@ -23,7 +23,11 @@ config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_and_split_indices_are_zero_based = false
 config.set_environment_variables = {}
-config.front_end = "OpenGL"
+-- WebGpu (modern GPU path) handles synchronized output / frame coalescing better than
+-- the legacy OpenGL path, which is a known TUI-flicker offender. If WebGpu misbehaves on
+-- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
+-- See wiki: [[Claude Code TUI Rendering on Windows]].
+config.front_end = "WebGpu"
 config.notification_handling = "AlwaysShow"
 config.tab_max_width = 100
 config.term = "xterm-256color"
@@ -229,7 +233,6 @@ if is_windows then
     -- Helper to check if current pane is in a WSL domain
     local function is_wsl_pane(pane)
         local domain_name = pane:get_domain_name()
-        print("is_wsl_pane: " .. tostring(domain_name))
         return domain_name and domain_name:find("WSL") ~= nil
     end
 
@@ -462,10 +465,23 @@ vim_smart_splits.apply_to_config(config, {
     log_level = "info",
 })
 
-local font = wezterm.font_with_fallback({
+-- Emoji fallback: WezTerm auto-appends its bundled Noto Color Emoji, but (a) that
+-- makes emoji look different from Windows Terminal (Segoe), and (b) JetBrainsMono
+-- Nerd Font ships MONOCHROME glyphs for many emoji-presentation codepoints
+-- (✅ ✨ ℹ ⏺ …) that shadow the color fallback. Listing the platform color-emoji
+-- font with assume_emoji_presentation routes those codepoints to color and matches
+-- Windows Terminal. Verify with: wezterm ls-fonts --text "✅✨ℹ️⏺🎉"
+-- See wiki: [[Claude Code TUI Rendering on Windows]].
+local font_fallback = {
     "JetBrainsMono Nerd Font",
     "JetBrains Mono",
-})
+}
+if is_windows then
+    table.insert(font_fallback, { family = "Segoe UI Emoji", assume_emoji_presentation = true })
+elseif is_macos then
+    table.insert(font_fallback, { family = "Apple Color Emoji", assume_emoji_presentation = true })
+end
+local font = wezterm.font_with_fallback(font_fallback)
 local macbookFontSize = 13
 local windowsFontSize = 10
 config.font = font
