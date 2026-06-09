@@ -15,7 +15,8 @@ recall_re='(what|how) (do|did|have|can) i|did i (note|writ|sav|captur|do|try|dec
 [[ "$prompt" =~ $recall_re ]] || { shopt -u nocasematch; exit 0; }
 shopt -u nocasematch
 
-vault="C:/ObsidianVaults"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/obsidian-vault.sh" 2>/dev/null || exit 0
+vault="$(resolve_obsidian_vault)" || exit 0
 [ -d "$vault" ] || exit 0
 cd "$vault" 2>/dev/null || exit 0
 

@@ -88,6 +88,7 @@ Choose the deployment script for your platform:
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed comparison of deployment scripts
 - **[STRUCTURE.md](STRUCTURE.md)** - Explanation of repository organization
 - **[CLAUDE.md](CLAUDE.md)** - Complete architecture documentation for AI assistants
+- **[docs/CROSS_PLATFORM_CLAUDE_CONFIG.md](docs/CROSS_PLATFORM_CLAUDE_CONFIG.md)** - How the shared Claude Code config (vault path, hooks, agent-flow) stays portable across macOS/Windows
 
 ## Common Aliases
 

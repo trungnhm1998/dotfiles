@@ -7,9 +7,7 @@
     "allow": [],
     "deny": [],
     "defaultMode": "auto",
-    "additionalDirectories": [
-      "C:\\ObsidianVaults"
-    ]
+    "additionalDirectories": []
   },
   "hooks": {
     "UserPromptSubmit": [
@@ -47,16 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -76,16 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -96,16 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -116,16 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -136,16 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -156,16 +109,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -176,16 +120,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -196,16 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -226,16 +152,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:\\Users\\mint\\.claude\\agent-flow\\hook.js\"",
+            "command": "bash ~/.claude/hooks/agent-flow.sh",
             "timeout": 2
           }
         ]
@@ -253,7 +170,22 @@
     "claude-mem@thedotmack": false,
     "lua-lsp@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "csharp-lsp@claude-plugins-official": true
+    "csharp-lsp@claude-plugins-official": true,
+    "gsd@gsd-plugin": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-dev": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers"
+      }
+    },
+    "gsd-plugin": {
+      "source": {
+        "source": "github",
+        "repo": "jnuyens/gsd-plugin"
+      }
+    }
   },
   "effortLevel": "high",
   "awaySummaryEnabled": false,

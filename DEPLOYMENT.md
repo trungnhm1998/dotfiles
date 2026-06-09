@@ -185,6 +185,35 @@ synced settings, not on disk. To give Cursor the same instructions:
 Re-run after editing `AGENTS.md` to resync Cursor. (Per-project alternative: drop an
 `AGENTS.md` at a project root — Cursor reads that automatically, but it's project-scoped.)
 
+### Memory vault (per-machine)
+
+Claude Code's durable memory is the Obsidian vault, which sits at a **different absolute path
+on each machine** (`~/obsidian-vault/main` on macOS, `C:\ObsidianVaults` on Windows). The
+shared `claude/` config carries no hardcoded path — each machine points at its own vault two
+ways:
+
+1. **Hooks** (`vault-map`, `vault-recall`) resolve it through
+   `claude/hooks/lib/obsidian-vault.sh`, which honors `$OBSIDIAN_VAULT` and otherwise probes a
+   known-locations list. Export `OBSIDIAN_VAULT` in your shell rc, or add your path to that
+   list — zero config if your vault already sits at a known location.
+2. **Claude's own Read/Write tools** reach the vault (it lives outside the repo) via
+   `permissions.additionalDirectories` in the **machine-local, gitignored**
+   `~/.claude/settings.local.json` (*not* the shared `settings.json`):
+
+   ```jsonc
+   {
+     "permissions": {
+       "additionalDirectories": ["/Users/<you>/obsidian-vault/main"]
+       // Windows machine: "C:\\ObsidianVaults"
+     }
+   }
+   ```
+
+`agent-flow` is optional: the `agent-flow.sh` hook no-ops unless both `node` and
+`~/.claude/agent-flow/hook.js` are present, so it's safe to leave wired on machines without it.
+
+Full design and rationale: **[docs/CROSS_PLATFORM_CLAUDE_CONFIG.md](docs/CROSS_PLATFORM_CLAUDE_CONFIG.md)**.
+
 ---
 
 ## Choosing the Right Script
