@@ -39,7 +39,7 @@ The kickoff prompt alone suffices for small/linear work. Add a separate **state 
 Shows the principles in action — lean, reference-first, explicit DONE, concrete first action:
 
 ```
-use superpowers. You're picking up the Orders API at the "idempotent retries" milestone. Read docs/specs/orders-api.md §4 and src/orders/handler.ts first; your MEMORY.md covers the project + conventions.
+use superpowers. You're picking up the Orders API at the "idempotent retries" milestone. Read docs/specs/orders-api.md §4 and src/orders/handler.ts first; your auto-loaded context covers the project + conventions.
 
 ## What this is
 A Node/Fastify service handling checkout orders; Postgres + a job queue.
@@ -55,7 +55,7 @@ Repo: ~/work/orders (branch `main`, git via `git -C ~/work/orders`). Spec: docs/
 Make POST /orders idempotent on retry (same key → same result, no double-charge). OUT of scope: webhook dedup (separate milestone).
 
 ## How to work
-TDD via superpowers:test-driven-development; run `npm test` to verify. Conventions + commit rules: see CLAUDE.md.
+TDD via superpowers:test-driven-development; run `npm test` to verify. (Conventions + commit rules auto-load via CLAUDE.md — not restated here.)
 
 ## Gotchas
 The queue publisher is at-least-once — dedup must be at the handler, not the worker.
@@ -67,7 +67,7 @@ DB migrations need my OK before running against staging.
 Read handler.ts + the idempotency spec section, write a failing test for "same key returns the first result", then implement.
 ```
 
-Why it works: ~200 words, zero pasted source, DONE list prevents rework, one unambiguous first action, defers out-of-scope work, leans on auto-loaded MEMORY.md/CLAUDE.md.
+Why it works: ~200 words, zero pasted source, DONE list prevents rework, one unambiguous first action, defers out-of-scope work, leans on auto-loaded context (global + project CLAUDE.md, memory) instead of restating it.
 
 ## Saving
 Default: `docs/handoff/<YYYY-MM-DD>-<slug>.md` in the project. If the project keeps AI/process artifacts out of git (common), gitignore the handoff dir (or reuse an already-ignored docs path) — the files stay on disk for the next session, untracked.
