@@ -12,9 +12,10 @@ local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
 local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
     or false
 
--- max fps
-config.max_fps = 144
-config.animation_fps = 144
+-- Repaint cap: match the 240 Hz monitor (144 on a 240 Hz panel judders; WT paints at refresh).
+-- animation_fps only drives cursor-blink/visual-bell easing — 60 is smooth and saves idle GPU.
+config.max_fps = 240
+config.animation_fps = 60
 local launch_menu = {}
 
 config.color_scheme = "Catppuccin Frappe"
@@ -28,9 +29,19 @@ config.set_environment_variables = {}
 -- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
 -- See wiki: [[Claude Code TUI Rendering on Windows]].
 config.front_end = "WebGpu"
+-- wgpu defaults to webgpu_power_preference = "LowPower", which on this desktop selects the
+-- Intel UHD 770 iGPU instead of the RTX 5070 Ti and tanks bulk-output throughput ~10x
+-- (12.3 MB `type`: 70.5 s vs 7.1 s, benched 2026-06-10; on the right GPU WezTerm == WT).
+-- NOTE: do NOT pin webgpu_preferred_adapter via wezterm.gui.enumerate_gpus() here — config
+-- eval runs many times at startup/reload and each enumerate pays a full multi-backend GPU
+-- scan (measured: startup 0.6 s -> 6+ s). If WebGpu misbehaves again, fall back to "OpenGL"
+-- (benched equal to Windows Terminal on this machine).
+config.webgpu_power_preference = "HighPerformance"
 config.notification_handling = "AlwaysShow"
 config.tab_max_width = 100
 config.term = "xterm-256color"
+-- Nightly channel is updated by update-everything.ps1; skip the startup update check.
+config.check_for_updates = false
 
 local ShellTypes = {
     NONE = 0,
@@ -461,8 +472,8 @@ vim_smart_splits.apply_to_config(config, {
         move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
         resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
     },
-    -- log level to use: info, warn, error
-    log_level = "info",
+    -- log level to use: info, warn, error ("info" logs on every Ctrl+hjkl navigation)
+    log_level = "warn",
 })
 
 -- Emoji fallback: WezTerm auto-appends its bundled Noto Color Emoji, but (a) that
