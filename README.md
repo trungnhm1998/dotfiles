@@ -82,6 +82,18 @@ Choose the deployment script for your platform:
 | Yazi | File Manager | `.config/yazi/` |
 | Starship | Prompt | `.config/starship.toml` |
 | IdeaVim | Vim for JetBrains | `.ideavimrc` |
+| Claude Code | AI agent config + skills | `claude/` |
+
+## Claude Code Skills
+
+Canonical store: `claude/skills/<name>/` - one directory per skill, linked into `~/.claude/skills/`:
+
+- **Windows** (`deploy_windows.ps1`): per-item symlinks, so plugin-managed junctions in `~/.claude/skills/` are never clobbered. New repo skills get linked on the next deploy; existing names are left as-is.
+- **macOS/Linux** (`scripts/sync-ai-configs.sh`, called by `deploy.sh`): whole-dir symlink `~/.claude/skills -> claude/skills`, so new repo skills are live immediately after pull.
+
+Current skills: `game-feel`, `game-marketing`, `gamedev-art`, `gamedev-audio`, `handoff`, `indie-production`, `level-design`, `unity-engineering`, `unity-shaders`, `unity-worktree-setup`.
+
+`unity-worktree-setup` is script-driven (designed to run on smaller/faster models) and dual-runtime: the same five worktree lifecycle verbs (`preflight`, `list-worktrees`, `new-worktree`, `recycle-worktree`, `remove-worktree`) exist as PowerShell (`scripts/*.ps1`, Windows) and bash 3.2 (`scripts/*.sh`, macOS/Linux - no PowerShell required). Both emit identical JSON and exit codes.
 
 ## Documentation
 
