@@ -62,15 +62,31 @@ if (Test-Path -LiteralPath (Join-Path $Path '.gitmodules')) {
 }
 
 # Seed Library from the leanest warm donor so first editor open imports only the delta.
+$destProj = if ($ProjectRel -eq '.') { $Path } else { Join-Path $Path $ProjectRel }
 $seed = $null
 if (-not $NoSeed) {
     $donor = Select-DonorLibrary -Worktrees $worktrees -ProjectRel $ProjectRel -MinDonorMB $MinDonorMB -ExcludePath $Path
     if ($donor) {
-        $destProj = if ($ProjectRel -eq '.') { $Path } else { Join-Path $Path $ProjectRel }
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         Copy-Library -Source $donor.library -Destination (Join-Path $destProj 'Library')
         $sw.Stop()
         $seed = [ordered]@{ donor = $donor.library; bytes = $donor.bytes; seconds = [math]::Round($sw.Elapsed.TotalSeconds, 1) }
+    }
+}
+
+$next = [System.Collections.Generic.List[string]]::new()
+if ($seed) {
+    $next.Add('open the worktree in Unity once to validate the seeded Library (delta import only)')
+} else {
+    # no donor: a reachable Accelerator is the next-best way to avoid a cold local import
+    $acc = Get-AcceleratorCandidate -ProjectDir $destProj
+    if ($acc -and $acc.reachable) {
+        $next.Add("no warm donor Library found, but an Accelerator is reachable at $($acc.endpoint) ($($acc.source) config, mode=$($acc.mode)) - first open will pull cached artifacts (Shader Graph/VFX Graph/Burst still build locally)")
+        $next.Add("to force it for one launch: Unity -projectPath `"$destProj`" -EnableCacheServer -cacheServerEndpoint $($acc.endpoint)")
+    } elseif ($acc) {
+        $next.Add("no warm donor Library found and the configured Accelerator $($acc.endpoint) ($($acc.source) config) is unreachable - first Unity open will be a full local import")
+    } else {
+        $next.Add('no warm donor Library found and no Accelerator configured - first Unity open will be a full import (consider a localhost Accelerator)')
     }
 }
 
@@ -80,8 +96,5 @@ Write-ResultAndExit ([ordered]@{
     branch    = $Branch
     baseRef   = $BaseRef
     seeded    = $seed
-    nextSteps = @(
-        $(if ($seed) { 'open the worktree in Unity once to validate the seeded Library (delta import only)' }
-          else { 'no warm donor Library found - first Unity open will be a full import (or configure a local Accelerator first)' })
-    )
+    nextSteps = @($next)
 }) 0

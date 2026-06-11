@@ -110,6 +110,61 @@ copy_library() { # $1 src, $2 dst
     fi
 }
 
+# Project cache server config -> "mode|endpoint" (either side may be empty).
+# m_CacheServerMode: 0 = as-preferences (fall back to per-user), 1 = enabled, 2 = disabled.
+project_cache_server() { # $1 projDir
+    local es="$1/ProjectSettings/EditorSettings.asset" mode='' ep='' n
+    if [ -f "$es" ]; then
+        n=$(sed -n 's/.*m_CacheServerMode:[[:space:]]*\([0-9]\).*/\1/p' "$es" | head -n 1)
+        case ${n:-} in 0) mode=as-preferences ;; 1) mode=enabled ;; 2) mode=disabled ;; esac
+        ep=$(sed -n 's/.*m_CacheServerEndpoint:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$es" | head -n 1 | tr -d '\r')
+    fi
+    printf '%s|%s' "$mode" "$ep"
+}
+
+# Per-user (EditorPrefs) Accelerator setting -> "mode|endpoint". Key names verified from
+# UnityCsReference AssetPipelinePreferences.cs: CacheServer2Mode (enum Enabled=0,
+# Disabled=1), CacheServer2IPAddress. macOS: defaults domain; Linux: unity3d prefs XML.
+user_cache_server() {
+    local mode='' ep='' v dec
+    case "$(uname -s)" in
+        Darwin)
+            v=$(defaults read com.unity3d.UnityEditor5.x CacheServer2Mode 2>/dev/null || true)
+            case "$v" in 0) mode=enabled ;; 1) mode=disabled ;; esac
+            ep=$(defaults read com.unity3d.UnityEditor5.x CacheServer2IPAddress 2>/dev/null || true)
+            ;;
+        Linux)
+            local prefs="$HOME/.local/share/unity3d/prefs"
+            if [ -f "$prefs" ]; then
+                v=$(sed -n 's/.*<pref name="CacheServer2Mode"[^>]*>\([^<]*\)<.*/\1/p' "$prefs" | head -n 1)
+                case "$v" in 0) mode=enabled ;; 1) mode=disabled ;; esac
+                ep=$(sed -n 's/.*<pref name="CacheServer2IPAddress"[^>]*>\([^<]*\)<.*/\1/p' "$prefs" | head -n 1)
+                # Linux prefs may store strings base64-encoded; decode when it doesn't look like host:port
+                if [ -n "$ep" ] && ! printf '%s' "$ep" | grep -q ':[0-9][0-9]*$'; then
+                    dec=$(printf '%s' "$ep" | base64 -d 2>/dev/null || true)
+                    if printf '%s' "$dec" | grep -q ':[0-9][0-9]*$'; then ep=$dec; fi
+                fi
+            fi
+            ;;
+    esac
+    printf '%s|%s' "$mode" "$ep"
+}
+
+# First configured Accelerator (project config beats per-user), with live reachability.
+# Prints "endpoint|source|mode|reachable" or nothing when no endpoint configured anywhere.
+accelerator_candidate() { # $1 projDir, $2 timeout-sec
+    local pc mode ep src reach=false
+    pc=$(project_cache_server "$1"); mode=${pc%%|*}; ep=${pc#*|}; src=project
+    if [ -z "$ep" ]; then
+        pc=$(user_cache_server); mode=${pc%%|*}; ep=${pc#*|}; src=user
+    fi
+    [ -z "$ep" ] && return 0
+    if printf '%s' "$ep" | grep -q ':[0-9][0-9]*$'; then
+        if tcp_reachable "${ep%:*}" "${ep##*:}" "${2:-3}"; then reach=true; fi
+    fi
+    printf '%s|%s|%s|%s' "$ep" "$src" "$mode" "$reach"
+}
+
 # leanest warm donor Library: prints "library|bytes|checkout" or nothing
 select_donor() { # $1 repo, $2 projectRel, $3 minDonorMB, $4 excludePath(normalized, optional)
     local best_lib='' best_bytes='' best_co='' wt proj lib size

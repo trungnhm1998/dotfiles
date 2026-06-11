@@ -142,6 +142,75 @@ function Copy-Library {
     }
 }
 
+function Test-TcpEndpoint { # "host:port" -> $true/$false, or $null if not parseable
+    param([string]$Endpoint, [int]$TimeoutMs = 3000)
+    if ($Endpoint -notmatch '^(.+):(\d+)$') { return $null }
+    $client = [System.Net.Sockets.TcpClient]::new()
+    try { return $client.ConnectAsync($Matches[1], [int]$Matches[2]).Wait($TimeoutMs) }
+    catch { return $false }
+    finally { $client.Dispose() }
+}
+
+# Project-level cache server config from ProjectSettings/EditorSettings.asset.
+# m_CacheServerMode: 0 = as-preferences (fall back to per-user), 1 = enabled, 2 = disabled.
+function Get-ProjectCacheServer {
+    param([string]$ProjectDir)
+    $r = [ordered]@{ mode = $null; endpoint = $null }
+    $es = Join-Path $ProjectDir 'ProjectSettings/EditorSettings.asset'
+    if (Test-Path -LiteralPath $es) {
+        $t = Get-Content -LiteralPath $es -Raw
+        if ($t -match 'm_CacheServerMode:\s*(\d)') { $r.mode = @('as-preferences', 'enabled', 'disabled')[[int]$Matches[1]] }
+        if ($t -match 'm_CacheServerEndpoint:\s*(\S+)') { $r.endpoint = $Matches[1] }
+    }
+    return [pscustomobject]$r
+}
+
+# Per-user (EditorPrefs) Accelerator setting. Key names verified from UnityCsReference
+# AssetPipelinePreferences.cs: CacheServer2Mode (enum Enabled=0, Disabled=1), CacheServer2IPAddress.
+# Windows stores EditorPrefs as hashed registry values (strings = REG_BINARY UTF-8 bytes).
+function Get-UserCacheServerPref {
+    $r = [ordered]@{ mode = $null; endpoint = $null }
+    if ($IsWindows) {
+        $out = reg.exe query 'HKCU\Software\Unity Technologies\Unity Editor 5.x' /f CacheServer2 2>$null
+        foreach ($line in @($out)) {
+            if ($line -match '^\s+CacheServer2Mode_h\d+\s+REG_DWORD\s+0x([0-9a-fA-F]+)') {
+                $r.mode = if ([Convert]::ToInt32($Matches[1], 16) -eq 0) { 'enabled' } else { 'disabled' }
+            }
+            elseif ($line -match '^\s+CacheServer2IPAddress_h\d+\s+REG_BINARY\s+([0-9a-fA-F]+)') {
+                $hex = $Matches[1]
+                $bytes = [byte[]]::new($hex.Length / 2)
+                for ($i = 0; $i -lt $bytes.Length; $i++) { $bytes[$i] = [Convert]::ToByte($hex.Substring($i * 2, 2), 16) }
+                $r.endpoint = [Text.Encoding]::UTF8.GetString($bytes).TrimEnd([char]0)
+            }
+            elseif ($line -match '^\s+CacheServer2IPAddress_h\d+\s+REG_SZ\s+(.+)$') {
+                $r.endpoint = $Matches[1].Trim()
+            }
+        }
+    }
+    elseif ($IsMacOS) {
+        $mode = defaults read com.unity3d.UnityEditor5.x CacheServer2Mode 2>$null
+        if ($LASTEXITCODE -eq 0 -and $null -ne $mode -and "$mode" -match '^\d') { $r.mode = if ([int]$mode -eq 0) { 'enabled' } else { 'disabled' } }
+        $ep = defaults read com.unity3d.UnityEditor5.x CacheServer2IPAddress 2>$null
+        if ($LASTEXITCODE -eq 0 -and $ep) { $r.endpoint = "$ep".Trim() }
+    }
+    return [pscustomobject]$r
+}
+
+# First configured Accelerator endpoint (project config beats per-user), with live reachability.
+# Returns $null when no endpoint is configured anywhere.
+function Get-AcceleratorCandidate {
+    param([string]$ProjectDir, [int]$TimeoutMs = 3000)
+    $proj = Get-ProjectCacheServer -ProjectDir $ProjectDir
+    if ($proj.endpoint) {
+        return [pscustomobject]@{ endpoint = $proj.endpoint; source = 'project'; mode = $proj.mode; reachable = (Test-TcpEndpoint -Endpoint $proj.endpoint -TimeoutMs $TimeoutMs) }
+    }
+    $user = Get-UserCacheServerPref
+    if ($user.endpoint) {
+        return [pscustomobject]@{ endpoint = $user.endpoint; source = 'user'; mode = $user.mode; reachable = (Test-TcpEndpoint -Endpoint $user.endpoint -TimeoutMs $TimeoutMs) }
+    }
+    return $null
+}
+
 # Emit result JSON on stdout and exit. All scripts end through this.
 function Write-ResultAndExit {
     param([Parameter(Mandatory)][object]$Result, [int]$ExitCode = 0)

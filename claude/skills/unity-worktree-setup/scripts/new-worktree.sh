@@ -68,22 +68,41 @@ fi
 [ -f "$WT_PATH/.gitmodules" ] && git -C "$WT_PATH" submodule update --init --recursive >/dev/null 2>&1
 
 # Seed Library from the leanest warm donor so first editor open imports only the delta.
+dest_proj=$(project_dir_of "$WT_PATH" "$PROJECT_REL")
 seed_json=null
-next='no warm donor Library found - first Unity open will be a full import (or configure a local Accelerator first)'
+seeded=0
 if [ "$NO_SEED" -eq 0 ]; then
     donor=$(select_donor "$REPO" "$PROJECT_REL" "$MIN_DONOR_MB" "$(norm_path "$WT_PATH")")
     if [ -n "$donor" ]; then
         donor_lib=${donor%%|*}
         rest=${donor#*|}; donor_bytes=${rest%%|*}
-        dest_proj=$(project_dir_of "$WT_PATH" "$PROJECT_REL")
         start=$SECONDS
         if copy_library "$donor_lib" "$dest_proj/Library"; then
             seed_json="{\"donor\":\"$(json_escape "$donor_lib")\",\"bytes\":$donor_bytes,\"seconds\":$((SECONDS - start))}"
-            next='open the worktree in Unity once to validate the seeded Library (delta import only)'
+            seeded=1
         else
             die_json 2 "{\"error\":\"Library copy failed from $(json_escape "$donor_lib")\"}"
         fi
     fi
 fi
 
-die_json 0 "{\"action\":\"created\",\"path\":\"$(json_escape "$WT_PATH")\",\"branch\":\"$(json_escape "$BRANCH")\",\"baseRef\":\"$(json_escape "$BASE_REF")\",\"seeded\":$seed_json,\"nextSteps\":[\"$(json_escape "$next")\"]}"
+next=()
+if [ "$seeded" -eq 1 ]; then
+    next+=('open the worktree in Unity once to validate the seeded Library (delta import only)')
+else
+    # no donor: a reachable Accelerator is the next-best way to avoid a cold local import
+    acc=$(accelerator_candidate "$dest_proj" 3)
+    if [ -n "$acc" ]; then
+        a_ep=${acc%%|*}; rest=${acc#*|}; a_src=${rest%%|*}; rest=${rest#*|}; a_mode=${rest%%|*}; a_reach=${rest##*|}
+        if [ "$a_reach" = true ]; then
+            next+=("no warm donor Library found, but an Accelerator is reachable at $a_ep ($a_src config, mode=${a_mode:-unset}) - first open will pull cached artifacts (Shader Graph/VFX Graph/Burst still build locally)")
+            next+=("to force it for one launch: Unity -projectPath \"$dest_proj\" -EnableCacheServer -cacheServerEndpoint $a_ep")
+        else
+            next+=("no warm donor Library found and the configured Accelerator $a_ep ($a_src config) is unreachable - first Unity open will be a full local import")
+        fi
+    else
+        next+=('no warm donor Library found and no Accelerator configured - first Unity open will be a full import (consider a localhost Accelerator)')
+    fi
+fi
+
+die_json 0 "{\"action\":\"created\",\"path\":\"$(json_escape "$WT_PATH")\",\"branch\":\"$(json_escape "$BRANCH")\",\"baseRef\":\"$(json_escape "$BASE_REF")\",\"seeded\":$seed_json,\"nextSteps\":$(json_str_array "${next[@]}")}"

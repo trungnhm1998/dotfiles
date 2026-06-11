@@ -58,20 +58,12 @@ $projects = foreach ($rel in $projectRels) {
         if ($manifestRisks.Count -gt 0) { $warnings.Add("$rel/Packages/manifest.json has file: deps that will not resolve in a worktree: $($manifestRisks -join '; ')") }
     }
 
-    # cache server (Accelerator) config + live reachability
-    $cache = [ordered]@{ mode = $null; endpoint = $null; reachable = $null }
-    $editorSettings = Join-Path $projDir 'ProjectSettings/EditorSettings.asset'
-    if (Test-Path -LiteralPath $editorSettings) {
-        $es = Get-Content -LiteralPath $editorSettings -Raw
-        if ($es -match 'm_CacheServerMode:\s*(\d)') { $cache.mode = @('as-preferences', 'enabled', 'disabled')[[int]$Matches[1]] }
-        if ($es -match 'm_CacheServerEndpoint:\s*(\S+)') { $cache.endpoint = $Matches[1] }
-        if ($cache.endpoint -and $cache.mode -ne 'disabled' -and $cache.endpoint -match '^(.+):(\d+)$') {
-            $client = [System.Net.Sockets.TcpClient]::new()
-            try {
-                $cache.reachable = $client.ConnectAsync($Matches[1], [int]$Matches[2]).Wait($TcpTimeoutMs)
-            } catch { $cache.reachable = $false } finally { $client.Dispose() }
-            if ($cache.reachable -eq $false) { $warnings.Add("$rel cache server $($cache.endpoint) is configured but unreachable - cold imports will be full local recomputes") }
-        }
+    # cache server (Accelerator): project-level config + live reachability
+    $projCache = Get-ProjectCacheServer -ProjectDir $projDir
+    $cache = [ordered]@{ mode = $projCache.mode; endpoint = $projCache.endpoint; reachable = $null }
+    if ($cache.endpoint -and $cache.mode -ne 'disabled') {
+        $cache.reachable = Test-TcpEndpoint -Endpoint $cache.endpoint -TimeoutMs $TcpTimeoutMs
+        if ($cache.reachable -eq $false) { $warnings.Add("$rel cache server $($cache.endpoint) is configured but unreachable - cold imports will be full local recomputes") }
     }
 
     $lib = Join-Path $projDir 'Library'
@@ -87,6 +79,11 @@ $projects = foreach ($rel in $projectRels) {
     }
 }
 
+# per-user (EditorPrefs) Accelerator setting - the editor uses it when a project is in as-preferences mode
+$userPref = Get-UserCacheServerPref
+$userCache = [ordered]@{ mode = $userPref.mode; endpoint = $userPref.endpoint; reachable = $null }
+if ($userCache.endpoint) { $userCache.reachable = Test-TcpEndpoint -Endpoint $userCache.endpoint -TimeoutMs $TcpTimeoutMs }
+
 $freeDisk = [int64](Get-PSDrive -Name ((Get-Item $RepoRoot).PSDrive.Name)).Free
 $primaryLib = [int64](@($projects | ForEach-Object { $_.libraryBytes }) | Measure-Object -Maximum).Maximum
 if ($primaryLib -gt 0 -and $freeDisk -lt ($primaryLib * 2)) {
@@ -97,6 +94,7 @@ $result = [ordered]@{
     repoRoot      = $RepoRoot
     defaultBranch = $defaultBranch
     projects      = @($projects)
+    userCacheServer = $userCache
     worktrees     = @($worktrees | ForEach-Object { $_.path })
     trackedSymlinks = $symlinkCount
     freeDiskBytes = $freeDisk

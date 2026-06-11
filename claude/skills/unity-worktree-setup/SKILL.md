@@ -52,6 +52,8 @@ Defaults: base ref and default branch come from `origin/HEAD`; on repos whose wo
 - After creating or recycling, tell the user: first Unity open validates the seeded cache and imports only the delta.
 - ParrelSync / Multiplayer Play Mode clones solve same-branch multiplayer testing, not parallel branch work - do not suggest them for this.
 - A localhost Unity Accelerator is optional insurance (cold imports pull artifacts), not a replacement for seeding: Shader Graph, VFX Graph, and Burst results are not cached.
+- `preflight` reports both project-level (`cacheServer` per project) and per-user (`userCacheServer`) Accelerator config with live reachability. When `new-worktree` cannot seed, its `nextSteps` may include exact `-EnableCacheServer -cacheServerEndpoint` launch flags - relay them verbatim.
+- Human-facing docs (setup, Accelerator guidance): README.md next to this file.
 
 ## Common mistakes
 
