@@ -191,6 +191,12 @@ $symlinks = @(
         IsDirectory = $true
         Description = "Claude Code hooks"
     }
+    @{
+        Source      = "$dotfilesRoot\claude\rules"
+        Target      = "$HOME\.claude\rules"
+        IsDirectory = $true
+        Description = "Claude Code path-scoped rules"
+    }
     # NOTE: Claude skills are intentionally NOT whole-dir symlinked here.
     # ~\.claude\skills holds plugin-managed junctions; a directory symlink would
     # destroy them. They are linked per-item below (see "Claude skills" loop).

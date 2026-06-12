@@ -40,15 +40,6 @@
             "statusMessage": "loading vault map"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
       }
     ],
     "Notification": [
@@ -60,68 +51,17 @@
             "command": "bash ~/.claude/hooks/claude-notify.sh"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
       }
     ],
     "PreToolUse": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
+            "command": "bash ~/.claude/hooks/filter-test-output.sh",
+            "timeout": 10,
+            "statusMessage": "test-output filter"
           }
         ]
       }
@@ -131,29 +71,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "bash ~/.claude/hooks/wiki-capture-nudge.sh",
             "timeout": 5,
             "statusMessage": "wiki capture check"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/agent-flow.sh",
-            "timeout": 2
           }
         ]
       }
@@ -171,7 +91,7 @@
     "lua-lsp@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "csharp-lsp@claude-plugins-official": true,
-    "gsd@gsd-plugin": true
+    "gsd@gsd-plugin": false
   },
   "extraKnownMarketplaces": {
     "superpowers-dev": {
@@ -195,5 +115,6 @@
   "editorMode": "vim",
   "verbose": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "fable[1m]"
 }

@@ -34,7 +34,7 @@ link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.codex/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 
 # --- Other Claude Code authored config ---
-for item in settings.json statusline.sh statusline-command.sh agents commands hooks skills; do
+for item in settings.json statusline.sh statusline-command.sh agents commands hooks rules skills; do
 	link_config "$DOTFILES/claude/$item" "$HOME/.claude/$item"
 done
 

@@ -5,18 +5,13 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 ## How to answer me
 - Give 2–3 options with honest trade-offs, then a clear recommendation. Be decisive, but show the reasoning.
 - Teach the underlying principle briefly when it helps me grow.
+- Before non-trivial exploration, state a 2-line plan of what you'll read and why, then produce a first draft I can refine — don't exhaustively gather context before showing anything.
 - Cite `file:line` for code; cite a source for factual/API claims.
 - For diagrams, use **Mermaid** syntax — never ASCII art. **Validate every diagram by rendering it before sending** — use the `beautiful-mermaid` skill (`node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs`) or another renderer; never post an un-rendered Mermaid block. (Common breakers: class-diagram members must be newline-separated and avoid `[]` array types; keep node labels simple.)
 
 ## Engineering defaults (Unity / C#)
-- Prefer composition and plain C# services + ScriptableObjects over deep MonoBehaviour inheritance.
-- Be performance-aware: flag per-frame heap allocations (LINQ/boxing/`string` concat/`Camera.main`/`GetComponent` in `Update`) and frame-budget costs.
-- Use assembly definitions; namespaces mirror folders; one type per file.
 - Default new projects to Unity 6.x LTS + URP unless told otherwise.
-- Avoid deprecated Unity APIs (`OnGUI`, `WWW`, legacy `Input` manager) — prefer UI Toolkit / `UnityWebRequest` / the new Input System.
-
-## Testing
-- Name unit tests **`UnitUnderTest_StateUnderTest_Expected`** (e.g. `Aggregate_WithNoModifiers_ReturnsBase`) — the method/type under test, the scenario, then the expected outcome; PascalCase segments joined by `_`.
+- The full Unity/C# engineering + testing conventions live in the path-scoped rule `~/.claude/rules/unity-csharp.md` — it loads automatically whenever `.cs` files are in play, so don't restate them here.
 
 ## Verify, don't guess
 - Confirm Unity/package APIs against **context7** + official docs before asserting them.
@@ -37,10 +32,12 @@ My durable, cross-project memory lives in my Obsidian vault — its path on the 
   - Agent-compiled reference / lessons / project facts → **`05.Wiki/`** (you own it; follow the LLM-Wiki ingest rules in `05.Wiki/CLAUDE.md` — update existing pages don't duplicate, link liberally, refresh `index.md`, append `log.md`).
   - Notes in *my* voice → PARA, **Inbox-first** per the vault's `CLAUDE.md`.
 - **Ingest on request:** when I drop a source into `05.Wiki/raw/` or share something in chat and ask you to capture/ingest it, follow the `05.Wiki/CLAUDE.md` ingest flow (read → discuss → write → link → log).
+- **Editing vault files:** re-read a vault file immediately before editing it — Obsidian often holds files open and changes them on disk, and stale edits get rejected.
 - If you can't write to the vault from the current project (directory-access prompt), say so and ask me to grant it (add the vault path to `~/.claude/settings.local.json` under `permissions.additionalDirectories`) — don't silently fall back to auto-memory.
 
 ## Git
 - Never add `Co-Authored-By` trailers or AI-attribution footers (e.g. "Generated with Claude Code") to commits.
+- When pushing to private repos, always use SSH remotes (git@...) rather than HTTPS.
 
 ## Safety
 - Ask before destructive actions: deleting scenes/assets/prefabs, large refactors, or rewriting git history.
@@ -56,3 +53,19 @@ Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoi
 Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
 
 After writing or editing code, check LSP diagnostics and fix errors before proceeding.
+
+## Bug Fix Workflow
+- After fixing a bug and opening a PR, capture the root cause and resolution into the Obsidian wiki vault, then move the related Jira ticket to Tech Review.
+
+## Windows / Shells
+- Prefer the PowerShell tool directly for Windows commands instead of routing PowerShell through Bash, since Bash mangles the escaping. Use full absolute paths to avoid persisted-cd / exit-127 issues.
+
+## Communication Style
+- When explaining design options or architecture, lead with concrete code examples rather than abstract descriptions.
+
+## Debugging
+- Verify log channel reliability before using one (avoid print/LogService:LogInfo unless confirmed); confirm with editor logs when diagnosing races.
+
+## Compact instructions
+When compacting, always preserve: the list of files modified this session, test/build commands and their latest results, the active ticket/branch/PR, and any unresolved blockers or pending approvals.
+
