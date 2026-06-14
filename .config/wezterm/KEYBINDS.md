@@ -58,10 +58,26 @@ After pressing `Ctrl+Space`, you can press any of these keys within 1 second:
 
 ### Workspace Management
 
-| Keybind | Action |
-|---------|--------|
-| `Ctrl+Space` → `Shift+W` | Create new workspace or switch to existing one |
-| `Ctrl+Space` → `Shift+S` | Show workspace list (launcher) |
+Workspaces are WezTerm's equivalent of tmux sessions. These bindings deliberately mirror tmux's session keys.
+
+| Keybind | Action | tmux equivalent |
+|---------|--------|-----------------|
+| `Ctrl+Space` → `w` | Create / switch to a **named** workspace (prompt) | — |
+| `Ctrl+Space` → `$` (Shift+4) | **Rename** the active workspace | `prefix $` |
+| `Ctrl+Space` → `)` (Shift+0) | Next workspace (alphabetical) | `prefix )` |
+| `Ctrl+Space` → `(` (Shift+9) | Previous workspace | `prefix (` |
+| `Ctrl+Space` → `Shift+L` | Toggle to the **last-used** workspace | `prefix L` |
+| `Ctrl+Space` → `f` | **Fuzzy switcher** — existing workspaces + `zoxide` dirs | — |
+| `Ctrl+Space` → `Shift+S` | Workspace list launcher (**type to filter**) | `prefix s` |
+
+> `f` uses the [`smart_workspace_switcher`](https://github.com/MLFlexer/smart_workspace_switcher.wezterm) plugin (needs `zoxide` on PATH). Picking a zoxide directory spawns/switches to a workspace rooted there — like `tmux-sessionizer`. `Shift+L` remembers your previous workspace via `wezterm.GLOBAL` and is guarded so a renamed/closed workspace won't spawn an empty phantom.
+
+### Session & Tools
+
+| Keybind | Action | tmux equivalent |
+|---------|--------|-----------------|
+| `Ctrl+Space` → `z` | Toggle pane **zoom** (fullscreen the active pane) | `prefix z` |
+| `Ctrl+Space` → `:` (Shift+;) | **Debug overlay / Lua REPL** | `prefix :` |
 
 ### Launcher
 
@@ -83,10 +99,11 @@ These keybindings work from anywhere and don't require the leader key:
 
 | Keybind | Action |
 |---------|--------|
-| `Ctrl+L` | Show debug overlay (Wezterm debug info) |
 | `Alt+Enter` | *Disabled* (default wezterm behavior) |
 | `Ctrl+Alt+U` | *Disabled* (user-defined override) |
 | `Ctrl+Alt+D` | *Disabled* (user-defined override) |
+
+> **Moved:** the debug overlay used to be on `Ctrl+Shift+L` (written `key = "L", mods = "CTRL"`, which WezTerm reads as Ctrl+**Shift**+L). It now lives in leader mode at `Ctrl+Space` → `:`. `Ctrl+L` is therefore free for the shell's clear-screen and for smart-splits "navigate right".
 
 ---
 
@@ -111,29 +128,15 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 
 ### Quick Reference Card
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   LEADER KEY: Ctrl+Space                    │
-├─────────────────────────────────────────────────────────────┤
-│ TAB MANAGEMENT                                              │
-│  t = New Tab        | p = Prev Tab   | n = Next Tab         │
-│  1-9 = Goto Tab     | , = Rename     | & = Close Tab        │
-├─────────────────────────────────────────────────────────────┤
-│ PANE MANAGEMENT                                             │
-│  v / | = Split H    | s / - = Split V | x = Close Pane     │
-├─────────────────────────────────────────────────────────────┤
-│ WORKSPACE                                                   │
-│  Shift+W = New       | Shift+S = List                       │
-├─────────────────────────────────────────────────────────────┤
-│ Shift+T = Launcher  | Escape = Cancel                       │
-├─────────────────────────────────────────────────────────────┤
-│ PANE NAVIGATION (No Leader Needed)                          │
-│  Ctrl+H/J/K/L = Move   | Meta+H/J/K/L = Resize            │
-│                                                             │
-│ NON-WSL PANES: Ctrl+Space activates leader                │
-│ WSL PANES: Ctrl+Space passes to tmux                       │
-└─────────────────────────────────────────────────────────────┘
-```
+**Leader = `Ctrl+Space`** — active on non-WSL panes; WSL panes pass `Ctrl+Space` straight through to tmux.
+
+| Group | Keys (after `Ctrl+Space`) |
+|-------|---------------------------|
+| **Tabs** | `t` new · `n`/`p` next/prev · `1`–`9` goto · `,` rename · `&` close |
+| **Panes** | `v` split-H · `s` split-V · `x` close · `z` zoom |
+| **Workspaces** | `w` new/named · `$` rename · `(`/`)` prev/next · `Shift+L` last · `f` fuzzy · `Shift+S` list |
+| **Tools** | `:` debug REPL · `Shift+T` launcher · `Escape` cancel leader |
+| **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize |
 
 ---
 
@@ -146,12 +149,13 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 3. Press `Ctrl+Space` + `v` → Splits the pane horizontally
 4. Navigate between panes with `Ctrl+H` or `Ctrl+L`
 
-### Example 2: Work with Workspaces
+### Example 2: Work with Workspaces (like tmux sessions)
 
-1. Press `Ctrl+Space` + `Shift+W`
-2. Type a workspace name (e.g., "project-a")
-3. Press Enter
-4. Switch back with `Ctrl+Space` + `Shift+S`
+1. Press `Ctrl+Space` + `w`, type a name (e.g. "project-a"), press Enter
+2. Create another the same way (e.g. "notes")
+3. Flip between the two with `Ctrl+Space` + `Shift+L` (last-used) — the fastest switch
+4. Or cycle with `Ctrl+Space` + `(` / `)`, or fuzzy-jump (incl. zoxide dirs) with `Ctrl+Space` + `f`
+5. Rename the current workspace with `Ctrl+Space` + `$`
 
 ### Example 3: Switch to WSL Tab and Use Tmux
 
@@ -178,7 +182,7 @@ The main configuration is located at: `~/.config/wezterm/wezterm.lua`
 - `is_wsl_pane(pane)` - Detects if the active pane is running in WSL
 - `action_callback` - Dynamic key behavior based on pane domain
 - `ActivateKeyTable` - Simulates leader key for non-WSL panes
-- `key_tables.leader` - Stores all leader key bindings
+- `key_tables.leader_mode` - Stores all leader key bindings
 
 ### Customization Tips
 
@@ -186,7 +190,7 @@ To modify keybindings:
 
 1. Edit `~/.config/wezterm/wezterm.lua`
 2. For non-leader keys: Add to `config.keys` table
-3. For leader keys: Add to `config.key_tables.leader` table
+3. For leader keys: Add to `config.key_tables.leader_mode` table
 4. Reload with: `wezterm` command or reload configuration in settings
 
 ---
@@ -206,7 +210,7 @@ To modify keybindings:
 
 - **Tabs** - Use `Ctrl+Space` + number keys or `t`/`p`/`n`
 - **Panes** - Use `Ctrl+Space` + `v`/`s` or smart-splits navigation
-- **Workspaces** - Use `Ctrl+Space` + `Shift+W`/`S`
+- **Workspaces** - `Ctrl+Space` + `w` (new), `(`/`)` (cycle), `Shift+L` (last), `f`/`Shift+S` (pick), `$` (rename)
 
 ### Tmux in WSL
 
@@ -242,7 +246,7 @@ To modify keybindings:
 
 - All keybindings are case-sensitive (e.g., `Shift+S` is different from `s`)
 - The leader timeout resets each time you press a valid key
-- To view wezterm version and config: Press `Ctrl+L` for debug overlay
+- To view wezterm version and config: Press `Ctrl+Space` → `:` for the debug overlay / Lua REPL
 - Configuration applies on wezterm restart or config reload
 
 ---

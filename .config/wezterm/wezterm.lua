@@ -3,6 +3,11 @@ local wezterm = require("wezterm")
 
 local vim_smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smart-splits.nvim")
 local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabline.wez")
+-- Fuzzy workspace + zoxide switcher. Upstream is archived but works on current WezTerm;
+-- if it ever breaks on an update, migrate to a fork or mikkasendke/sessionizer.wezterm.
+-- Requires zoxide on PATH (present: scoop shim). This also makes the "smart_workspace_switcher"
+-- tabline extension below live instead of dormant.
+local workspace_switcher = wezterm.plugin.require("https://github.com/MLFlexer/smart_workspace_switcher.wezterm")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -247,8 +252,8 @@ if is_windows then
         return domain_name and domain_name:find("WSL") ~= nil
     end
 
-    -- Debug overlay (non-leader key, add to config.keys)
-    table.insert(config.keys, { key = "L", mods = "CTRL", action = wezterm.action.ShowDebugOverlay })
+    -- Debug overlay / Lua REPL now lives in leader_mode below on `:` (tmux/vim
+    -- command-prompt parallel); the old global Ctrl+Shift+L binding is removed.
 
     -- Conditional Ctrl+Space: WSL pane passes to tmux, others activate leader key table
     table.insert(config.keys, {
@@ -289,6 +294,22 @@ if is_windows then
         end)
     end
 
+    -- Track the previously-active workspace so Leader+L can jump back (tmux `prefix + L`).
+    -- update-status fires ~1x/sec and on switch, so it captures every switch path (relative
+    -- cycle, w-prompt, launcher, fuzzy switcher) without wrapping them. Multiple update-status
+    -- handlers all run, so this is additive alongside tabline's own.
+    wezterm.on("update-status", function(window)
+        local current = window:active_workspace()
+        if wezterm.GLOBAL.current_workspace ~= current then
+            -- GLOBAL is purpose-built to hold arbitrary cross-reload state; LuaLS types it
+            -- as opaque userdata, so silence its inject-field nag on these two writes.
+            ---@diagnostic disable-next-line: inject-field
+            wezterm.GLOBAL.previous_workspace = wezterm.GLOBAL.current_workspace
+            ---@diagnostic disable-next-line: inject-field
+            wezterm.GLOBAL.current_workspace = current
+        end
+    end)
+
     -- Define leader key table with all leader bindings
     config.key_tables = {
         leader_mode = {
@@ -318,7 +339,44 @@ if is_windows then
                     end),
                 }),
             },
-            { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "WORKSPACES" }) },
+            -- Fuzzy workspace launcher (built-in): type to filter existing workspaces
+            { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
+            -- Fuzzy switcher (smart_workspace_switcher): existing workspaces + zoxide dirs in one keypress
+            { key = "f", action = workspace_switcher.switch_workspace() },
+            -- Fast cycle (tmux-style): ( prev workspace, ) next workspace, L last-used (toggle)
+            { key = "(", mods = "SHIFT", action = act.SwitchWorkspaceRelative(-1) },
+            { key = ")", mods = "SHIFT", action = act.SwitchWorkspaceRelative(1) },
+            {
+                key = "L",
+                mods = "SHIFT",
+                action = wezterm.action_callback(function(window, pane)
+                    local prev = wezterm.GLOBAL.previous_workspace
+                    if not prev then
+                        return
+                    end
+                    -- A renamed/closed workspace leaves `prev` stale; switching to a name the
+                    -- mux no longer knows would silently spawn an empty workspace. Guard it.
+                    for _, name in ipairs(wezterm.mux.get_workspace_names()) do
+                        if name == prev then
+                            window:perform_action(act.SwitchToWorkspace({ name = prev }), pane)
+                            return
+                        end
+                    end
+                end),
+            },
+            -- Rename the active workspace (tmux `prefix + $`)
+            {
+                key = "$",
+                mods = "SHIFT",
+                action = act.PromptInputLine({
+                    description = "Rename workspace to:",
+                    action = wezterm.action_callback(function(_, _, line)
+                        if line and line ~= "" then
+                            wezterm.mux.rename_workspace(wezterm.mux.get_active_workspace(), line)
+                        end
+                    end),
+                }),
+            },
             -- Pane/Tab management
             { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
             { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
@@ -348,6 +406,8 @@ if is_windows then
             { key = "n", action = act.ActivateTabRelative(1) },
             -- Zoom pane toggle (mimics tmux prefix + z)
             { key = "z", action = act.TogglePaneZoomState },
+            -- Debug overlay / Lua REPL (tmux `prefix :` + vim `:` command-prompt parallel)
+            { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
         },
     }
 
