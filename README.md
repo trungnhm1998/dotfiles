@@ -35,6 +35,25 @@ Choose the deployment script for your platform:
 ./deploy.sh  # Installs dependencies, oh-my-zsh, creates symlinks
 ```
 
+## Updating an existing machine
+
+Configs are **symlinked** into this repo, so most updates need only a pull:
+
+```bash
+cd ~/dotfiles && git pull
+```
+
+This instantly updates every symlinked config (Neovim, Wezterm, Tmux, Zsh, Claude Code, etc.) — no re-deploy needed. Re-run a script only for the non-symlink bits:
+
+| When | Run |
+|------|-----|
+| AI configs / MCP / secrets changed | `./scripts/sync-ai-configs.sh` (Linux/macOS) · `.\deploy_windows.ps1 -SkipPackages` (Windows) |
+| New tool or package added | `./deploy.sh` (Linux/macOS) · `./setup_mac.sh` (macOS) · `.\deploy_windows.ps1 -SkipPackages` (Windows) |
+| Neovim plugins out of date | open `nvim` → `:Lazy sync` |
+| Tmux plugins out of date | `Prefix + I` (Prefix = `Ctrl+Space`) |
+
+> First sync on a new machine creates `~/.config/dotfiles/secrets.env` from the template — edit it and fill in `CONTEXT7_API_KEY`.
+
 ## Platform-Specific Workflows
 
 ### Windows
