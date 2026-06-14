@@ -14,7 +14,7 @@ if ! is_ide_terminal; then
 	# Run tmux if exists (non-fatal)
 	if command -v tmux >/dev/null; then
 		if [ -z "$TMUX" ]; then
-			tmux attach 2>/dev/null || tmux new-session
+			tmux attach -t main 2>/dev/null || tmux new-session -s main
 		fi
   else
     echo "tmux not installed. Run ./deploy to configure dependencies"
