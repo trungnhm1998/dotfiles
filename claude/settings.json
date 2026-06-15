@@ -40,6 +40,16 @@
             "statusMessage": "loading vault map"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/continuity-readback.sh",
+            "timeout": 10,
+            "statusMessage": "continuity read-back"
+          }
+        ]
       }
     ],
     "Notification": [
