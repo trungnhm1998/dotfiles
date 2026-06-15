@@ -25,7 +25,9 @@ ledger_init(){
 ledger_get(){
   local f; f="$(ledger_path "$1")"
   [ -f "$f" ] || { printf ''; return 0; }
-  jq -r "$2 // empty" "$f" 2>/dev/null
+  # `// empty` would swallow JSON false (jq treats false as empty); select+tostring
+  # preserves "false"/"0" while still returning empty for null/missing keys.
+  jq -r "($2 | select(. != null) | tostring) // empty" "$f" 2>/dev/null
 }
 
 ledger_bump(){
