@@ -4,7 +4,7 @@
 
 **Goal:** Make the tmux status bar adapt per client by terminal width — a wide PC client keeps the full UI; a narrow client (phone over SSH, same server) shows a minimal UI — using one tunable threshold.
 
-**Architecture:** tmux renders the status line separately for each attached client, so `#{client_width}` is per-client. A single render-time ternary on `#{client_width}` (numeric `#{e|>=:}`) selects between a full and minimal `status-right`, with all Catppuccin module tokens **inlined** (an `@status_right_full` indirection was tested and rejected — the extra `#{E:}` pass collapses cpu/battery's `#{l:}`-protected interpolations to empty). The window list reuses the same width branch via a one-line conditional on the inactive-tab text variable.
+**Architecture:** tmux renders the status line separately for each attached client, so `#{client_width}` is per-client. A render-time ternary on `#{client_width}` (numeric `#{e|>=:}`) selects between a full and minimal `status-right`. The full chain is built in `@status_right_full` and assembled into `status-right` via a **3-append construction** (deferred open / `-agF` insert / deferred close): this is required because tmux-cpu/tmux-battery substitute their `#{cpu_percentage}`/`#{battery_*}` placeholders by string-replacing the `status-right` *value* at load, so those placeholders must surface there while `#{client_width}` stays deferred per client. The window list reuses the same width branch via a one-line conditional on the inactive-tab text variable.
 
 **Tech Stack:** tmux 3.4 (`/usr/bin/tmux`), Catppuccin tmux theme (frappe), tmux-cpu / tmux-battery plugins, TPM. Single file changed: `tmux/tmux.conf`. No test framework in this repo (dotfiles) — verification uses an **isolated tmux server** (`-L adapt_test`) plus manual per-client checks.
 
@@ -111,26 +111,39 @@ set -g status-left ""
 # then set this between the phone width and your PC width.
 set -g @ui_full_min_width "120"
 
-# Battery presence flag (static per host): the battery module renders only on
-# real battery hardware. Set once at load; referenced inline in status-right.
-set -g @has_batt ""
+# Full chain in @status_right_full, SAME per-module flags as before: -agF
+# force-expands the placeholder-bearing modules (application/cpu/battery) so the
+# tmux-cpu/tmux-battery placeholders (#{cpu_percentage}, etc.) surface as literal
+# text for those plugins to string-substitute at `run tpm`; -ag defers the rest.
+set -g  @status_right_full ""
+set -agF @status_right_full "#{E:@catppuccin_status_application}"
+set -ag  @status_right_full "#{E:@catppuccin_status_date_time}"
+set -agF @status_right_full "#{E:@catppuccin_status_cpu}"
+set -ag  @status_right_full "#{E:@catppuccin_status_session}"
+set -ag  @status_right_full "#{E:@catppuccin_status_uptime}"
 # (upower alternative kept commented for reference)
-# if-shell 'command -v upower >/dev/null && upower -e | grep -q battery' 'set -g @has_batt "1"'
+# if-shell 'command -v upower >/dev/null && upower -e | grep -q battery' \
+#    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
 if-shell '[ -d /sys/class/power_supply/BAT0 ] || ls /sys/class/power_supply/BAT* >/dev/null 2>&1' \
-    'set -g @has_batt "1"'
+    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
 if-shell '[ "$(uname)" = "Darwin" ] && pmset -g batt 2>/dev/null | grep -q Battery' \
-    'set -g @has_batt "1"'
+    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
 
-# Per-client status-right. The status line renders per client, so #{client_width}
-# is that client's own width. Plain `set -g` (no -F) stores the #{E:...} tokens
-# literally and defers all expansion to render time (after Catppuccin loads via
-# TPM). Modules are INLINED (not via an @status_right_full indirection, which
-# breaks cpu/battery — the extra #{E:} pass eats their #{l:}-protected values).
-# Numeric comparison MUST use #{e|>=:...}; bare #{>=:...} is a STRING compare.
+# Per-client status-right in 3 appends: the FULL branch's #{cpu_percentage}/
+# #{battery_*} placeholders must surface in the status-right VALUE for tmux-cpu/
+# battery to substitute at `run tpm`, while #{client_width} stays deferred per
+# client. Comparison MUST be #{e|>=:...} (numeric); bare #{>=:...} is STRING.
+#   1) -ag  open ternary + width condition (deferred)
+#   2) -agF insert @status_right_full (force-expanded -> placeholders surface)
+#   3) -ag  close with MINIMAL (narrow) branch: session only (deferred)
 #   FULL (wide):  application | datetime | cpu | session | uptime | [battery]
 #   MIN  (narrow): session only
-set -g status-right "#{?#{e|>=:#{client_width},#{@ui_full_min_width}},#{E:@catppuccin_status_application}#{E:@catppuccin_status_date_time}#{E:@catppuccin_status_cpu}#{E:@catppuccin_status_session}#{E:@catppuccin_status_uptime}#{?@has_batt,#{E:@catppuccin_status_battery},},#{E:@catppuccin_status_session}}"
+set -g  status-right "#{?#{e|>=:#{client_width},#{@ui_full_min_width}},"
+set -agF status-right "#{@status_right_full}"
+set -ag  status-right ",#{E:@catppuccin_status_session}}"
 ```
+
+> **Note (post-implementation correction):** an earlier cut of this step used a single deferred `set -g status-right "…#{E:@catppuccin_status_cpu}…"` inline ternary. It shipped and broke cpu/battery (rendered literal `#{cpu_percentage}`), caught in live smoke testing — tmux-cpu/battery substitute their placeholders by string-replacing the `status-right` *value* at load, which a deferred token hides. The 3-append form above is the fix (commit `fix(tmux): restore cpu/battery rendering…`). See the spec's "tmux-cpu / tmux-battery substitution constraint".
 
 - [ ] **Step 2: Validate in an isolated server (the "green" check)**
 
@@ -177,8 +190,9 @@ feat(tmux): width-adaptive status-right (full on PC, minimal over SSH)
 
 Render status-right per client via a #{client_width} ternary: wide clients
 get the full module chain, narrow clients (phone over SSH to the same server)
-get session-only. Modules are inlined to preserve cpu/battery liveness; battery
-is gated by an @has_batt flag. Threshold @ui_full_min_width (default 120).
+get session-only. The full chain is built in @status_right_full and assembled
+via a 3-append construction so tmux-cpu/battery placeholders still surface for
+substitution. Threshold @ui_full_min_width (default 120).
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 EOF
