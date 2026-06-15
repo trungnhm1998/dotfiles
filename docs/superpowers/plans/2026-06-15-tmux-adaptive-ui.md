@@ -4,7 +4,7 @@
 
 **Goal:** Make the tmux status bar adapt per client by terminal width — a wide PC client keeps the full UI; a narrow client (phone over SSH, same server) shows a minimal UI — using one tunable threshold.
 
-**Architecture:** tmux renders the status line separately for each attached client, so `#{client_width}` is per-client. A render-time ternary on `#{client_width}` (numeric `#{e|>=:}`) selects between a full and minimal `status-right`. The full chain is built in `@status_right_full` and assembled into `status-right` via a **3-append construction** (deferred open / `-agF` insert / deferred close): this is required because tmux-cpu/tmux-battery substitute their `#{cpu_percentage}`/`#{battery_*}` placeholders by string-replacing the `status-right` *value* at load, so those placeholders must surface there while `#{client_width}` stays deferred per client. The window list reuses the same width branch via a one-line conditional on the inactive-tab text variable.
+**Architecture:** tmux renders the status line separately for each attached client, so `#{client_width}` is per-client. A render-time ternary on `#{client_width}` (numeric `#{e|>=:}`) selects between a full and minimal `status-right`. Because tmux-cpu/tmux-battery substitute their `#{cpu_percentage}`/`#{battery_*}` placeholders by string-replacing the `status-right` *value* at load, the chain is built plainly into `status-right` **before** `run tpm` (so the plugins substitute it), then **after** `run tpm` the substituted value is captured into `@status_right_full` and `status-right` is rebuilt as the width ternary with comma-free `#{E:@…}` **token** branches — an inlined `#[fg=,bg=]` style comma would otherwise be parsed as the ternary's `TRUE,FALSE` separator and break the bar. The window list reuses the same width branch via a one-line conditional on the inactive-tab text variable.
 
 **Tech Stack:** tmux 3.4 (`/usr/bin/tmux`), Catppuccin tmux theme (frappe), tmux-cpu / tmux-battery plugins, TPM. Single file changed: `tmux/tmux.conf`. No test framework in this repo (dotfiles) — verification uses an **isolated tmux server** (`-L adapt_test`) plus manual per-client checks.
 
@@ -111,39 +111,41 @@ set -g status-left ""
 # then set this between the phone width and your PC width.
 set -g @ui_full_min_width "120"
 
-# Full chain in @status_right_full, SAME per-module flags as before: -agF
-# force-expands the placeholder-bearing modules (application/cpu/battery) so the
-# tmux-cpu/tmux-battery placeholders (#{cpu_percentage}, etc.) surface as literal
-# text for those plugins to string-substitute at `run tpm`; -ag defers the rest.
-set -g  @status_right_full ""
-set -agF @status_right_full "#{E:@catppuccin_status_application}"
-set -ag  @status_right_full "#{E:@catppuccin_status_date_time}"
-set -agF @status_right_full "#{E:@catppuccin_status_cpu}"
-set -ag  @status_right_full "#{E:@catppuccin_status_session}"
-set -ag  @status_right_full "#{E:@catppuccin_status_uptime}"
+# (1) BEFORE tpm: build status-right as the plain full chain (original assembly),
+# so tmux-cpu/tmux-battery string-substitute their #{cpu_percentage}/#{battery_*}
+# placeholders in the status-right VALUE during `run tpm` (those plugins only scan
+# status-right/status-left). Reset first so tmux-continuum doesn't inherit the default.
+set -g status-right ""
+set -agF status-right "#{E:@catppuccin_status_application}"
+set -ag  status-right "#{E:@catppuccin_status_date_time}"
+set -agF status-right "#{E:@catppuccin_status_cpu}"
+set -ag  status-right "#{E:@catppuccin_status_session}"
+set -ag  status-right "#{E:@catppuccin_status_uptime}"
 # (upower alternative kept commented for reference)
 # if-shell 'command -v upower >/dev/null && upower -e | grep -q battery' \
-#    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
+#    'set -agF status-right "#{E:@catppuccin_status_battery}"'
 if-shell '[ -d /sys/class/power_supply/BAT0 ] || ls /sys/class/power_supply/BAT* >/dev/null 2>&1' \
-    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
+    'set -agF status-right "#{E:@catppuccin_status_battery}"'
 if-shell '[ "$(uname)" = "Darwin" ] && pmset -g batt 2>/dev/null | grep -q Battery' \
-    'set -agF @status_right_full "#{E:@catppuccin_status_battery}"'
+    'set -agF status-right "#{E:@catppuccin_status_battery}"'
 
-# Per-client status-right in 3 appends: the FULL branch's #{cpu_percentage}/
-# #{battery_*} placeholders must surface in the status-right VALUE for tmux-cpu/
-# battery to substitute at `run tpm`, while #{client_width} stays deferred per
-# client. Comparison MUST be #{e|>=:...} (numeric); bare #{>=:...} is STRING.
-#   1) -ag  open ternary + width condition (deferred)
-#   2) -agF insert @status_right_full (force-expanded -> placeholders surface)
-#   3) -ag  close with MINIMAL (narrow) branch: session only (deferred)
-#   FULL (wide):  application | datetime | cpu | session | uptime | [battery]
-#   MIN  (narrow): session only
-set -g  status-right "#{?#{e|>=:#{client_width},#{@ui_full_min_width}},"
-set -agF status-right "#{@status_right_full}"
-set -ag  status-right ",#{E:@catppuccin_status_session}}"
+run '~/.tmux/plugins/tpm/tpm'
+
+# (2) AFTER tpm: status-right is now the fully-substituted chain (#(cpu_percentage.sh),
+# etc.). Capture it, then wrap in the per-client width ternary with comma-free
+# #{E:@...} TOKEN branches. A token is parsed atomically; an inlined #[fg=,bg=] style
+# comma would be read as the ternary's TRUE,FALSE separator and blank the whole bar.
+# Comparison is numeric (#{e|>=:...}; bare #{>=:...} is a STRING compare).
+#   FULL (wide):   @status_right_full   MIN (narrow): session only
+run-shell 'tmux set -g @status_right_full "$(tmux show -gqv status-right)"'
+set -g status-right "#{?#{e|>=:#{client_width},#{@ui_full_min_width}},#{E:@status_right_full},#{E:@catppuccin_status_session}}"
 ```
 
-> **Note (post-implementation correction):** an earlier cut of this step used a single deferred `set -g status-right "…#{E:@catppuccin_status_cpu}…"` inline ternary. It shipped and broke cpu/battery (rendered literal `#{cpu_percentage}`), caught in live smoke testing — tmux-cpu/battery substitute their placeholders by string-replacing the `status-right` *value* at load, which a deferred token hides. The 3-append form above is the fix (commit `fix(tmux): restore cpu/battery rendering…`). See the spec's "tmux-cpu / tmux-battery substitution constraint".
+> **Note (post-implementation corrections):** this step took two tries in live smoke testing before landing on the form above.
+> 1. The first cut used a single deferred `set -g status-right "…#{E:@catppuccin_status_cpu}…"` inline ternary → cpu rendered as literal `#{cpu_percentage}` (placeholder never surfaced into the `status-right` value the plugins scan). Commit `fix(tmux): restore cpu/battery rendering…`.
+> 2. The follow-up force-expanded the chain *inside* the ternary (a 3-append build). That surfaced/substituted the placeholders, but put Catppuccin's `#[fg=,bg=]` styles inside `#{?…}`, where the style comma is read as the ternary separator → entire right side empty. Commit `fix(tmux): render full status-right via comma-free token…`.
+>
+> The shipped design (above) sidesteps both: substitute the plain chain during `tpm`, then reference it as a comma-free `#{E:@status_right_full}` token. See the spec's "tmux-cpu / tmux-battery substitution constraint" and "comma trap".
 
 - [ ] **Step 2: Validate in an isolated server (the "green" check)**
 
@@ -190,9 +192,9 @@ feat(tmux): width-adaptive status-right (full on PC, minimal over SSH)
 
 Render status-right per client via a #{client_width} ternary: wide clients
 get the full module chain, narrow clients (phone over SSH to the same server)
-get session-only. The full chain is built in @status_right_full and assembled
-via a 3-append construction so tmux-cpu/battery placeholders still surface for
-substitution. Threshold @ui_full_min_width (default 120).
+get session-only. (Final landed form captures the plugin-substituted chain after
+`run tpm` into @status_right_full and references it as a comma-free token; see the
+follow-up fix commits.) Threshold @ui_full_min_width (default 120).
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 EOF
