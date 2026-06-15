@@ -84,7 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/wiki-capture-nudge.sh",
+            "command": "bash ~/.claude/hooks/session-capture-stop.sh",
             "timeout": 5,
             "statusMessage": "wiki capture check"
           }
