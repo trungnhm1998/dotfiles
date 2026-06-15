@@ -66,6 +66,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/session-ledger.sh",
+            "timeout": 5,
+            "statusMessage": "session ledger"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
