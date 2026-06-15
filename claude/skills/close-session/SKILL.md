@@ -12,7 +12,7 @@ machine is in the session-start vault map; if absent, resolve with
 
 Capture has TWO channels — keep them separate:
 1. **Durable knowledge → `05.Wiki/`** (reusable conventions, gotchas, decisions WITH rationale, tool/API facts).
-2. **Continuity → `<project>/.planning/continuity.md`** (this session's changes, decisions made, decisions pending/open, next steps).
+2. **Continuity → `<cwd>/.planning/continuity.md`** (this session's changes, decisions made, decisions pending/open, next steps).
 
 ## Flow
 
@@ -30,9 +30,11 @@ Capture has TWO channels — keep them separate:
 3. **Git audit** — in the vault, stage ONLY the paths you wrote (explicit paths, never `git add -A`)
    and commit:
    ```bash
+   VAULT="$(source ~/.claude/hooks/lib/obsidian-vault.sh && resolve_obsidian_vault)"
    cd "$VAULT" && git add 05.Wiki/<changed-files> 05.Wiki/index.md 05.Wiki/log.md \
      && git commit -m "wiki(auto): $(date -u +%F) <one-line summary>"
    ```
+   Only vault paths go in this commit — the continuity doc (step 4) lives in the PROJECT repo, not the vault.
    If the vault is not a git repo, skip the commit and note it in your report (run scripts/init-vault-git.sh to enable).
 
 4. **Continuity channel** — rewrite `<cwd>/.planning/continuity.md` from this template

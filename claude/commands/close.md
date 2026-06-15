@@ -9,5 +9,5 @@ Run the **close-session protocol** (the `close-session` skill). Optional focus f
 (If empty, scan the whole session for what's worth keeping; if present, prioritise it.)
 
 Execute both channels — durable knowledge → `05.Wiki/` (git-committed), continuity →
-`<project>/.planning/continuity.md` — then run `bash ~/.claude/hooks/ledger-mark-captured.sh "$PWD"`
+`<cwd>/.planning/continuity.md` — then run `bash ~/.claude/hooks/ledger-mark-captured.sh "$PWD"`
 and report what you wrote. Follow the `close-session` skill exactly.
