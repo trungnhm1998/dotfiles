@@ -117,7 +117,12 @@ Keeps the Obsidian `05.Wiki` and per-project continuity notes current with minim
 
 It then resets the ledger via `claude/hooks/ledger-mark-captured.sh`.
 
-**One-time setup:** `bash scripts/init-vault-git.sh` puts the vault under local git (no remote). Only `.gitignore` is committed initially; existing notes stay untracked — the history is intentionally a precise audit of agent-written files, not a vault snapshot.
+**Activation (first time, per machine):**
+1. Deploy so the hooks/skill/command symlink into `~/.claude`: `.\deploy_windows.ps1 -SkipPackages` (Windows, admin) or `./deploy.sh` (macOS/Linux).
+2. Put the vault under local git (audit trail): `bash scripts/init-vault-git.sh`. Only `.gitignore` is committed initially; existing notes stay untracked — the history is intentionally a precise audit of agent-written files, not a vault snapshot.
+3. Verify: edit a few files / commit in any project, then run `/close` — it should write + commit to `05.Wiki` and create/refresh `<project>/.planning/continuity.md`.
+
+Disable anytime with `WIKI_AUTO=0`. Run the hook tests with `bash claude/hooks/tests/run-tests.sh`.
 
 **Toggles (environment variables):**
 
