@@ -81,5 +81,5 @@ pointer_write(){
 pointer_get(){
   local f; f="$(ledger_dir)/by-project/$1.json"
   [ -f "$f" ] || { printf ''; return 0; }
-  jq -r "$2 // empty" "$f" 2>/dev/null
+  jq -r "($2 | select(. != null) | tostring) // empty" "$f" 2>/dev/null
 }
