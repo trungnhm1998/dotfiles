@@ -107,6 +107,31 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 - **Theme:** Catppuccin Frappe used consistently (wezterm, tmux, yazi, komorebi)
 - **Font:** JetBrains Mono Nerd Font
 
+## Session Memory Protocol (automated close-session capture)
+
+Keeps the Obsidian `05.Wiki` and per-project continuity notes current with minimal prompting. A deterministic per-session **ledger** (`~/.claude/.session-ledger/<id>.json`, maintained by `claude/hooks/session-ledger.sh` on `PostToolUse`) counts work signals (files written/edited, git commits, PRs). When uncaptured work crosses a threshold, the `Stop` hook (`claude/hooks/session-capture-stop.sh`) injects an escalating nudge to run `/close`.
+
+**`/close`** (the `close-session` skill) distils the session into two channels:
+- **Durable knowledge → `05.Wiki/`** — git-committed as an audit trail of agent-authored files.
+- **Continuity → `<project>/.planning/continuity.md`** — changes, decisions made, decisions pending, next steps; surfaced at the next `SessionStart` by `claude/hooks/continuity-readback.sh`.
+
+It then resets the ledger via `claude/hooks/ledger-mark-captured.sh`.
+
+**One-time setup:** `bash scripts/init-vault-git.sh` puts the vault under local git (no remote). Only `.gitignore` is committed initially; existing notes stay untracked — the history is intentionally a precise audit of agent-written files, not a vault snapshot.
+
+**Toggles (environment variables):**
+
+| Var | Default | Status | Effect |
+|-----|---------|--------|--------|
+| `WIKI_AUTO` | `1` | active | Master kill-switch for the whole protocol. |
+| `WIKI_THRESHOLD_FILES` | `3` | active | Files-touched delta that counts as "meaningful". |
+| `WIKI_THRESHOLD_COMMITS` | `1` | active | Commits delta that counts as "meaningful". |
+| `WIKI_AUTORUN` | `0` | Phase 2 | Force a `Stop`-block capture after ignored nudges. |
+| `WIKI_FALLBACK` | `1` | Phase 2 | Next-`SessionStart` reconciliation of walk-away sessions. |
+| `WIKI_FALLBACK_HEADLESS` | `0` | Phase 3 | Experimental background `claude -p` capture. |
+
+Design spec: `docs/superpowers/specs/2026-06-15-automated-session-memory-protocol-design.md`. Implementation plan: `docs/superpowers/plans/2026-06-15-automated-session-memory-protocol.md`. Phase 1 (shipped) = ledger + `Stop` nudge + `/close` + continuity read-back + `git init`; `PreCompact` force, fallback reconcile, and headless capture are Phase 2/3.
+
 ## Key Configuration Files
 
 | Tool | Config Location |
