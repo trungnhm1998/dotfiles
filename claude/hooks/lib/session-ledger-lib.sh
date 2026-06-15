@@ -2,6 +2,8 @@
 # Shared session-ledger logic. SOURCE this, don't execute.
 # A ledger is a per-session JSON file under $(ledger_dir). Honors $CLAUDE_LEDGER_DIR
 # so tests run against a temp dir. All functions fail open (no-op) on missing files.
+# Concurrency: read-modify-write (jq > tmp && mv) is single-writer. Concurrent bumps
+# can lose an update; acceptable for a nudge heuristic (no locking by design).
 
 ledger_dir(){ printf '%s' "${CLAUDE_LEDGER_DIR:-$HOME/.claude/.session-ledger}"; }
 ledger_path(){ printf '%s/%s.json' "$(ledger_dir)" "$1"; }
@@ -41,6 +43,7 @@ ledger_meaningful(){
   local sid="$1" fw fe gc pr files
   fw="$(ledger_delta "$sid" files_written)"; fe="$(ledger_delta "$sid" files_edited)"
   gc="$(ledger_delta "$sid" git_commits)";   pr="$(ledger_delta "$sid" prs_opened)"
+  fw="${fw:-0}"; fe="${fe:-0}"; gc="${gc:-0}"; pr="${pr:-0}"  # empty delta -> 0 (defensive)
   files=$(( fw + fe ))
   if [ "$files" -ge "${WIKI_THRESHOLD_FILES:-3}" ] || \
      [ "$gc" -ge "${WIKI_THRESHOLD_COMMITS:-1}" ] || \
