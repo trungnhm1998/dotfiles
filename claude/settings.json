@@ -40,6 +40,16 @@
             "statusMessage": "loading vault map"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/continuity-readback.sh",
+            "timeout": 10,
+            "statusMessage": "continuity read-back"
+          }
+        ]
       }
     ],
     "Notification": [
@@ -66,14 +76,27 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/session-ledger.sh",
+            "timeout": 5,
+            "statusMessage": "session ledger"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/wiki-capture-nudge.sh",
+            "command": "bash ~/.claude/hooks/session-capture-stop.sh",
             "timeout": 5,
-            "statusMessage": "wiki capture check"
+            "statusMessage": "session capture check"
           }
         ]
       }

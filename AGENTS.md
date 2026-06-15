@@ -191,6 +191,21 @@ Defined in `.editorconfig` for consistency:
 | opencode Config | `.config/opencode/opencode.jsonc` |
 | Secrets template | `secrets.env.example` (real values in `~/.config/dotfiles/secrets.env`, gitignored) |
 
+### Session Memory Hooks & Commands
+
+| Purpose | Path |
+|---------|------|
+| PostToolUse ledger (counts work signals) | `claude/hooks/session-ledger.sh` |
+| Stop-hook nudge (prompts `/close` when threshold crossed) | `claude/hooks/session-capture-stop.sh` |
+| SessionStart continuity read-back | `claude/hooks/continuity-readback.sh` |
+| Marks ledger captured after `/close` runs | `claude/hooks/ledger-mark-captured.sh` |
+| Shared ledger logic | `claude/hooks/lib/session-ledger-lib.sh` |
+| `/close` command definition | `claude/commands/close.md` |
+| `close-session` skill (distils session → Wiki + continuity) | `claude/skills/close-session/SKILL.md` |
+| One-time vault git init | `scripts/init-vault-git.sh` |
+
+All of the above live under `claude/` which symlinks into `~/.claude/` at deploy (`deploy_windows.ps1` / `deploy.sh`), so they are active immediately after deployment — no separate install step. See `## Session Memory Protocol` in `CLAUDE.md` for the full design and toggle reference.
+
 ## Important Patterns
 
 **Platform Detection (Lua):**
