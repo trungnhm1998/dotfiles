@@ -16,8 +16,9 @@ tmp=$(mktemp); jq '.turns = (.turns + 1)' "$f" > "$tmp" && mv "$tmp" "$f"
 
 ledger_meaningful "$sid" || exit 0
 level=$(ledger_bump_nudge "$sid")
-fw=$(ledger_delta "$sid" files_written); fe=$(ledger_delta "$sid" files_edited)
-gc=$(ledger_delta "$sid" git_commits)
+fw=$(ledger_delta "$sid" files_written); fw=${fw:-0}
+fe=$(ledger_delta "$sid" files_edited);  fe=${fe:-0}
+gc=$(ledger_delta "$sid" git_commits);   gc=${gc:-0}
 files=$((fw + fe))
 case "$level" in
   1) tone="📥 Heads up:";;
