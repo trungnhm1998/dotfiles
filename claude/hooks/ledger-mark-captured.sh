@@ -8,6 +8,11 @@ command -v jq >/dev/null 2>&1 || exit 0
 cwd="${1:-$PWD}"
 key=$(project_key "$cwd")
 sid=$(pointer_get "$key" '.session_id')
-[ -n "$sid" ] && ledger_mark_captured "$sid"
-pointer_write "$key" "${sid:-unknown}" "$(basename "$cwd")" false "captured $(now_iso)"
+if [ -n "$sid" ]; then
+  ledger_mark_captured "$sid"
+  pointer_write "$key" "$sid" "$(basename "$cwd")" false "captured $(now_iso)"
+else
+  # A silent exit 0 here hid a cwd-form/key mismatch bug; say so instead of no-op'ing.
+  echo "ledger-mark-captured: no ledger for $cwd (key $key); nothing to mark" >&2
+fi
 exit 0

@@ -7,7 +7,16 @@
 
 ledger_dir(){ printf '%s' "${CLAUDE_LEDGER_DIR:-$HOME/.claude/.session-ledger}"; }
 ledger_path(){ printf '%s/%s.json' "$(ledger_dir)" "$1"; }
-project_key(){ printf '%s' "$1" | cksum | cut -d' ' -f1; }
+project_key(){
+  local p="$1"
+  # Canonicalize Windows path forms (D:\x, /d/x, D:/x -> D:/x) so one directory hashes to
+  # one key regardless of which shell produced the cwd. cygpath exists only under Git
+  # Bash/MSYS; on mac/linux the raw POSIX cwd is already consistent across callers.
+  if command -v cygpath >/dev/null 2>&1; then
+    local m; m=$(cygpath -m -- "$p" 2>/dev/null); [ -n "$m" ] && p="$m"
+  fi
+  printf '%s' "$p" | cksum | cut -d' ' -f1
+}
 now_iso(){ date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 ledger_init(){

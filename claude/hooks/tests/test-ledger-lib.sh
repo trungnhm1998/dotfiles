@@ -53,4 +53,16 @@ assert_eq "$(pointer_get "$key" '.uncaptured')" "true" "pointer uncaptured bool"
 assert_eq "$(pointer_get "$key" '.summary')" "7 files, 2 commits, 1 PRs" "pointer summary"
 assert_eq "$(pointer_get 999999 '.session_id')" "" "absent pointer returns empty"
 
+# Cross-form project_key: on Windows (cygpath present) D:\x, /d/x, D:/x are the SAME
+# directory and MUST hash to one key. Skipped where cygpath is absent (bug can't occur).
+if command -v cygpath >/dev/null 2>&1; then
+  kbs=$(project_key 'D:\work\proj')
+  kmsys=$(project_key '/d/work/proj')
+  kmix=$(project_key 'D:/work/proj')
+  assert_eq "$kbs" "$kmsys" "project_key: backslash form == msys form"
+  assert_eq "$kbs" "$kmix"  "project_key: backslash form == mixed form"
+else
+  echo "  SKIP: cross-form project_key (no cygpath)"
+fi
+
 finish
