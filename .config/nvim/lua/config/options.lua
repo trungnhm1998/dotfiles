@@ -20,13 +20,7 @@ opt.expandtab = true
 vim.g.snacks_animate = false
 vim.g.autoformat = false
 
--- Terminal configuration for Windows (PowerShell Core)
-if vim.fn.has("win32") == 1 then
-    vim.o.shell = "pwsh.exe"
-    vim.o.shellcmdflag =
-        "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new();$PSDefaultParameterValues['Out-File:Encoding']='utf8';$PSStyle.OutputRendering='plaintext';Remove-Alias -Force -ErrorAction SilentlyContinue tee;"
-    vim.o.shellredir = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
-    vim.o.shellpipe = '2>&1 | %%{ "$_" } | tee %s; exit $LastExitCode'
-    vim.o.shellquote = ""
-    vim.o.shellxquote = ""
-end
+-- Windows: leave 'shell' on the default cmd.exe. 'shell' is plumbing (:!, system(),
+-- :grep/:make pipes) and gets spawned fresh per call — pwsh boots in ~200-650 ms vs
+-- cmd's ~25 ms, which made every shell-out crawl. Interactive terminals still get
+-- pwsh via snacks.nvim's terminal.shell (see lua/plugins/snacks.lua).
