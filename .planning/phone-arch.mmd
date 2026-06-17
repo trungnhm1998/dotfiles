@@ -1,0 +1,18 @@
+flowchart LR
+    Termux["Termux client<br/>(Android S23)"]
+    TS(["Tailscale mesh<br/>WireGuard"])
+    SSHD["Windows OpenSSH"]
+    Launch["session launcher<br/>(wsl + tmux attach)"]
+    TMUX["tmux in WSL2"]
+    C1["claude: Project A"]
+    C2["claude: Project B"]
+    C3["claude: Planning"]
+    Unity["Unity Editor<br/>desk only, not phone-driven"]
+
+    Termux -->|Mosh| TS
+    TS --> SSHD
+    SSHD --> Launch
+    Launch --> TMUX
+    TMUX --> C1
+    TMUX --> C2
+    TMUX --> C3

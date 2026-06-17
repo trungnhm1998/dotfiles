@@ -107,7 +107,7 @@
       }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
@@ -115,6 +115,5 @@
   "editorMode": "vim",
   "verbose": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "fable[1m]"
+  "skipAutoPermissionPrompt": true
 }

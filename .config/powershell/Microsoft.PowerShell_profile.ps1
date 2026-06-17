@@ -78,3 +78,31 @@ function claude-mem { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedot
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
+
+# --- Grammar fixer ---
+function fix-grammar {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [string] $PipeInput,
+        [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
+        [string[]] $TextArgs
+    )
+    begin   { $buf = [System.Collections.Generic.List[string]]::new() }
+    process { if ($PipeInput) { $buf.Add($PipeInput) } }
+    end {
+        $script = "$HOME\dotfiles\scripts\fix-grammar.ps1"
+        if ($buf.Count -gt 0) {
+            ($buf -join "`n") | & $script
+        } elseif ($TextArgs.Count -gt 0) {
+            & $script @TextArgs
+        } else {
+            & $script
+        }
+    }
+}
+Set-Alias -Name fg -Value fix-grammar
+
+# OPENSPEC:START - OpenSpec completion (managed block, do not edit manually)
+. "C:\Users\mint\Documents\PowerShell\OpenSpecCompletion.ps1"
+# OPENSPEC:END
