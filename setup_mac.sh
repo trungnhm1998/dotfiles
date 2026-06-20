@@ -50,6 +50,7 @@ brew install \
     borders \
     yabai \
     bat \
+    kanata \
     deskflow
 
 # HomeBrew casks
@@ -69,8 +70,7 @@ brew install --cask \
     font-sf-pro \
     font-hack-nerd-font \
     font-jetbrains-mono \
-    font-fira-code \
-    karabiner-elements
+    font-fira-code
 
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
@@ -78,6 +78,7 @@ ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
 ln -sf $HOME/dotfiles/.config/sketchybar $HOME/.config/sketchybar
 ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use multiple bars
 ln -sf $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
+ln -sf $HOME/dotfiles/.config/kanata $HOME/.config/kanata
 # svim — disabled 2026-06-20 (unused). To re-enable: add "svim" back to the brew
 # install list above, then uncomment this symlink and the "brew services start svim" below.
 # ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
@@ -87,6 +88,18 @@ bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
 # brew services start svim   # disabled — see svim note above
 brew services start sketchybar
+
+# --- kanata keyboard remapper (built-in keyboard only) ---
+# One-time manual setup (the driver needs GUI approval, so it can't be scripted):
+#   1. Install Karabiner-DriverKit-VirtualHIDDevice v6.2.0 (pinned in kanata's setup-macos.md)
+#   2. Approve the driver extension; grant kanata Input Monitoring + Accessibility
+#   3. Install + load the LaunchDaemon:
+#        sudo cp ~/.config/kanata/dev.kanata.kanata.plist /Library/LaunchDaemons/dev.kanata.kanata.plist
+#        sudo sed -i '' "s|__KANATA__|$(which kanata)|; s|__USER__|$USER|" /Library/LaunchDaemons/dev.kanata.kanata.plist
+#        sudo chown root:wheel /Library/LaunchDaemons/dev.kanata.kanata.plist
+#        sudo launchctl bootstrap system /Library/LaunchDaemons/dev.kanata.kanata.plist
+# Reload after editing kanata.kbd: scripts/kanata-reload.sh
+echo "NOTE: kanata installed — finish the one-time driver + daemon setup (see README 'Keyboard Remapping (Kanata)')."
 
 defaults write -g InitialKeyRepeat -int 10
 defaults write -g KeyRepeat -int 1
