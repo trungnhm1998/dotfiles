@@ -8,16 +8,37 @@
   )
 )
 
-(defsrc
-  caps
+(defvar
+  tt 180          ;; home-row tap timeout
+  ht 180          ;; home-row hold timeout
+  ;; same-hand key lists: pressing a SAME-hand key forces the tap (letter),
+  ;; so same-hand rolls never become modifiers. Cross-hand keeps the hold.
+  left-hand  (q w e r t a s d f g z x c v b)
+  right-hand (y u i o p h j k l ; n m , . /)
 )
 
 (defalias
   ;; Caps: tap Esc / hold Left-Ctrl. Plain tap-hold = decides only on
   ;; timeout-or-release, so it CANNOT misfire under Alfred (the bug we fix).
   cap (tap-hold 180 180 esc lctl)
+
+  ;; Home-row mods, C-S-A-G order (pinky->index): Ctrl Shift Alt Cmd, mirrored.
+  a    (tap-hold-release-keys $tt $ht a lctl $left-hand)
+  s    (tap-hold-release-keys $tt $ht s lsft $left-hand)
+  d    (tap-hold-release-keys $tt $ht d lalt $left-hand)
+  f    (tap-hold-release-keys $tt $ht f lmet $left-hand)
+  j    (tap-hold-release-keys $tt $ht j rmet $right-hand)
+  k    (tap-hold-release-keys $tt $ht k ralt $right-hand)
+  l    (tap-hold-release-keys $tt $ht l rsft $right-hand)
+  scln (tap-hold-release-keys $tt $ht ; rctl $right-hand)
+)
+
+(defsrc
+  caps
+  a    s    d    f    j    k    l    ;
 )
 
 (deflayer base
   @cap
+  @a   @s   @d   @f   @j   @k   @l   @scln
 )
