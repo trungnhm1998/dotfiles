@@ -1,5 +1,7 @@
 ;; kanata.kbd — MacBook built-in keyboard remap (ZSA Voyager port)
 ;; Pinned to the built-in keyboard only; the external Voyager is untouched.
+;; NOTE: `fn` and the media-key names are macOS-only (they won't compile on
+;; Windows) — keep them in the macOS config if this is ever split per-OS.
 
 (defcfg
   process-unmapped-keys yes
@@ -45,31 +47,50 @@
   ;; Space: tap = Space, hold = nav layer. Plain tap-hold (timeout-only) so
   ;; fast space->letter rolls never trigger the layer.
   spc  (tap-hold 200 200 spc (layer-while-held nav))
+
+  ;; Fn/Globe: emit the real fn (keeps fn-c Control Center, emoji picker, etc.)
+  ;; AND hold = the media layer below. Restores the Fn+F-row media keys that
+  ;; kanata's keyboard grab otherwise turns into plain F-keys.
+  fnl  (multi fn (layer-while-held funcs))
 )
 
 (defsrc
+  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   caps
   a    s    d    f    j    k    l    ;
   z    x    .    /
-  ralt
+  fn   ralt
   spc  h    y    u    i    o
 )
 
+;; F-keys primary: F1-F12 alone are real function keys; hold Fn for media.
 (deflayer base
+  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @cap
   @a   @s   @d   @f   @j   @k   @l   @scln
   @z   @x   @dot @slsh
-  @hyp
+  @fnl @hyp
   @spc h    y    u    i    o
 )
 
-;; Nav layer (hold Space): left hand stays live modifiers for composition
-;; (Shift/Cmd/Opt + arrow), right hand drives arrows + Home/End/PgUp/PgDn.
+;; Nav layer (hold Space): left hand = live mods, right hand = arrows + nav.
 ;;   H <-   J v   K ^   L ->      Y Home  U PgDn  I PgUp  O End
 (deflayer nav
+  _    _    _    _    _    _    _    _    _    _    _    _
   _
   lctl lsft lalt lmet down up   rght _
   _    _    _    _
-  _
+  _    _
   _    left home pgdn pgup end
+)
+
+;; Func/media layer (hold Fn): F-row -> Mac media keys, matching the M-series
+;; F-row (brightness, Mission Control, Spotlight, Dictation, DND, media, volume).
+(deflayer funcs
+  brdn brup mctl sls  dtn  dnd  prev pp   next mute vold volu
+  _
+  _    _    _    _    _    _    _    _
+  _    _    _    _
+  _    _
+  _    _    _    _    _    _
 )
