@@ -54,7 +54,7 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
 | `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` |
 | `.ideavimrc` | `$HOME\.ideavimrc` |
-| `zed/settings.json` | `$env:APPDATA\Zed\settings.json` |
+| `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
 | `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md` |
 | `claude/` (settings.json, agents, commands, hooks, skills, statusline*) | `$HOME\.claude\…` |
@@ -152,7 +152,7 @@ Design spec: `docs/superpowers/specs/2026-06-15-automated-session-memory-protoco
 | Starship | `.config/starship.toml` |
 | IDEVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
-| Zed | `zed/settings.json`, `zed/keymap.json` |
+| Zed | `zed/settings.unix.json` (macOS/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
 | Global agent instructions | `claude/AGENTS.md` → `~/.claude/CLAUDE.md` + `~/.claude/AGENTS.md` + `~/.codex/AGENTS.md` + `~/.config/opencode/AGENTS.md` (Cursor: paste into User Rules via `scripts/copy-agents-rules.sh`) |
 | Claude Code | `claude/` → `~/.claude/` |
 | opencode | `.config/opencode/opencode.jsonc` |

@@ -44,7 +44,6 @@ brew install \
     pyenv \
     tldr \
     sketchybar \
-    svim \
     zoxide \
     gh \
     skhd \
@@ -79,12 +78,14 @@ ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
 ln -sf $HOME/dotfiles/.config/sketchybar $HOME/.config/sketchybar
 ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use multiple bars
 ln -sf $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
-ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
+# svim — disabled 2026-06-20 (unused). To re-enable: add "svim" back to the brew
+# install list above, then uncomment this symlink and the "brew services start svim" below.
+# ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
 
 # AI tool configs (Claude Code + opencode) — shared with deploy.sh
 bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
-brew services start svim
+# brew services start svim   # disabled — see svim note above
 brew services start sketchybar
 
 defaults write -g InitialKeyRepeat -int 10

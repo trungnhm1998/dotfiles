@@ -1,17 +1,19 @@
-// Zed settings
+// Zed settings — Unix (macOS / Linux)
 //
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
+// Windows uses zed/settings.windows.json. Zed has no per-OS settings merge, so the
+// deploy scripts symlink the right file per platform (deploy.sh links this one).
+// Keep the shared keys in sync between the two files.
 //
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
+// Zed configuration docs: https://zed.dev/docs/configuring-zed
 {
   "cli_default_open_behavior": "new_window",
   "agent_servers": {
     "opencode": {
       "type": "registry"
     }
+  },
+  "auto_update_extensions": {
+    "lua": false
   },
   "outline_panel": {
     "dock": "left"
@@ -28,34 +30,27 @@
     "dock": "left"
   },
   "vim": {
-    "toggle_relative_line_numbers": true,
+    "toggle_relative_line_numbers": true
   },
   "project_panel": {
-    "dock": "right",
+    "dock": "right"
   },
   "features": {
-    "edit_prediction_provider": "copilot",
+    "edit_prediction_provider": "copilot"
   },
   "icon_theme": "Catppuccin Frappé",
   "terminal": {
-    "shell": {
-      "with_arguments": {
-        "program": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-        "args": ["-NoLogo"],
-        "title_override": null,
-      },
-    },
-    "font_family": "SauceCodePro Nerd Font Mono",
+    "font_family": "JetBrainsMono Nerd Font"
   },
   "base_keymap": "VSCode",
   "multi_cursor_modifier": "alt",
   "relative_line_numbers": "enabled",
   "vertical_scroll_margin": 8.0,
   "gutter": {
-    "line_numbers": true,
+    "line_numbers": true
   },
   "minimap": {
-    "show": "never",
+    "show": "never"
   },
   "cursor_shape": "bar",
   "cursor_blink": true,
@@ -69,5 +64,9 @@
   "vim_mode": true,
   "ui_font_size": 16,
   "buffer_font_size": 13.0,
-  "theme": "Catppuccin Frappé",
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "Catppuccin Frappé"
+  }
 }

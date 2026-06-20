@@ -126,7 +126,7 @@ $symlinks = @(
         Description = "IdeaVim configuration"
     }
     @{
-        Source      = "$dotfilesRoot\zed\settings.json"
+        Source      = "$dotfilesRoot\zed\settings.windows.json"
         Target      = "$env:APPDATA\Zed\settings.json"
         IsDirectory = $false
         Description = "Zed editor settings"
