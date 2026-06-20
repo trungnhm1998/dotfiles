@@ -41,6 +41,10 @@
   x    (tap-hold 250 250 x @meh)
   dot  (tap-hold 250 250 . @meh)
   slsh (tap-hold 250 250 / @hyp)
+
+  ;; Space: tap = Space, hold = nav layer. Plain tap-hold (timeout-only) so
+  ;; fast space->letter rolls never trigger the layer.
+  spc  (tap-hold 200 200 spc (layer-while-held nav))
 )
 
 (defsrc
@@ -48,6 +52,7 @@
   a    s    d    f    j    k    l    ;
   z    x    .    /
   ralt
+  spc  h    y    u    i    o
 )
 
 (deflayer base
@@ -55,4 +60,16 @@
   @a   @s   @d   @f   @j   @k   @l   @scln
   @z   @x   @dot @slsh
   @hyp
+  @spc h    y    u    i    o
+)
+
+;; Nav layer (hold Space): left hand stays live modifiers for composition
+;; (Shift/Cmd/Opt + arrow), right hand drives arrows + Home/End/PgUp/PgDn.
+;;   H <-   J v   K ^   L ->      Y Home  U PgDn  I PgUp  O End
+(deflayer nav
+  _
+  lctl lsft lalt lmet down up   rght _
+  _    _    _    _
+  _
+  _    left home pgdn pgup end
 )
