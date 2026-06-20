@@ -369,6 +369,7 @@ Create `.config/kanata/dev.kanata.kanata.plist` (the `__USER__` and `__KANATA__`
   <key>ProgramArguments</key>
   <array>
     <string>__KANATA__</string>
+    <string>--no-wait</string>
     <string>--cfg</string>
     <string>/Users/__USER__/.config/kanata/kanata.kbd</string>
   </array>
