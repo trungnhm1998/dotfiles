@@ -457,8 +457,8 @@ if [ ! -f /Library/LaunchDaemons/dev.kanata.kanata.plist ]; then
   sudo sed -i '' "s|__KANATA__|$(which kanata)|; s|__USER__|$USER|" /Library/LaunchDaemons/dev.kanata.kanata.plist
   sudo chown root:wheel /Library/LaunchDaemons/dev.kanata.kanata.plist
   sudo launchctl bootstrap system /Library/LaunchDaemons/dev.kanata.kanata.plist
-  echo "kanata daemon installed. Grant Input Monitoring + Accessibility, then run:"
-  echo "  kanata --macos-request-permissions"
+  echo "kanata daemon installed. Grant Input Monitoring + Accessibility to"
+  echo "  $(which kanata) (and your terminal app) in System Settings > Privacy & Security."
 fi
 ```
 
@@ -543,8 +543,8 @@ to mirror the ZSA Voyager layout. Config: `.config/kanata/kanata.kbd` (single so
 - **Panic exit:** `Ctrl+Space+Esc`. The external Voyager is never remapped.
 
 **Setup (one-time):** install the pqrs Karabiner-DriverKit-VirtualHIDDevice driver
-(version pinned in kanata's `setup-macos.md`), approve the driver extension, grant
-Input Monitoring + Accessibility (`kanata --macos-request-permissions`). `setup_mac.sh`
+(version pinned in kanata's `setup-macos.md`, currently v6.2.0), approve the driver
+extension, grant Input Monitoring + Accessibility to `/opt/homebrew/bin/kanata`. `setup_mac.sh`
 installs kanata + the LaunchDaemon. Reload after edits: `scripts/kanata-reload.sh`.
 ```
 
