@@ -78,7 +78,7 @@ The MacBook built-in keyboard is remapped with [Kanata](https://github.com/jtroo
 - **Hold Space** → nav layer: `hjkl` = arrows, `Y/U/I/O` = Home/PgDn/PgUp/End; combine with the live left-hand mods for select / word / line motions.
 - **Panic exit:** `LCtrl+Space+Esc`.
 
-**One-time setup (macOS):** install the pqrs Karabiner-DriverKit-VirtualHIDDevice driver (v6.2.0, pinned in kanata's `setup-macos.md`), approve the driver extension, and grant Input Monitoring + Accessibility to `/opt/homebrew/bin/kanata`. `setup_mac.sh` installs kanata and symlinks the config; install the root LaunchDaemon per the comments in that script. Reload after edits with `scripts/kanata-reload.sh`.
+**One-time setup (macOS):** install the pqrs Karabiner-DriverKit-VirtualHIDDevice driver (v6.2.0, pinned in kanata's `setup-macos.md`), then activate it via the **hidden** Manager app — `sudo "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" forceActivate` (note the leading dot in `.Karabiner…`) — and enable it under System Settings → General → Login Items & Extensions → Driver Extensions. Grant Input Monitoring + Accessibility to `/opt/homebrew/bin/kanata`. **Two** root LaunchDaemons must be installed (commands in `setup_mac.sh`): `org.pqrs.Karabiner-VirtualHIDDevice-Daemon` (the driver daemon kanata connects to — **required**; Karabiner-Elements used to run it implicitly, so don't skip it once KE is gone) and `dev.kanata.kanata` (kanata itself). Reload after edits with `scripts/kanata-reload.sh`.
 
 ## Prerequisites
 

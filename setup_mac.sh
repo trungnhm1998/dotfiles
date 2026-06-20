@@ -91,9 +91,20 @@ brew services start sketchybar
 
 # --- kanata keyboard remapper (built-in keyboard only) ---
 # One-time manual setup (the driver needs GUI approval, so it can't be scripted):
-#   1. Install Karabiner-DriverKit-VirtualHIDDevice v6.2.0 (pinned in kanata's setup-macos.md)
-#   2. Approve the driver extension; grant kanata Input Monitoring + Accessibility
-#   3. Install + load the LaunchDaemon:
+#   1. Install Karabiner-DriverKit-VirtualHIDDevice v6.2.0 (pinned in kanata's setup-macos.md):
+#        https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases/tag/v6.2.0
+#   2. Activate the driver extension. NOTE: the Manager app is HIDDEN (leading dot):
+#        sudo "/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" forceActivate
+#      then enable it: System Settings > General > Login Items & Extensions > Driver Extensions
+#      > org.pqrs.Karabiner-DriverKit-VirtualHIDDevice. Grant kanata Input Monitoring + Accessibility.
+#   3. Install + load BOTH root LaunchDaemons:
+#      (a) pqrs VirtualHIDDevice daemon — REQUIRED. kanata connects to this; without it kanata
+#          errors "Karabiner-VirtualHIDDevice driver is not activated". Karabiner-Elements used to
+#          run it implicitly, so this was easy to miss until KE was uninstalled.
+#        sudo cp ~/.config/kanata/org.pqrs.Karabiner-VirtualHIDDevice-Daemon.plist /Library/LaunchDaemons/
+#        sudo chown root:wheel /Library/LaunchDaemons/org.pqrs.Karabiner-VirtualHIDDevice-Daemon.plist
+#        sudo launchctl bootstrap system /Library/LaunchDaemons/org.pqrs.Karabiner-VirtualHIDDevice-Daemon.plist
+#      (b) kanata itself:
 #        sudo cp ~/.config/kanata/dev.kanata.kanata.plist /Library/LaunchDaemons/dev.kanata.kanata.plist
 #        sudo sed -i '' "s|__KANATA__|$(which kanata)|; s|__USER__|$USER|" /Library/LaunchDaemons/dev.kanata.kanata.plist
 #        sudo chown root:wheel /Library/LaunchDaemons/dev.kanata.kanata.plist
