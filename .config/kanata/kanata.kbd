@@ -5,6 +5,11 @@
 
 (defcfg
   process-unmapped-keys yes
+  ;; Let a later tap-hold start its timer immediately while an earlier tap-hold
+  ;; is still held & undecided. Without this (the default), holding a home-row
+  ;; mod (e.g. A=Ctrl) freezes the Space->nav tap-hold timer until A resolves,
+  ;; so Ctrl + a nav arrow (A + Space + H = Ctrl+Left) never reliably overlap.
+  concurrent-tap-hold yes
   macos-dev-names-include (
     "Apple Internal Keyboard / Trackpad"
   )
