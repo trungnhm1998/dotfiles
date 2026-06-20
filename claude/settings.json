@@ -131,12 +131,16 @@
     }
   },
   "effortLevel": "xhigh",
+  "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": true,
+  "preferredNotifChannel": "auto",
+  "remoteControlAtStartup": false,
+  "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }
