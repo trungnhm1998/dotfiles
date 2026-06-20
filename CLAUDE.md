@@ -151,6 +151,7 @@ Design spec: `docs/superpowers/specs/2026-06-15-automated-session-memory-protoco
 | Zsh | `zsh/zshrc.sh` (main), `zsh/zshrc_manager.sh` (entry point) |
 | Starship | `.config/starship.toml` |
 | IDEVim | `.ideavimrc` |
+| Kanata (keyboard remap, macOS) | `.config/kanata/kanata.kbd` (+ `dev.kanata.kanata.plist`) |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | Zed | `zed/settings.unix.json` (macOS/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
 | Global agent instructions | `claude/AGENTS.md` → `~/.claude/CLAUDE.md` + `~/.claude/AGENTS.md` + `~/.codex/AGENTS.md` + `~/.config/opencode/AGENTS.md` (Cursor: paste into User Rules via `scripts/copy-agents-rules.sh`) |

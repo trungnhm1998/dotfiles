@@ -187,6 +187,7 @@ Defined in `.editorconfig` for consistency:
 | Starship Prompt | `.config/starship.toml` |
 | Windows PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | IdeaVim | `.ideavimrc` |
+| Kanata (keyboard remap, macOS) | `.config/kanata/kanata.kbd` |
 | Claude Code Config | `claude/` (→ `~/.claude/`) |
 | opencode Config | `.config/opencode/opencode.jsonc` |
 | Secrets template | `secrets.env.example` (real values in `~/.config/dotfiles/secrets.env`, gitignored) |

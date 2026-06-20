@@ -68,6 +68,18 @@ This instantly updates every symlinked config (Neovim, Wezterm, Tmux, Zsh, Claud
 - **Navigation**: vim-tmux-navigator for pane/split navigation
 - **Window Manager**: Yabai (macOS) with SKHD hotkeys and SketchyBar
 
+## Keyboard Remapping (Kanata)
+
+The MacBook built-in keyboard is remapped with [Kanata](https://github.com/jtroo/kanata) to mirror the ZSA Voyager layout (config: `.config/kanata/kanata.kbd`, single source). The external Voyager is never touched — its firmware does its own remapping.
+
+- **Caps Lock** → tap `Esc` / hold `Ctrl` (fixes Karabiner's tap-Esc misfires under Alfred)
+- **Home-row mods** (C-S-A-G): `A/S/D/F` = Ctrl/Shift/Alt/Cmd, `J/K/L/;` mirrored, with opposite-hand resolution so same-hand rolls stay letters. For same-hand combos (e.g. Cmd+Q), use the **opposite** hand's mod.
+- **Z/X/./?** → Hyper/Meh; **Right Option** → Hyper.
+- **Hold Space** → nav layer: `hjkl` = arrows, `Y/U/I/O` = Home/PgDn/PgUp/End; combine with the live left-hand mods for select / word / line motions.
+- **Panic exit:** `LCtrl+Space+Esc`.
+
+**One-time setup (macOS):** install the pqrs Karabiner-DriverKit-VirtualHIDDevice driver (v6.2.0, pinned in kanata's `setup-macos.md`), approve the driver extension, and grant Input Monitoring + Accessibility to `/opt/homebrew/bin/kanata`. `setup_mac.sh` installs kanata and symlinks the config; install the root LaunchDaemon per the comments in that script. Reload after edits with `scripts/kanata-reload.sh`.
+
 ## Prerequisites
 
 - **Git** (all platforms)
@@ -102,6 +114,7 @@ This instantly updates every symlinked config (Neovim, Wezterm, Tmux, Zsh, Claud
 | Starship | Prompt | `.config/starship.toml` |
 | IdeaVim | Vim for JetBrains | `.ideavimrc` |
 | Claude Code | AI agent config + skills | `claude/` |
+| Kanata | Keyboard remap (macOS built-in kbd) | `.config/kanata/kanata.kbd` |
 
 ## Claude Code Skills
 
