@@ -1,0 +1,23 @@
+;; kanata.kbd — MacBook built-in keyboard remap (ZSA Voyager port)
+;; Pinned to the built-in keyboard only; the external Voyager is untouched.
+
+(defcfg
+  process-unmapped-keys yes
+  macos-dev-names-include (
+    "Apple Internal Keyboard / Trackpad"
+  )
+)
+
+(defsrc
+  caps
+)
+
+(defalias
+  ;; Caps: tap Esc / hold Left-Ctrl. Plain tap-hold = decides only on
+  ;; timeout-or-release, so it CANNOT misfire under Alfred (the bug we fix).
+  cap (tap-hold 180 180 esc lctl)
+)
+
+(deflayer base
+  @cap
+)
