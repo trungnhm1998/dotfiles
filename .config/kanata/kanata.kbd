@@ -22,6 +22,10 @@
   ;; timeout-or-release, so it CANNOT misfire under Alfred (the bug we fix).
   cap (tap-hold 180 180 esc lctl)
 
+  ;; Hyper / Meh combos (used by the bottom row and Right-Option).
+  hyp (multi lctl lsft lalt lmet)   ;; Hyper ⌃⇧⌥⌘
+  meh (multi lctl lsft lalt)        ;; Meh   ⌃⇧⌥
+
   ;; Home-row mods, C-S-A-G order (pinky->index): Ctrl Shift Alt Cmd, mirrored.
   a    (tap-hold-release-keys $tt $ht a lctl $left-hand)
   s    (tap-hold-release-keys $tt $ht s lsft $left-hand)
@@ -31,14 +35,24 @@
   k    (tap-hold-release-keys $tt $ht k ralt $right-hand)
   l    (tap-hold-release-keys $tt $ht l rsft $right-hand)
   scln (tap-hold-release-keys $tt $ht ; rctl $right-hand)
+
+  ;; Bottom-row Hyper/Meh (longer 250ms term to avoid accidental triggers).
+  z    (tap-hold 250 250 z @hyp)
+  x    (tap-hold 250 250 x @meh)
+  dot  (tap-hold 250 250 . @meh)
+  slsh (tap-hold 250 250 / @hyp)
 )
 
 (defsrc
   caps
   a    s    d    f    j    k    l    ;
+  z    x    .    /
+  ralt
 )
 
 (deflayer base
   @cap
   @a   @s   @d   @f   @j   @k   @l   @scln
+  @z   @x   @dot @slsh
+  @hyp
 )
