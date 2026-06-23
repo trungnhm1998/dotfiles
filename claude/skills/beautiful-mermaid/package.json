@@ -1,0 +1,13 @@
+{
+  "name": "beautiful-mermaid-skill",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CLI wrapper to review, render, and validate Mermaid diagrams from the terminal (engine: beautiful-mermaid)",
+  "bin": {
+    "mermaid-review": "scripts/mermaid.mjs"
+  },
+  "dependencies": {
+    "beautiful-mermaid": "^1.1.3"
+  }
+}

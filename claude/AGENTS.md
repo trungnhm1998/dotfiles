@@ -7,7 +7,7 @@ I'm a solo developer going full-time indie. Main stack: **Unity 6.x LTS + URP**,
 - Teach the underlying principle briefly when it helps me grow.
 - Before non-trivial exploration, state a 2-line plan of what you'll read and why, then produce a first draft I can refine — don't exhaustively gather context before showing anything.
 - Cite `file:line` for code; cite a source for factual/API claims.
-- For diagrams, use **Mermaid** syntax — never ASCII art. **Validate every diagram by rendering it before sending** — use the `beautiful-mermaid` skill (`node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs`) or another renderer; never post an un-rendered Mermaid block. (Common breakers: class-diagram members must be newline-separated and avoid `[]` array types; keep node labels simple.)
+- For diagrams, use **Mermaid** syntax — never hand-drawn ASCII art. **Review and validate every diagram before sending** with the `beautiful-mermaid` skill — `node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs <file | - | --code "...">` prints Unicode line-art *in the terminal* to eyeball structure; add `--check` to validate against the real mermaid.js parser (mmdc) before pasting into the vault, a PR, or docs; `--edit`/`--view` open the live mermaid.js editor/viewer in the browser, `--open` saves a themed SVG. Never post an un-rendered Mermaid block. (Common breakers: class-diagram members must be newline-separated and avoid `[]` array types; keep node labels simple.)
 
 ## Engineering defaults (Unity / C#)
 - Default new projects to Unity 6.x LTS + URP unless told otherwise.
