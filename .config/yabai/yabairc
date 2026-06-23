@@ -78,6 +78,13 @@ yabai -m signal --add event=window_resized action="~/.config/jankyborders/maximi
 
 yabai -m signal --add event=window_destroyed action="~/.config/skhd/focus-window-on-destroy.sh"
 
+# Dynamic workspace strip: re-evaluate which spaces the bar shows whenever a
+# window appears or disappears (space/display changes are handled by SketchyBar's
+# own events). The spaces.sh controller does the work.
+# Spec: docs/superpowers/specs/2026-06-24-yabai-dynamic-workspaces-design.md
+yabai -m signal --add event=window_created   action="sketchybar --trigger yabai_windows_changed"
+yabai -m signal --add event=window_destroyed action="sketchybar --trigger yabai_windows_changed"
+
 # restart sketchybar when display changes
 yabai -m signal --add event=display_removed action="sketchybar --reload && external_bar --reload" # this could cost performance
 yabai -m signal --add event=display_added action="sketchybar --reload && external_bar --reload" # same here
