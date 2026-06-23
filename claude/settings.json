@@ -99,6 +99,16 @@
             "statusMessage": "session capture check"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/claude-stop-notify.sh",
+            "timeout": 5,
+            "statusMessage": "stop notify"
+          }
+        ]
       }
     ]
   },
@@ -135,11 +145,12 @@
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": true,
   "preferredNotifChannel": "auto",
-  "remoteControlAtStartup": false,
+  "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true

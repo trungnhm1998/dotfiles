@@ -25,6 +25,7 @@ brew install \
     miniconda \
     tmux \
     jq \
+    terminal-notifier \
     fd \
     wget \
     poppler \
