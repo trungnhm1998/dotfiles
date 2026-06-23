@@ -8,6 +8,8 @@
   <array>
     <string>__KANATA__</string>
     <string>--no-wait</string>
+    <string>--port</string>
+    <string>10000</string>
     <string>--cfg</string>
     <string>/Users/__USER__/.config/kanata/kanata.kbd</string>
   </array>
