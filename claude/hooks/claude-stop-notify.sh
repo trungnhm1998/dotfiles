@@ -26,5 +26,5 @@ if [ "$(uname -s)" = "Darwin" ] && command -v lsappinfo >/dev/null 2>&1; then
   esac
 fi
 
-cc_notify "Claude Code" "finished — back to you"
+cc_notify "Claude Code" "finished — back to you" stop
 exit 0

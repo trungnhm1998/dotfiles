@@ -10,5 +10,5 @@ payload="$(cat)"
 message="$(printf '%s' "$payload" | jq -r '.message // empty' 2>/dev/null)"
 [ -z "$message" ] && exit 0
 
-cc_notify "Claude Code" "$message"
+cc_notify "Claude Code" "$message" notification
 exit 0

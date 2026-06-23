@@ -21,6 +21,10 @@
 #     WezTerm and re-introduces the frontmost-app suppression we just escaped.
 # One source of truth so the Notification and Stop hooks deliver identically.
 
+# Pending-store + shared helpers (pane-keyed entries; ccn_jump_cmd shared with the plugin).
+. "$(dirname "${BASH_SOURCE[0]}")/notify-store.sh"  2>/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/notify-render.sh" 2>/dev/null
+
 # Resolve a cached WezTerm icon PNG for the toast thumbnail. Echoes the path, or nothing
 # if it can't be produced. Generated once from WezTerm's .icns: macOS Sequoia ignores
 # -appIcon, and -sender would re-attribute the toast to WezTerm (→ frontmost-app
@@ -42,7 +46,7 @@ _cc_wezterm_icon() {
 }
 
 cc_notify() {
-  local title="$1" body="$2"
+  local title="$1" body="$2" kind="${3:-notification}"
   [ -z "$body" ] && return 0
 
   # --- In-terminal cue: inside tmux, BEL the emitting pane so tmux flags its window. ---
@@ -59,6 +63,12 @@ cc_notify() {
       tty="$("$tmux_bin" display-message -p '#{pane_tty}' 2>/dev/null)"
     fi
     [ -n "$tty" ] && { printf '\a' > "$tty"; } 2>/dev/null   # BEL -> tmux window bell flag
+    # Persist a pending entry + nudge SketchyBar (the always-visible chip channel).
+    if [ -n "$tmux_pane" ] && command -v ccn_write_pending >/dev/null 2>&1; then
+      ccn_write_pending "$tmux_pane" "$kind"
+      local sb; sb="$(command -v sketchybar 2>/dev/null)"; [ -n "$sb" ] || sb=/opt/homebrew/bin/sketchybar
+      "$sb" --trigger claude_notify_changed 2>/dev/null
+    fi
   fi
 
   # --- Desktop toast: per-OS native notifier. ---
@@ -81,7 +91,7 @@ cc_notify() {
           # target the pane id directly so it works across sessions.
           local session focus_cmd
           session="$("$tmux_bin" display-message -p -t "$tmux_pane" '#{session_name}' 2>/dev/null)"
-          focus_cmd="$tmux_bin switch-client -t '$session' 2>/dev/null; $tmux_bin select-window -t '$tmux_pane' 2>/dev/null; $tmux_bin select-pane -t '$tmux_pane' 2>/dev/null; /usr/bin/open -b com.github.wez.wezterm"
+          focus_cmd="$(ccn_jump_cmd "$session" "$tmux_pane")"
           terminal-notifier -title "$title" -message "$body" -group "claude-code" "${img[@]}" -execute "$focus_cmd"
         else
           # Not in tmux: a click just raises WezTerm.
