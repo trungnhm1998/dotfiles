@@ -119,6 +119,15 @@ brew services start sketchybar
 # Reload after editing kanata.kbd: scripts/kanata-reload.sh
 echo "NOTE: kanata installed — finish the one-time driver + daemon setup (see README 'Keyboard Remapping (Kanata)')."
 
+# --- kanata layer indicator (WORK/GAME toast + SketchyBar) ---
+# Needs --port in dev.kanata.kanata.plist (already included). One-time USER agent:
+#   mkdir -p ~/.cache/kanata
+#   cp ~/.config/kanata/dev.kanata.layer-listener.plist ~/Library/LaunchAgents/dev.kanata.layer-listener.plist
+#   sed -i '' "s|__USER__|$USER|" ~/Library/LaunchAgents/dev.kanata.layer-listener.plist
+#   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.kanata.layer-listener.plist
+# Reload after editing the listener: launchctl bootout gui/$(id -u)/dev.kanata.layer-listener && \
+#   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.kanata.layer-listener.plist
+
 defaults write -g InitialKeyRepeat -int 10
 defaults write -g KeyRepeat -int 1
 defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false              # For VS Code
