@@ -40,46 +40,36 @@ default=(
 )
 sketchybar --default "${default[@]}"
 
-##### Adding Mission Control Space Indicators #####
-# Let's add some mission control spaces:
-# https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
-# to indicate active and available mission control spaces.
+##### Dynamic workspace indicators (yabai) #####
+# Show a space iff it has >=1 window OR is focused; spaces.sh recomputes on each
+# event. yabai is the source of truth — plain items, not the native `space`
+# component. Spec: docs/superpowers/specs/2026-06-24-yabai-dynamic-workspaces-design.md
+sketchybar --add event yabai_windows_changed
 
-for space_id in $( yabai -m query --displays | jq ".[] | select(.index==1).spaces.[]"); do
-  # echo "Adding space $space_id to display $CURRENT_DISPLAY_ID"
+for sid in $( yabai -m query --spaces | jq -r '.[].index' ); do
   space=(
-    space="$space_id"
-    icon="$space_id"
+    icon="$sid"
     icon.padding_left=7
     icon.padding_right=7
     background.color=0x40ffffff
     background.corner_radius=5
     background.height=25
+    background.drawing=off
     label.drawing=off
-    script="$PLUGIN_DIR/space.sh"
-    click_script="yabai -m space --focus $space_id"
+    drawing=off
+    click_script="yabai -m space --focus $sid"
   )
-  sketchybar --add space space."$space_id" left --set space."$space_id" "${space[@]}"
+  sketchybar --add item space."$sid" left --set space."$sid" "${space[@]}"
 done
 
-# SPACE_ICONS=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")
-# for i in "${!SPACE_ICONS[@]}"
-# do
-#   sid="$(($i+1))"
-#   space=(
-#     space="$sid"
-#     icon="${SPACE_ICONS[i]}"
-#     icon.padding_left=7
-#     icon.padding_right=7
-#     background.color=0x40ffffff
-#     background.corner_radius=5
-#     background.height=25
-#     label.drawing=off
-#     script="$PLUGIN_DIR/space.sh"
-#     click_script="yabai -m space --focus $sid"
-#   )
-#   sketchybar --add space space."$sid" left --set space."$sid" "${space[@]}"
-# done
+# Invisible broker: reacts to events, drives every space item via spaces.sh.
+# updates=on forces its script to run even though it is not drawn.
+sketchybar --add item spaces_controller left \
+           --set spaces_controller drawing=off updates=on script="$PLUGIN_DIR/spaces.sh" \
+           --subscribe spaces_controller yabai_windows_changed space_change \
+                       front_app_switched display_change
+
+sketchybar --trigger yabai_windows_changed   # initial paint
 
 ##### Adding Left Items #####
 # We add some regular items to the left side of the bar, where
