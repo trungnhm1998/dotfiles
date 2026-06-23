@@ -202,6 +202,7 @@ The presentation logic: which panes are "viewed", the chip label, and the per-ki
   - `ccn_label <window_name> <pane_cmd> <cwd>` → ≤12-char label; uses window name unless empty / a generic shell name / equal to the command, else cwd basename
   - `ccn_icon <kind>` → `󰗠` for stop, else `󰂞`
   - `ccn_color <kind>` → `0xffa6d189` for stop, else `0xffef9f76`
+  - `ccn_jump_cmd <session> <pane_id>` → a single shell-command string that focuses that tmux pane and raises WezTerm; shared by the toast (`notify-lib.sh`, via `$(...)`) and the plugin (Task 4, via `eval`)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -234,6 +235,13 @@ assert_eq "$(ccn_icon notification)"  "󰂞" "needs-input icon"
 assert_eq "$(ccn_icon stop)"          "󰗠" "finished icon"
 assert_eq "$(ccn_color notification)" "0xffef9f76" "needs-input color peach"
 assert_eq "$(ccn_color stop)"         "0xffa6d189" "finished color green"
+
+# jump command: focuses the session + the pane (by id) and raises WezTerm
+jc="$(ccn_jump_cmd 'work' '%7')"
+assert_contains "$jc" "switch-client -t 'work'" "jump cmd switches to the session"
+assert_contains "$jc" "select-window -t '%7'"   "jump cmd selects the window by pane id"
+assert_contains "$jc" "select-pane -t '%7'"     "jump cmd selects the pane"
+assert_contains "$jc" "open -b com.github.wez.wezterm" "jump cmd raises WezTerm"
 
 finish
 ```
@@ -278,6 +286,17 @@ ccn_label(){
 
 ccn_icon(){  case "$1" in stop) printf '󰗠' ;; *) printf '󰂞' ;; esac; }
 ccn_color(){ case "$1" in stop) printf '0xffa6d189' ;; *) printf '0xffef9f76' ;; esac; }
+
+# <session> <pane_id> -> one shell-command string that focuses that tmux pane and
+# raises WezTerm. Shared by the toast (terminal-notifier -execute, a detached `sh -c`)
+# and the plugin (via eval). Absolute tmux path: the toast's minimal shell shadows
+# `tmux` with a plugin function, and select-window/-pane target the pane id so it
+# works across sessions.
+ccn_jump_cmd(){
+  local tb; tb="$(command -v tmux 2>/dev/null)"; [ -n "$tb" ] || tb=/opt/homebrew/bin/tmux
+  printf "%s switch-client -t '%s' 2>/dev/null; %s select-window -t '%s' 2>/dev/null; %s select-pane -t '%s' 2>/dev/null; /usr/bin/open -b com.github.wez.wezterm" \
+    "$tb" "$1" "$tb" "$2" "$tb" "$2"
+}
 ```
 
 - [ ] **Step 4: Run the test to verify it passes**
@@ -299,13 +318,13 @@ git commit -m "feat(claude): notify-render helpers (viewed parser, label, icon, 
 `cc_notify` gains a `kind` arg; inside tmux it persists a pending entry and triggers `claude_notify_changed`. The two hook scripts pass their kind. The BEL, toast, and focus-gate are unchanged.
 
 **Files:**
-- Modify: `claude/hooks/lib/notify-lib.sh` (source store lib; add `kind` param; pending-write + trigger)
+- Modify: `claude/hooks/lib/notify-lib.sh` (source store + render libs; add `kind` param; pending-write + trigger; dedup the toast focus command via `ccn_jump_cmd`)
 - Modify: `claude/hooks/claude-notify.sh:13` (pass `notification`)
 - Modify: `claude/hooks/claude-stop-notify.sh:29` (pass `stop`)
 - Test: `claude/hooks/tests/test-cc-notify-pending.sh`
 
 **Interfaces:**
-- Consumes: `ccn_write_pending` (Task 1).
+- Consumes: `ccn_write_pending` (Task 1), `ccn_jump_cmd` (Task 2).
 - Produces: `cc_notify "<title>" "<body>" [kind]` — `kind` defaults to `notification`.
 
 - [ ] **Step 1: Write the failing test**
@@ -332,7 +351,12 @@ case "$*" in
 esac
 EOF
 printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/sketchybar"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$STUB/terminal-notifier"
+export TN_ARGS="$(mktemp)"   # the terminal-notifier stub records its args here
+cat > "$STUB/terminal-notifier" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$TN_ARGS"
+exit 0
+EOF
 chmod +x "$STUB"/*
 export PATH="$STUB:$PATH"
 
@@ -342,6 +366,7 @@ export PATH="$STUB:$PATH"
 export TMUX="x" TMUX_PANE="%7"
 cc_notify "Claude Code" "needs you" notification
 assert_eq "$(cat "$CCN_HOME/pending/7" 2>/dev/null)" "notification" "writes pending kind=notification keyed by pane"
+assert_contains "$(cat "$TN_ARGS" 2>/dev/null)" "switch-client -t 'work'" "toast -execute carries the shared ccn_jump_cmd (session from tmux)"
 cc_notify "Claude Code" "done" stop
 assert_eq "$(cat "$CCN_HOME/pending/7" 2>/dev/null)" "stop" "same pane overwrites with kind=stop"
 
@@ -369,8 +394,9 @@ Expected: FAIL — `cc_notify` ignores `kind` and writes nothing to the store ye
 At the top of `claude/hooks/lib/notify-lib.sh`, immediately after the header comment block (before `_cc_wezterm_icon`), add:
 
 ```bash
-# Pending-store helpers (pane-keyed "who's waiting" entries for the SketchyBar chips).
-. "$(dirname "${BASH_SOURCE[0]}")/notify-store.sh" 2>/dev/null
+# Pending-store + shared helpers (pane-keyed entries; ccn_jump_cmd shared with the plugin).
+. "$(dirname "${BASH_SOURCE[0]}")/notify-store.sh"  2>/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/notify-render.sh" 2>/dev/null
 ```
 
 - [ ] **Step 4: Add the `kind` param and pending-write to `cc_notify`**
@@ -401,6 +427,22 @@ add (inside the same `if` block, after the BEL line and before its closing `fi`)
       "$sb" --trigger claude_notify_changed 2>/dev/null
     fi
 ```
+
+Finally, dedup the toast's focus command so it shares `ccn_jump_cmd`. In the macOS
+`terminal-notifier` branch, find this line:
+
+```bash
+          focus_cmd="$tmux_bin switch-client -t '$session' 2>/dev/null; $tmux_bin select-window -t '$tmux_pane' 2>/dev/null; $tmux_bin select-pane -t '$tmux_pane' 2>/dev/null; /usr/bin/open -b com.github.wez.wezterm"
+```
+
+and replace it with:
+
+```bash
+          focus_cmd="$(ccn_jump_cmd "$session" "$tmux_pane")"
+```
+
+(Leave the `session=...` line above it unchanged — `ccn_jump_cmd` resolves tmux the same
+way `$tmux_bin` does, so behavior is identical; this just removes the duplicated sequence.)
 
 - [ ] **Step 5: Pass the kind from the two hooks**
 
@@ -530,10 +572,7 @@ case "${1:-$SENDER}" in
   jump)
     pane="$2"
     sess="$(tmux display-message -p -t "$pane" '#{session_name}' 2>/dev/null)"
-    tmux switch-client -t "$sess" 2>/dev/null
-    tmux select-window -t "$pane" 2>/dev/null
-    tmux select-pane   -t "$pane" 2>/dev/null
-    /usr/bin/open -b com.github.wez.wezterm
+    eval "$(ccn_jump_cmd "$sess" "$pane")"   # shared focus sequence (see notify-render.sh)
     ccn_clear "$pane"
     sketchybar --set "$ANCHOR" popup.drawing=off
     sketchybar --trigger claude_notify_changed
@@ -748,6 +787,6 @@ git commit -m "docs(spec): mark sketchybar notify chips implemented"
 ## Notes for the implementer
 
 - **Why two libs in `claude/hooks/lib/` consumed by a SketchyBar plugin:** that dir is the repo's established shell-lib home and deploys to `~/.claude/hooks/lib/`. The plugin sources them by absolute path. Keeping the store format defined once (not duplicated in the plugin) is the reason.
-- **Don't touch** the existing BEL / tmux bell badge / `terminal-notifier` toast — this feature is additive. If a refactor tempts you, stop: the toast's own inline focus command is intentionally separate from the plugin's jump path.
+- **Additive feature:** leave the existing BEL / tmux bell badge / `terminal-notifier` toast behavior intact. The one intentional change to the toast is Task 3's dedup — its focus command now calls the shared `ccn_jump_cmd` (identical sequence, single source of truth, also used by the plugin's jump). Don't otherwise alter the bell/badge/toast.
 - **`ccn_prune $live` is deliberately unquoted** — word-splitting the live pane-id list into args is the intent. The lib no-ops on zero args and the plugin also guards on a non-empty `$live`, so a failed `tmux list-panes` never wipes the store.
 - **Glyphs** (`󰂞` `󰗠` `✕`) must be saved as UTF-8 exactly as written; a mangling editor will break both the lib and its test identically, but the live bar will show tofu — eyeball the bar after deploy.
