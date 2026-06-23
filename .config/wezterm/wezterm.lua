@@ -238,6 +238,12 @@ end
 -- unbind alt enter
 config.keys = {
     { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
+    -- Shift+Enter -> newline. WezTerm sends a bare CR for Shift+Enter by default
+    -- (indistinguishable from Enter, so apps just submit). Re-emit Alt+Enter (ESC+CR),
+    -- which Claude Code / readline-style multiline inputs treat as "insert newline" --
+    -- the same sequence Option+Enter already produces once its default fullscreen bind
+    -- is disabled above. SendKey goes straight to the pane (no keybinding recursion).
+    { key = "Enter", mods = "SHIFT", action = wezterm.action.SendKey({ key = "Enter", mods = "ALT" }) },
     { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
     { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
     -- emoji??
