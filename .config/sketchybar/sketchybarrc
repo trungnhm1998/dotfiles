@@ -101,6 +101,12 @@ sketchybar --trigger yabai_windows_changed   # initial paint
 #            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
 #            --subscribe battery system_woke power_source_change
 
+##### kanata WORK/GAME mode indicator (clickable toggle) #####
+sketchybar --add item kanata_mode right \
+           --set kanata_mode icon.drawing=off label="⌨️ WORK" \
+                 script="$PLUGIN_DIR/kanata_mode.sh" \
+           --subscribe kanata_mode mouse.clicked
+
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
 
