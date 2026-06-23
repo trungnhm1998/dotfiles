@@ -57,12 +57,17 @@
   ;; AND hold = the media layer below. Restores the Fn+F-row media keys that
   ;; kanata's keyboard grab otherwise turns into plain F-keys.
   fnl  (multi fn (layer-while-held funcs))
+
+  ;; --- Gaming layer toggle (Fn+G) ---
+  game-on   (layer-switch gaming)                    ;; WORK → GAME
+  game-off  (layer-switch base)                       ;; GAME → WORK
+  fnl-game  (multi fn (layer-while-held funcs-game))  ;; Fn in GAME → exit-aware funcs
 )
 
 (defsrc
   f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   caps
-  a    s    d    f    j    k    l    ;
+  a    s    d    f    g    j    k    l    ;
   z    x    .    /
   fn   ralt
   spc  h    y    u    i    o
@@ -72,7 +77,7 @@
 (deflayer base
   f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @cap
-  @a   @s   @d   @f   @j   @k   @l   @scln
+  @a   @s   @d   @f   g    @j   @k   @l   @scln
   @z   @x   @dot @slsh
   @fnl @hyp
   @spc h    y    u    i    o
@@ -83,7 +88,7 @@
 (deflayer nav
   _    _    _    _    _    _    _    _    _    _    _    _
   _
-  lctl lsft lalt lmet down up   rght _
+  lctl lsft lalt lmet _    down up   rght _
   _    _    _    _
   _    _
   _    left home pgdn pgup end
@@ -94,7 +99,30 @@
 (deflayer funcs
   brdn brup mctl sls  dtn  dnd  prev pp   next mute vold volu
   _
-  _    _    _    _    _    _    _    _
+  _    _    _    _    @game-on _    _    _    _
+  _    _    _    _
+  _    _
+  _    _    _    _    _    _
+)
+
+;; Gaming layer: every neutralized key is a LITERAL keycode (instant) — never
+;; transparent `_`, which would fall through to base and re-import the home-row
+;; mods. `_` is used only for keys we deliberately inherit (F-row, h/y/u/i/o).
+;; Fn → funcs-game (so Fn+G exits); ralt keeps Hyper for window management.
+(deflayer gaming
+  _    _    _    _    _    _    _    _    _    _    _    _
+  esc
+  a    s    d    f    g    j    k    l    ;
+  z    x    .    /
+  @fnl-game  @hyp
+  spc  _    _    _    _    _
+)
+
+;; Fn twin for GAME mode: identical to `funcs` except G exits to WORK.
+(deflayer funcs-game
+  brdn brup mctl sls  dtn  dnd  prev pp   next mute vold volu
+  _
+  _    _    _    _    @game-off _    _    _    _
   _    _    _    _
   _    _
   _    _    _    _    _    _
