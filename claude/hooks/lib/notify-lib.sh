@@ -85,7 +85,7 @@ cc_notify() {
         # WezTerm thumbnail on the right of the toast (see _cc_wezterm_icon).
         local icon; icon="$(_cc_wezterm_icon)"
         local img=(); [ -n "$icon" ] && img=(-contentImage "file://$icon")
-        if [ -n "$tmux_pane" ] && [ -n "$tmux_bin" ]; then
+        if [ -n "$tmux_pane" ] && [ -n "$tmux_bin" ] && command -v ccn_jump_cmd >/dev/null 2>&1; then
           # Click -> jump to the exact tmux window/pane that fired, then raise WezTerm.
           # switch-client (no -c) acts on the most-recent client; select-window/pane
           # target the pane id directly so it works across sessions.
@@ -94,7 +94,7 @@ cc_notify() {
           focus_cmd="$(ccn_jump_cmd "$session" "$tmux_pane")"
           terminal-notifier -title "$title" -message "$body" -group "claude-code" "${img[@]}" -execute "$focus_cmd"
         else
-          # Not in tmux: a click just raises WezTerm.
+          # Not in tmux (or jump helper unavailable): a click just raises WezTerm.
           terminal-notifier -title "$title" -message "$body" -group "claude-code" "${img[@]}" -activate "com.github.wez.wezterm"
         fi
       elif command -v osascript >/dev/null 2>&1; then

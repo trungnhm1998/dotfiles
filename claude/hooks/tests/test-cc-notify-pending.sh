@@ -41,6 +41,11 @@ rm -f "$CCN_HOME/pending/7"
 cc_notify "Claude Code" "hey"
 assert_eq "$(cat "$CCN_HOME/pending/7" 2>/dev/null)" "notification" "kind defaults to notification"
 
+# Helper missing -> toast falls back to -activate (no broken empty -execute)
+export TMUX="x" TMUX_PANE="%7"
+( unset -f ccn_jump_cmd; cc_notify "Claude Code" "fallback" notification )
+assert_contains "$(cat "$TN_ARGS" 2>/dev/null)" "-activate" "toast falls back to -activate when ccn_jump_cmd is unavailable"
+
 # Outside tmux: no pending entry.
 rm -rf "$CCN_HOME/pending"
 unset TMUX TMUX_PANE
