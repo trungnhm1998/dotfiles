@@ -1,45 +1,67 @@
 #!/usr/bin/env bash
 # Shared desktop-notification delivery for Claude Code hooks (Notification + Stop).
 #
-# cc_notify "<title>" "<body>" surfaces a desktop notification:
-#   * Inside tmux  -> a raw BEL (lights tmux's status-bar bell glyph, marks the WezTerm
-#     tab, and rings the audible bell) AND an OSC 777 'notify' wrapped for tmux
-#     passthrough, which makes WezTerm render a desktop toast with the body text.
-#     Requires `set -g allow-passthrough on` in tmux and WezTerm holding macOS
-#     Notification Center permission.
-#   * Otherwise -> the per-OS native notifier: terminal-notifier (macOS),
-#     notify-send (Linux), or the machine-local PowerShell notifier (Windows).
+# cc_notify "<title>" "<body>" surfaces a notification two ways at once:
+#   1. In-terminal cue (inside tmux): a raw BEL on the emitting pane's tty. tmux flags
+#      that window so you can see WHICH tab is waiting (status-bar bell badge, see
+#      @catppuccin_window_text); WezTerm also marks the tab and rings the audible bell.
+#   2. Desktop toast (per-OS native notifier):
+#        * macOS   -> terminal-notifier, posted under its OWN identity. Clicking the
+#          toast focuses the exact tmux window/pane that fired and raises WezTerm.
+#        * Linux   -> notify-send.
+#        * Windows -> the machine-local PowerShell notifier.
 #
-# One source of truth so the Notification and Stop hooks deliver identically and the
-# escape-sequence math lives in exactly one place.
+# Why terminal-notifier and NOT WezTerm's OSC 777 toast (the previous approach):
+#   - macOS files a banner straight to Notification Center with NO on-screen pop when
+#     it is attributed to the *frontmost* app -- and WezTerm is usually frontmost. OSC
+#     777 toasts are attributed to WezTerm, so they were invisible on first show.
+#     terminal-notifier posts under its own bundle, so it always pops.
+#   - OSC 777 can't carry a click action; terminal-notifier -execute can.
+#   - Do NOT pass `-sender com.github.wez.wezterm`: that re-attributes the banner to
+#     WezTerm and re-introduces the frontmost-app suppression we just escaped.
+# One source of truth so the Notification and Stop hooks deliver identically.
+
+# Resolve a cached WezTerm icon PNG for the toast thumbnail. Echoes the path, or nothing
+# if it can't be produced. Generated once from WezTerm's .icns: macOS Sequoia ignores
+# -appIcon, and -sender would re-attribute the toast to WezTerm (→ frontmost-app
+# suppression), so a -contentImage thumbnail is the only branding that keeps the banner
+# reliable. The corner icon stays terminal-notifier's.
+_cc_wezterm_icon() {
+  local icon="${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm.png"
+  if [ ! -f "$icon" ]; then
+    command -v sips >/dev/null 2>&1 || return 0
+    local app icns
+    app="$(osascript -e 'POSIX path of (path to application id "com.github.wez.wezterm")' 2>/dev/null)"
+    [ -n "$app" ] || return 0
+    icns="$(ls "${app%/}/Contents/Resources/"*.icns 2>/dev/null | head -1)"
+    [ -n "$icns" ] || return 0
+    mkdir -p "$(dirname "$icon")" 2>/dev/null
+    sips -s format png "$icns" --out "$icon" >/dev/null 2>&1 || return 0
+  fi
+  [ -f "$icon" ] && printf '%s' "$icon"
+}
 
 cc_notify() {
   local title="$1" body="$2"
   [ -z "$body" ] && return 0
 
-  # --- Native path: inside tmux, surface through the terminal stack itself. ---
+  # --- In-terminal cue: inside tmux, BEL the emitting pane so tmux flags its window. ---
+  local tmux_bin="" tmux_pane=""
   if [ -n "${TMUX:-}" ]; then
+    tmux_bin="$(command -v tmux 2>/dev/null)"
+    [ -z "$tmux_bin" ] && tmux_bin="/opt/homebrew/bin/tmux"
+    tmux_pane="${TMUX_PANE:-}"
     local tty
-    if [ -n "${TMUX_PANE:-}" ]; then
-      tty="$(tmux display-message -p -t "$TMUX_PANE" '#{pane_tty}' 2>/dev/null)"
+    if [ -n "$tmux_pane" ]; then
+      tty="$("$tmux_bin" display-message -p -t "$tmux_pane" '#{pane_tty}' 2>/dev/null)"
     else
-      tty="$(tmux display-message -p '#{pane_tty}' 2>/dev/null)"
+      tmux_pane="$("$tmux_bin" display-message -p '#{pane_id}' 2>/dev/null)"
+      tty="$("$tmux_bin" display-message -p '#{pane_tty}' 2>/dev/null)"
     fi
-    [ -z "$tty" ] && tty="/dev/tty"
-    # OSC 777 is ';'-delimited: flatten newlines/semicolons and strip control chars.
-    local ct cb
-    ct="$(printf '%s' "$title" | tr '\n;' '  ' | tr -d '\000-\037')"
-    cb="$(printf '%s' "$body"  | tr '\n;' '  ' | tr -d '\000-\037')"
-    # Write cues + toast to the pane tty. The outer `2>/dev/null` wraps the inner
-    # redirect so even a failed open (e.g. no usable tty) never leaks an error.
-    { {
-      printf '\a'                                                        # in-terminal cues
-      printf '\033Ptmux;\033\033]777;notify;%s;%s\007\033\\' "$ct" "$cb" # WezTerm toast
-    } > "$tty"; } 2>/dev/null
-    return 0
+    [ -n "$tty" ] && { printf '\a' > "$tty"; } 2>/dev/null   # BEL -> tmux window bell flag
   fi
 
-  # --- Fallback: per-OS native notifier (non-tmux contexts). ---
+  # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
       local notifier="/c/Tools/claude-notify.ps1"
@@ -50,7 +72,21 @@ cc_notify() {
       ;;
     Darwin)
       if command -v terminal-notifier >/dev/null 2>&1; then
-        terminal-notifier -title "$title" -message "$body" -group "claude-code"
+        # WezTerm thumbnail on the right of the toast (see _cc_wezterm_icon).
+        local icon; icon="$(_cc_wezterm_icon)"
+        local img=(); [ -n "$icon" ] && img=(-contentImage "file://$icon")
+        if [ -n "$tmux_pane" ] && [ -n "$tmux_bin" ]; then
+          # Click -> jump to the exact tmux window/pane that fired, then raise WezTerm.
+          # switch-client (no -c) acts on the most-recent client; select-window/pane
+          # target the pane id directly so it works across sessions.
+          local session focus_cmd
+          session="$("$tmux_bin" display-message -p -t "$tmux_pane" '#{session_name}' 2>/dev/null)"
+          focus_cmd="$tmux_bin switch-client -t '$session' 2>/dev/null; $tmux_bin select-window -t '$tmux_pane' 2>/dev/null; $tmux_bin select-pane -t '$tmux_pane' 2>/dev/null; /usr/bin/open -b com.github.wez.wezterm"
+          terminal-notifier -title "$title" -message "$body" -group "claude-code" "${img[@]}" -execute "$focus_cmd"
+        else
+          # Not in tmux: a click just raises WezTerm.
+          terminal-notifier -title "$title" -message "$body" -group "claude-code" "${img[@]}" -activate "com.github.wez.wezterm"
+        fi
       elif command -v osascript >/dev/null 2>&1; then
         osascript -e "display notification \"${body//\"/\\\"}\" with title \"${title//\"/\\\"}\""
       fi

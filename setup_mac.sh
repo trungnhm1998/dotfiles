@@ -87,6 +87,12 @@ ln -sf $HOME/dotfiles/.config/kanata $HOME/.config/kanata
 # AI tool configs (Claude Code + opencode) — shared with deploy.sh
 bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
+# Pre-warm the Claude-notify WezTerm toast icon (-contentImage thumbnail). The hook
+# self-heals if this is skipped/missing; this just avoids paying generation on the
+# first notification. Needs WezTerm (cask above) + sips (built-in).
+bash -c 'source "$HOME/dotfiles/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
+    && echo "Claude-notify WezTerm toast icon cached." || true
+
 # brew services start svim   # disabled — see svim note above
 brew services start sketchybar
 
