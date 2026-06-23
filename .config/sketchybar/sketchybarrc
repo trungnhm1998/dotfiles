@@ -107,6 +107,25 @@ sketchybar --add item kanata_mode right \
                  script="$PLUGIN_DIR/kanata_mode.sh" \
            --subscribe kanata_mode mouse.clicked
 
+##### Claude-agent notification chips #####
+# Persistent "who's waiting on me" indicator. cc_notify.sh re-renders on the custom
+# claude_notify_changed event (fired by the notify hook + the tmux pane-focus-in hook)
+# and on focus/space changes. Hidden when nothing is pending. Left-click = dropdown
+# (collapsed) ; right/alt-click = toggle expanded<->collapsed. Spec:
+# docs/superpowers/specs/2026-06-24-sketchybar-claude-notify-chips-design.md
+sketchybar --add event claude_notify_changed
+
+sketchybar --add item cc_notify right \
+           --set cc_notify drawing=off icon=󰂞 icon.color=0xffef9f76 \
+                 popup.align=right popup.background.color=0xff292c3c \
+                 popup.background.corner_radius=6 popup.background.border_width=1 \
+                 popup.background.border_color=0xff51576d \
+                 script="$PLUGIN_DIR/cc_notify.sh" \
+                 click_script="$PLUGIN_DIR/cc_notify.sh click" \
+           --subscribe cc_notify claude_notify_changed front_app_switched space_change
+
+sketchybar --trigger claude_notify_changed   # initial paint
+
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
 
