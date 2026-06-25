@@ -273,7 +273,8 @@ if is_windows then
         mods = "CTRL",
         action = wezterm.action_callback(function(window, pane)
             if is_wsl_pane(pane) or is_zellij_pane(pane) then
-                -- WSL pane -> tmux; Zellij pane -> Zellij. Both own Ctrl+Space, pass it through.
+                -- WSL pane -> tmux owns Ctrl+Space. Zellij is stock and ignores Ctrl+Space; we still
+                -- pass it through (not into leader_mode) so WezTerm's leader can't hijack it in Zellij.
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
             else
                 -- Native pwsh pane: activate wezterm leader key table (tmux emulation)
@@ -289,18 +290,17 @@ if is_windows then
         end),
     })
 
-    -- Build a SpawnCommand for actions launched from the current pane: stay in the
-    -- same domain, relaunch pwsh for local panes, and inherit the active pane's
-    -- working directory. get_current_working_dir() returns a Url object
-    -- (WezTerm 20240127+); SpawnCommand.cwd wants a string, so use .file_path.
+    -- Build a SpawnCommand for actions launched from the current pane: keep the
+    -- same domain and relaunch pwsh for local panes. Deliberately do NOT set `cwd`:
+    -- a CurrentPaneDomain command already inherits the active pane's working
+    -- directory, and WezTerm converts that URL to a native path correctly. Setting
+    -- cwd ourselves from get_current_working_dir().file_path breaks on Windows --
+    -- it returns a "/C:/..." path WezTerm rejects (os error 123), silently falling
+    -- back to the home directory.
     local function pane_command(pane)
         local command = { domain = "CurrentPaneDomain" }
         if pane:get_domain_name() == "local" then
             command.args = { pwsh, "-NoLogo" }
-        end
-        local cwd = pane:get_current_working_dir()
-        if cwd then
-            command.cwd = cwd.file_path
         end
         return command
     end
