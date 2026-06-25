@@ -440,20 +440,13 @@ Still inside `if is_windows`, immediately **before** the `tabline.setup({` call 
 
 - [ ] **Step 3: Add `"claude"` to the tab sections**
 
-In the `tabline.setup({ ... sections = { ... } })` block, replace the `tab_active` and `tab_inactive` definitions (lines 497-508) with:
+In the `tabline.setup({ ... sections = { ... } })` block, replace the `tab_inactive` definition (lines 504-508) with the version below. **Leave `tab_active` unchanged** — the active tab must not show a badge, and clear-on-visit still works because tabline's `create_tab_content` (tabs.lua:45-46) computes the `tab_inactive` components for *every* tab, so the component's `is_active` clear branch runs for the focused tab through this entry alone.
 
 ```lua
-            tab_active = {
-                "index",
-                "claude", -- clear-on-visit only; renders nothing for the active tab
-                { "parent", padding = 0 },
-                "/",
-                { "cwd", padding = { left = 0, right = 1 } },
-                { "zoomed", padding = 0 },
-            },
             tab_inactive = {
                 "index",
-                "claude", -- Claude bell badge: precise alert, else unseen-output fallback
+                "claude", -- Claude bell badge: precise alert, else unseen-output fallback;
+                          -- also runs clear-on-visit for the active tab (see note above)
                 { "tab", padding = { left = 0, right = 1 } },
             },
 ```
