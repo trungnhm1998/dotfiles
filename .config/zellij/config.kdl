@@ -32,7 +32,8 @@ keybinds {
     // vim-zellij-navigator wasm: its vim-detection relies on process-inspection, which can't see
     // nvim running *under* pwsh on Windows (same root cause as the default_shell cwd note above /
     // zellij#5052), so it mis-detected the nvim pane and switched tabs. Move between NON-nvim panes
-    // (e.g. pwsh agent panes) with Zellij's native Alt+hjkl.
+    // (e.g. pwsh agent panes) with the tmux prefix: Ctrl+Space then h/j/k/l. NOT Alt+hjkl —
+    // komorebi owns Alt+hjkl for OS-window nav on this machine, so it never reaches Zellij anyway.
     unbind "Ctrl h" "Ctrl j" "Ctrl k" "Ctrl l"
     shared_except "tmux" "locked" {
         bind "Ctrl Space" { SwitchToMode "Tmux"; }
