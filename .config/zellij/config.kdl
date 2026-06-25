@@ -13,8 +13,62 @@ serialize_pane_viewport true
 
 scrollback_editor "nvim"
 
+// Default shell for new panes/tabs — match the WezTerm setup (pwsh 7; see wezterm.lua:99-104,219).
+// Windows-only today: this dir is NOT symlinked on macOS/Linux (deploy.sh / setup_mac.sh skip zellij),
+// so a Windows path is safe here. If zellij is later adopted on mac/linux, guard this — those OSes
+// want $SHELL/zsh, not a Windows pwsh path.
+// NOTE: default_shell takes a PATH ONLY — it can't pass -NoLogo, so pwsh prints its 1-line startup
+// banner per pane (cosmetic; pwsh 7.2+ trimmed it to a single line). The `agents` layout still passes
+// -NoLogo. KNOWN LIMITATION (zellij#5052, verified 2026-06-25 on 0.44.3): a new ad-hoc pane opens in
+// the session STARTUP dir, not the cd'd dir. Cause: zellij infers cwd by process-inspection, which
+// fails for pwsh on Windows (same class as nushell #3068); it does NOT consume OSC-7 yet (#3512), so
+// our prompt's OSC-7 emission can't help. Workaround: `cd` in the new pane, or pin `cwd` in a layout.
+default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+
 keybinds {
     shared_except "tmux" "locked" {
         bind "Ctrl Space" { SwitchToMode "Tmux"; }
+    }
+    // nvim <-> Zellij Ctrl+hjkl navigation via vim-zellij-navigator. The wasm loads straight from
+    // its release URL (Zellij downloads + caches it) — no local file or `plugins` block, which
+    // avoids Windows file: path/URL pitfalls. Pairs with .config/nvim/lua/plugins/zellij-nav.lua.
+    // move_mod/use_arrow_keys are repeated on every bind because the plugin adopts the config of the
+    // FIRST command it processes (per the hiasr README). First Ctrl+h triggers a one-time Zellij
+    // permission prompt for the plugin — approve it.
+    // NOTE: Ctrl+j can arrive as Enter (LF 0x0A) at the terminal; if "down" misbehaves it falls back
+    // to nvim-only window moves. Verify in-session.
+    shared_except "locked" {
+        bind "Ctrl h" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
+                name "move_focus_or_tab"
+                payload "left"
+                move_mod "ctrl"
+                use_arrow_keys "false"
+            }
+        }
+        bind "Ctrl j" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
+                name "move_focus"
+                payload "down"
+                move_mod "ctrl"
+                use_arrow_keys "false"
+            }
+        }
+        bind "Ctrl k" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
+                name "move_focus"
+                payload "up"
+                move_mod "ctrl"
+                use_arrow_keys "false"
+            }
+        }
+        bind "Ctrl l" {
+            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
+                name "move_focus_or_tab"
+                payload "right"
+                move_mod "ctrl"
+                use_arrow_keys "false"
+            }
+        }
     }
 }
