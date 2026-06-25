@@ -81,6 +81,24 @@ Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
 
+# Catppuccin Frappe syntax colors (Mauve = accent; see docs/catppuccin-frappe-theme.md)
+Set-PSReadLineOption -Colors @{
+    Command          = '#8caaee'  # blue
+    Comment          = '#838ba7'  # overlay1
+    Keyword          = '#ca9ee6'  # mauve (accent)
+    String           = '#a6d189'  # green
+    Operator         = '#81c8be'  # teal
+    Variable         = '#eebebe'  # flamingo
+    Number           = '#ef9f76'  # peach
+    Type             = '#e5c890'  # yellow
+    Parameter        = '#ca9ee6'  # mauve (accent)
+    Member           = '#c6d0f5'  # text
+    Default          = '#c6d0f5'  # text
+    Error            = '#e78284'  # red
+    Selection        = '#414559'  # surface0
+    InlinePrediction = '#626880'  # surface2
+}
+
 function claude-mem { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args }
 
 # Ovrride vi mode ctrl r
