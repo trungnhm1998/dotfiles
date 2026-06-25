@@ -1,0 +1,39 @@
+# YASB — minimal status bar (replaces komorebi-bar).
+# Widgets: komorebi workspaces (left) + clock (center). Theming in styles.css.
+# Docs: https://github.com/amnweb/yasb/wiki/Configuration
+watch_stylesheet: true
+watch_config: true
+debug: false
+
+# Tray-menu komorebi commands. This setup drives komorebi hotkeys via AutoHotkey
+# (.config/komorebi/komorebi.ahk), NOT whkd — so no --whkd here.
+komorebi:
+  start_command: "komorebic start"
+  stop_command: "komorebic stop"
+  reload_command: "komorebic reload-configuration"
+
+bars:
+  yasb-bar:
+    enabled: true
+    screens: ['*']            # one bar on every monitor
+    widgets:
+      left: ["workspaces"]
+      center: ["clock"]
+      right: []
+
+widgets:
+  workspaces:
+    type: "komorebi.workspaces.WorkspaceWidget"
+    options:
+      label_offline: "komorebi offline"
+      label_workspace_btn: "{name}"
+      label_workspace_active_btn: "{name}"
+      label_workspace_populated_btn: "{name}"
+      hide_empty_workspaces: true
+
+  clock:
+    type: "yasb.clock.ClockWidget"
+    options:
+      label: "{%H:%M}"
+      label_alt: "{%a %d %b %H:%M:%S}"
+      timezones: []
