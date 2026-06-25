@@ -74,11 +74,15 @@ cc_notify() {
   # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      # Tab-badge cue: set the claude_status WezTerm user var on this pane's terminal
-      # so the tab bar can flag which tab is waiting, without switching to it (see
-      # .config/wezterm/tabline_claude_badge.lua). Invisible OSC; CC_TTY is a test seam.
-      printf '\033]1337;SetUserVar=claude_status=%s\007' \
-        "$(printf '%s' "$kind" | base64 | tr -d '\n')" > "${CC_TTY:-/dev/tty}" 2>/dev/null || true
+      # Tab-badge cue: record which WezTerm pane is waiting, keyed by $WEZTERM_PANE, so the
+      # tab bar can flag it without switching (see .config/wezterm/tabline_claude_badge.lua +
+      # the update-status poller in wezterm.lua). File channel -- robust on Windows, where
+      # OSC-through-ConPTY to WezTerm does not arrive. CC_ALERT_DIR is a test seam.
+      if [ -n "${WEZTERM_PANE:-}" ]; then
+        local alert_dir="${CC_ALERT_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts}"
+        mkdir -p "$alert_dir" 2>/dev/null \
+          && printf '%s' "$kind" > "$alert_dir/$WEZTERM_PANE" 2>/dev/null || true
+      fi
       # Desktop toast via the repo-vendored notifier (resolved relative to this lib,
       # so it rides the claude/ -> ~/.claude symlink; no machine-local C:\Tools file).
       local notifier_sh; notifier_sh="$(dirname "${BASH_SOURCE[0]}")/../bin/claude-notify.ps1"
