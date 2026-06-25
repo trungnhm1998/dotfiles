@@ -33,6 +33,14 @@ function y {
     Remove-Item -Path $tmp
 }
 
+# --- eza / ls colors (Catppuccin Frappe) ---
+if (Get-Command vivid -ErrorAction SilentlyContinue) {
+    $env:LS_COLORS = (vivid generate catppuccin-frappe)
+} else {
+    # vivid not installed (e.g. Windows) — curated static Frappe EZA_COLORS
+    $env:EZA_COLORS = "di=1;38;2;140;170;238:ex=1;38;2;166;209;137:ln=38;2;129;200;190:fi=38;2;198;208;245:da=38;2;131;139;167:uu=38;2;229;200;144:gu=38;2;131;139;167:ur=38;2;229;200;144:uw=38;2;231;130;132:ux=38;2;166;209;137:ue=38;2;166;209;137:gr=38;2;229;200;144:gw=38;2;231;130;132:gx=38;2;166;209;137:tr=38;2;229;200;144:tw=38;2;231;130;132:tx=38;2;166;209;137:sn=38;2;202;158;230:sb=38;2;202;158;230:xx=38;2;131;139;167"
+}
+
 # --- eza ---
 function ls { eza --icons $args }
 function l { eza --icons $args }

@@ -20,7 +20,7 @@ export COLORTERM=truecolor
 
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
-	export LS_COLORS=$LS_COLORS:"$(vivid generate snazzy)"
+	export LS_COLORS=$LS_COLORS:"$(vivid generate catppuccin-frappe)"
 	export LS_COLORS=$LS_COLORS:"tw=30;42:ow=30;42"
 fi
 
