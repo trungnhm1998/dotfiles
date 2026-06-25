@@ -15,9 +15,9 @@ The leader key is a modal system that lets you perform multiple actions after a 
 | Active Pane | `Ctrl+Space` Behavior |
 |-------------|----------------------|
 | **WSL (Linux)** | Passes `Ctrl+Space` through to tmux running inside WSL |
-| **PowerShell** | Activates wezterm's leader key table (1 second timeout) |
-| **CMD** | Activates wezterm's leader key table (1 second timeout) |
-| **Cmder** | Activates wezterm's leader key table (1 second timeout) |
+| **PowerShell** | Activates wezterm's leader key table (no timeout — tmux-style) |
+| **CMD** | Activates wezterm's leader key table (no timeout — tmux-style) |
+| **Cmder** | Activates wezterm's leader key table (no timeout — tmux-style) |
 
 ### Status Bar Feedback
 
@@ -27,13 +27,13 @@ When the leader key is active on a non-WSL pane, the status bar on the bottom ri
 [leader] default   19-01-2026 12:34:56
 ```
 
-Once you press another key or the timeout expires (1 second), the `[leader]` indicator disappears.
+Once you press another (bound) key, the `[leader]` indicator disappears. There is **no timeout** — the prefix waits indefinitely, like tmux. Pressing an **unbound** key cancels the prefix and is **swallowed** (not sent to the shell).
 
 ---
 
 ## Leader Key Bindings (PowerShell/CMD/Cmder)
 
-After pressing `Ctrl+Space`, you can press any of these keys within 1 second:
+After pressing `Ctrl+Space`, press any of these keys (no time limit — the prefix waits, like tmux):
 
 ### Tab Management
 
@@ -55,6 +55,8 @@ After pressing `Ctrl+Space`, you can press any of these keys within 1 second:
 | `Ctrl+Space` → `s` | Split pane vertically |
 | `Ctrl+Space` → `Shift+-` | Split pane vertically (alternative) |
 | `Ctrl+Space` → `x` | Close current pane (with confirmation) |
+| `Ctrl+Space` → `h`/`j`/`k`/`l` | Select pane left/down/up/right (tmux `select-pane`) |
+| `Ctrl+Space` → `r` | Enter **sticky resize mode**: `h`/`j`/`k`/`l` or arrows resize repeatedly; `Esc`/`q` exits (tmux `bind -r resize-pane`) |
 
 ### Workspace Management
 
@@ -85,11 +87,21 @@ Workspaces are WezTerm's equivalent of tmux sessions. These bindings deliberatel
 |---------|--------|
 | `Ctrl+Space` → `Shift+T` | Show launcher (create new tab from templates) |
 
-### Cancel Leader Mode
+### Copy Mode, Paste & Send-Prefix
 
-| Keybind | Action |
-|---------|--------|
-| `Ctrl+Space` → `Escape` | Cancel leader mode without executing any action |
+| Keybind | Action | tmux equivalent |
+|---------|--------|-----------------|
+| `Ctrl+Space` → `Escape` | Enter **copy mode** (vi-style; also `Ctrl+Shift+X`) | `bind Escape copy-mode` |
+| `Ctrl+Space` → `]` | Paste from clipboard | `bind ] paste-buffer` |
+| `Ctrl+Space` → `Space` | Send a literal `Ctrl+Space` (NUL) to the program | `send-prefix` |
+
+In copy mode: `h`/`j`/`k`/`l` move · `v` start selection · `V` line · `Ctrl+v` block · `y` or `Enter` copy-and-exit · `/` search · `g`/`G` top/bottom · `Ctrl+u`/`Ctrl+d` half-page · `q`/`Esc` exit — matching `mode-keys vi` + tmux-yank.
+
+### Cancelling the prefix
+
+There is **no explicit cancel key** (tmux-style). To dismiss the prefix without acting, press any unbound key — it is swallowed. As a hard reset, `Ctrl+Shift+Space` clears the key-table stack from anywhere (lockout backstop).
+
+> **Known limitation — modified keys in the leader table.** On Windows WezTerm, a leader-table entry that needs a **modifier** (`Ctrl`/`Shift`) does **not** reliably fire — only plain keys do (see [wezterm #6824](https://github.com/wezterm/wezterm/issues/6824)). This is why resize is `r` (not `Shift+R`) and send-prefix is `Space` (not `Ctrl+Space Ctrl+Space`). Some shifted binds listed above (e.g. `$`, `Shift+L`, `Shift+T`) may be affected; the plain-key binds are the reliable ones.
 
 ---
 
@@ -102,6 +114,7 @@ These keybindings work from anywhere and don't require the leader key:
 | `Alt+Enter` | *Disabled* (default wezterm behavior) |
 | `Ctrl+Alt+U` | *Disabled* (user-defined override) |
 | `Ctrl+Alt+D` | *Disabled* (user-defined override) |
+| `Ctrl+Shift+Space` | Clear the key-table stack (leader/resize/copy lockout backstop) |
 
 > **Moved:** the debug overlay used to be on `Ctrl+Shift+L` (written `key = "L", mods = "CTRL"`, which WezTerm reads as Ctrl+**Shift**+L). It now lives in leader mode at `Ctrl+Space` → `:`. `Ctrl+L` is therefore free for the shell's clear-screen and for smart-splits "navigate right".
 
@@ -133,10 +146,11 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 | Group | Keys (after `Ctrl+Space`) |
 |-------|---------------------------|
 | **Tabs** | `t` new · `n`/`p` next/prev · `1`–`9` goto · `,` rename · `&` close |
-| **Panes** | `v` split-H · `s` split-V · `x` close · `z` zoom |
+| **Panes** | `v` split-H · `s` split-V · `x` close · `z` zoom · `h/j/k/l` select · `r` resize mode |
+| **Copy/paste** | `Escape` copy mode (vi) · `]` paste · `Space` send-prefix |
 | **Workspaces** | `w` new/named · `$` rename · `(`/`)` prev/next · `Shift+L` last · `f` fuzzy · `Shift+S` list |
-| **Tools** | `:` debug REPL · `Shift+T` launcher · `Escape` cancel leader |
-| **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize |
+| **Tools** | `:` debug REPL · `Shift+T` launcher |
+| **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize · `Ctrl+Shift+Space` reset |
 
 ---
 
@@ -195,12 +209,11 @@ To modify keybindings:
 
 ---
 
-## Timeout Behavior
+## Prefix Behavior (no timeout)
 
-- **Leader Key Timeout**: 1000 milliseconds (1 second)
-- After pressing `Ctrl+Space`, you have 1 second to press the next key
-- Pressing any unmapped key exits leader mode
-- Pressing `Escape` explicitly cancels leader mode
+- **Leader timeout**: none — the prefix waits indefinitely for the next key, like tmux's prefix.
+- Pressing any **unmapped** key exits the prefix and is **swallowed** (not sent to the pane).
+- `Escape` now enters **copy mode** (it no longer cancels). To dismiss the prefix, press any unbound key; `Ctrl+Shift+Space` is the hard-reset backstop.
 
 ---
 
@@ -245,7 +258,7 @@ To modify keybindings:
 ## Notes
 
 - All keybindings are case-sensitive (e.g., `Shift+S` is different from `s`)
-- The leader timeout resets each time you press a valid key
+- There is no leader timeout; the prefix waits until you press a key
 - To view wezterm version and config: Press `Ctrl+Space` → `:` for the debug overlay / Lua REPL
 - Configuration applies on wezterm restart or config reload
 
