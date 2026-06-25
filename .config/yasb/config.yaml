@@ -15,6 +15,7 @@ komorebi:
 bars:
   yasb-bar:
     enabled: true
+    class_name: "yasb-bar"    # explicit CSS class so styles.css `.yasb-bar` matches by intent, not by default
     screens: ['*']            # one bar on every monitor
     widgets:
       left: ["workspaces"]
