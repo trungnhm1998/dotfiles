@@ -1,0 +1,13 @@
+// `zellij --layout agents` — three pwsh panes for running parallel claude agents.
+// Pin a command to a pane by replacing `ps` with: pane command="claude" { cwd "D:/projects/…" }
+layout {
+    pane_template name="ps" {
+        command "pwsh"
+        args "-NoLogo"
+    }
+    tab name="agents" focus=true {
+        ps
+        ps
+        ps
+    }
+}
