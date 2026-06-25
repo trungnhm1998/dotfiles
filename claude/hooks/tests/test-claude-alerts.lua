@@ -39,5 +39,23 @@ local alerts2 = M.reconcile({ "/d/7", "/d/8" }, { ["7"] = true, ["8"] = true }, 
 ok(alerts2["7"] == "notification", "trailing newline is trimmed from kind")
 ok(alerts2["8"] == nil, "empty body yields no entry")
 
+-- mux_tag(): basename of the WezTerm mux socket; handles mixed \ and / separators;
+-- 'default' fallback. This is what namespaces alerts per WezTerm process so multiple
+-- windows (separate muxes) don't prune each other's files over the shared dir.
+ok(M.mux_tag("C:\\Users\\me\\.local/share/wezterm\\gui-sock-41292") == "gui-sock-41292",
+  "mux_tag() takes basename across mixed \\ and / separators")
+ok(M.mux_tag("/home/me/.local/share/wezterm/gui-sock-7") == "gui-sock-7",
+  "mux_tag() takes basename of a pure-/ socket path")
+ok(M.mux_tag(nil) == "default", "mux_tag() falls back to 'default' when socket is nil")
+ok(M.mux_tag("") == "default", "mux_tag() falls back to 'default' when socket is empty")
+
+-- mux_dir(): per-mux alert subdirectory = dir()/mux_tag(socket)
+ok(M.mux_dir("/home/me", nil, "/run/wezterm/gui-sock-3") ==
+   "/home/me/.cache/claude-notify/wezterm-alerts/gui-sock-3",
+  "mux_dir() namespaces the alert dir by mux tag")
+ok(M.mux_dir("/home/me", "/xdg", nil) ==
+   "/xdg/claude-notify/wezterm-alerts/default",
+  "mux_dir() honours XDG and falls back to 'default' tag")
+
 print(string.format("--- %d passed, %d failed ---", PASS, FAIL))
 os.exit(FAIL == 0 and 0 or 1)

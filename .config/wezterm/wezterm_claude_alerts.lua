@@ -8,6 +8,23 @@ function M.dir(home, xdg_cache)
   return (xdg_cache or (home .. '/.cache')) .. '/claude-notify/wezterm-alerts'
 end
 
+-- Per-WezTerm-mux namespace tag = basename of $WEZTERM_UNIX_SOCKET (the gui-sock path).
+-- Pane ids are unique only within one mux, so each WezTerm process must read/prune its own
+-- subdir; otherwise one window's poller deletes another window's alerts over the shared dir.
+-- Handles the mixed `\` and `/` separators of the Windows socket path; 'default' when unknown
+-- (producer and poller apply the same rule, so they always agree).
+function M.mux_tag(socket)
+  if not socket or socket == '' then return 'default' end
+  local tag = socket:match('([^/\\]+)$')
+  if not tag or tag == '' then return 'default' end
+  return tag
+end
+
+-- Per-mux alert subdirectory: dir()/mux_tag(socket).
+function M.mux_dir(home, xdg_cache, socket)
+  return M.dir(home, xdg_cache) .. '/' .. M.mux_tag(socket)
+end
+
 -- paths:    array of absolute file paths (e.g. from wezterm.read_dir)
 -- live:     set of currently-live pane-id strings  -> true
 -- visited:  set of pane-id strings in the active tab -> true
