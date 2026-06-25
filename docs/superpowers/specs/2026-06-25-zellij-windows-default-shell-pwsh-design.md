@@ -52,8 +52,11 @@ default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 
 Use the **full path** to mirror WezTerm exactly and avoid PATH ambiguity. The implementation verifies
 the path exists (`Test-Path`) before committing it; if a machine has pwsh elsewhere, fall back to bare
-`"pwsh"` (the `agents` layout already proves bare `pwsh` resolves on PATH here). KDL escaping: use
-doubled backslashes (`C:\\Program Files\\...`); confirm Zellij parses it with `zellij setup --check`.
+`"pwsh"` (the `agents` layout already proves bare `pwsh` resolves on PATH here). **KDL escaping is a
+real footgun** (mismatched quoting kept pwsh from launching for the #5052 reporter): either double the
+backslashes — `"C:\\Program Files\\PowerShell\\7\\pwsh.exe"` — or use a KDL raw string that needs no
+escaping — `r"C:\Program Files\PowerShell\7\pwsh.exe"`. Whichever form, confirm Zellij accepts it with
+`zellij setup --check` (no parse error) before relying on it.
 
 ### B. The `-NoLogo` banner — accepted (A1)
 
