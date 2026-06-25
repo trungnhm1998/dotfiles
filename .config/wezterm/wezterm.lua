@@ -485,9 +485,20 @@ if is_windows then
             -- prefix-r reload bind was dropped — WezTerm auto-reloads on save, so it was
             -- redundant. A MODIFIED entry key (Shift+R, Ctrl+r) can NOT be used: modifiers
             -- don't match inside a custom key table on Windows WezTerm (WezTerm #6824).
+            -- Gated on pane count: a single-pane tab has nothing to resize, so `r` is a
+            -- no-op there (tmux resize-pane behaves the same) and we don't enter the mode.
+            -- leader_mode is one_shot, so the no-op path simply exits the prefix.
             {
                 key = "r",
-                action = act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
+                action = wezterm.action_callback(function(window, pane)
+                    local tab = window:active_tab()
+                    if tab and #tab:panes() > 1 then
+                        window:perform_action(
+                            act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
+                            pane
+                        )
+                    end
+                end),
             },
         },
         -- Sticky resize: one_shot=false keeps it active across repeats; Esc/q exit.
@@ -587,6 +598,13 @@ if is_windows then
                             icon = wezterm.nerdfonts.md_scissors_cutting
                         elseif mode == "SEARCH" then
                             icon = wezterm.nerdfonts.oct_search
+                        elseif mode == "RESIZE" then
+                            -- Sticky resize mode (leader -> r). Four-way arrows = adjust
+                            -- a pane edge in any of h/j/k/l directions. NOTE: a mode shown
+                            -- here MUST also have a matching theme section in set_theme
+                            -- below, or tabline's update-status indexes a nil theme and
+                            -- the whole bar freezes on its last paint (see resize_mode there).
+                            icon = wezterm.nerdfonts.md_arrow_all
                         end
 
                         -- fallback
@@ -634,10 +652,24 @@ if is_windows then
     local surface = colors.cursor and colors.cursor.bg or colors.ansi[1]
     local background = colors.tab_bar and colors.tab_bar.inactive_tab and colors.tab_bar.inactive_tab.bg_color
         or colors.background
+    -- tabline's default theme only ships normal_mode / copy_mode / search_mode (see the
+    -- plugin's config.lua get_colors). Every custom key_table whose name ends in `_mode`
+    -- is surfaced by the mode component, and component.lua indexes config.theme[<mode>]
+    -- WITHOUT a nil guard — so a mode lacking a section here throws inside update-status
+    -- and freezes the whole status bar on its previous paint. leader_mode and resize_mode
+    -- below are REQUIRED for that reason, not just cosmetics.
     tabline.set_theme({
+        -- Leader prefix: catppuccin frappe pink (ansi[6] #f4b8e4).
         leader_mode = {
             a = { fg = background, bg = colors.ansi[6] },
             b = { fg = colors.ansi[6], bg = surface },
+            c = { fg = colors.foreground, bg = background },
+        },
+        -- Sticky resize: catppuccin frappe teal (ansi[7] #81c8be) — distinct from the
+        -- pink leader so the LEADER -> RESIZE transition is unmistakable in the bar.
+        resize_mode = {
+            a = { fg = background, bg = colors.ansi[7] },
+            b = { fg = colors.ansi[7], bg = surface },
             c = { fg = colors.foreground, bg = background },
         },
     })

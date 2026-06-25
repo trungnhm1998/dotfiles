@@ -29,6 +29,8 @@ When the leader key is active on a non-WSL pane, the status bar on the bottom ri
 
 Once you press another (bound) key, the `[leader]` indicator disappears. There is **no timeout** — the prefix waits indefinitely, like tmux. Pressing an **unbound** key cancels the prefix and is **swallowed** (not sent to the shell).
 
+The left section colors itself per mode, using the Catppuccin Frappe palette: **leader** = pink (`󱏐`), **resize** = teal (`󰁁`), **copy** = yellow (`󰩫`), **search** = green, **normal** = blue. Each custom `*_mode` key table must define a matching theme section in `wezterm.lua` (`tabline.set_theme`), otherwise tabline errors while rendering that mode and the bar freezes on its previous paint.
+
 ---
 
 ## Leader Key Bindings (PowerShell/CMD/Cmder)
@@ -56,7 +58,7 @@ After pressing `Ctrl+Space`, press any of these keys (no time limit — the pref
 | `Ctrl+Space` → `Shift+-` | Split pane vertically (alternative) |
 | `Ctrl+Space` → `x` | Close current pane (with confirmation) |
 | `Ctrl+Space` → `h`/`j`/`k`/`l` | Select pane left/down/up/right (tmux `select-pane`) |
-| `Ctrl+Space` → `r` | Enter **sticky resize mode**: `h`/`j`/`k`/`l` or arrows resize repeatedly; `Esc`/`q` exits (tmux `bind -r resize-pane`) |
+| `Ctrl+Space` → `r` | Enter **sticky resize mode**: `h`/`j`/`k`/`l` or arrows resize repeatedly; `Esc`/`q` exits (tmux `bind -r resize-pane`). The tab bar shows a teal `󰁁` indicator while active. **No-op in a single-pane tab** — there is nothing to resize, so the prefix just exits (matches tmux). |
 
 ### Workspace Management
 
