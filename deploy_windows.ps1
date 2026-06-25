@@ -638,6 +638,22 @@ foreach ($var in $envVars.GetEnumerator()) {
     }
 }
 
+# --- Hyper-key enabler: neutralize Windows' reserved Ctrl+Shift+Alt+Win (Office/Copilot) shortcut ---
+# Without this, tapping the Hyper key alone pops the Office/Copilot UI. Per-user + reversible.
+# Undo: Remove-Item 'HKCU:\Software\Classes\ms-officeapp' -Recurse -Force
+$officeKey = 'HKCU:\Software\Classes\ms-officeapp\Shell\Open\Command'
+$officeVal = (Get-ItemProperty -Path $officeKey -ErrorAction SilentlyContinue).'(default)'
+if ($officeVal -eq 'rundll32') {
+    Write-Status "Hyper-key Office/Copilot shortcut already neutralized" -Type Success
+} else {
+    Write-Status "Neutralizing Ctrl+Shift+Alt+Win Office/Copilot shortcut (Hyper-key enabler)" -Type Info
+    if (-not $DryRun) {
+        New-Item -Path $officeKey -Value 'rundll32' -Force | Out-Null
+    } else {
+        Write-Host "  [DRY RUN] Would set $officeKey (default) = rundll32" -ForegroundColor DarkGray
+    }
+}
+
 # --- AI tool secrets + context7 MCP registration ---
 $secretsFile = "$HOME\.config\dotfiles\secrets.env"
 if (Test-Path $secretsFile) {
