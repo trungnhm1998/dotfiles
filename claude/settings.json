@@ -131,7 +131,8 @@
       "source": {
         "source": "github",
         "repo": "obra/superpowers"
-      }
+      },
+      "autoUpdate": true
     },
     "gsd-plugin": {
       "source": {
