@@ -43,3 +43,10 @@ Unified Mauve governs **chrome** (borders, pills, prompt, pickers). Editor **syn
 
 ## Already-Frappe (do not re-theme)
 WezTerm, tmux, Zellij, Neovim, Zed (Windows), yazi (active flavor), bat, fzf, lazygit, komorebi AHK OSD.
+
+## Claude statusline (ccstatusline) — known limitation
+Active statusline is `ccstatusline` (node, via `bunx`), config at `~/.config/ccstatusline/settings.json`. In **minimalist (non-powerline) mode** it accepts only **named ANSI colors** (rendered as *generic* truecolor, NOT the terminal palette) — custom Frappe hex (`#ca9ee6` / `ca9ee6`) in a segment's `color` field is **silently ignored** (verified 2026-06-26). So exact Frappe Mauve is **not** achievable via the config file. Left as Max's working named-color config.
+
+For exact Frappe, two options (Max's call):
+1. **ccstatusline TUI** — `bunx -y ccstatusline@latest`, pick custom Frappe hex per segment (saved in ccstatusline's internal format), or enable powerline + a Catppuccin theme.
+2. **In-repo bash statusline** — point `claude/settings.json` `statusLine.command` at `~/.claude/statusline-command.sh` (already pixel-perfect Frappe), trading ccstatusline's richer segments. First verify Windows execution + that it reads the *current* Claude Code statusline JSON (it expects `.model` as a string and `.context.*`, which the current schema may not provide).
