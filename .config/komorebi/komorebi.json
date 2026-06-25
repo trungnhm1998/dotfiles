@@ -172,6 +172,11 @@
       "kind": "Exe",
       "id": "dopus.exe",
       "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Title",
+      "id": "KomorebiModeOSD",
+      "matching_strategy": "Equals"
     }
   ],
   "manage_rules": [
