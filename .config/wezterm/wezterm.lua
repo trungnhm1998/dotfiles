@@ -480,12 +480,11 @@ if is_windows then
             { key = "z", action = act.TogglePaneZoomState },
             -- Debug overlay / Lua REPL (tmux `prefix :` + vim `:` command-prompt parallel)
             { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
-            -- tmux: sticky repeatable resize (parallels `bind -r ... resize-pane`). Shift+R
-            -- enters resize_mode; arrows/hjkl repeat without re-pressing prefix; Esc/q exit.
-            -- tmux-style sticky resize. Entered with plain `r` (the prefix-r reload bind was
-            -- dropped — WezTerm auto-reloads on save, so it was redundant). A MODIFIED entry
-            -- key (Shift+R, Ctrl+r) can NOT be used: modifiers don't match inside a custom key
-            -- table on Windows WezTerm (see WezTerm #6824) — only plain keys match here.
+            -- tmux-style sticky resize (parallels `bind -r ... resize-pane`). Entered with
+            -- plain `r`: arrows/hjkl repeat without re-pressing prefix; Esc/q exit. The
+            -- prefix-r reload bind was dropped — WezTerm auto-reloads on save, so it was
+            -- redundant. A MODIFIED entry key (Shift+R, Ctrl+r) can NOT be used: modifiers
+            -- don't match inside a custom key table on Windows WezTerm (WezTerm #6824).
             {
                 key = "r",
                 action = act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
@@ -519,19 +518,24 @@ if is_windows then
     -- Ctrl+u/Ctrl+d, q/Esc exit) — which matches the user's `mode-keys vi` + tmux-yank. The
     -- only gap is Enter: tmux's `copy-mode-vi Enter send -X copy-selection-and-cancel`. Start
     -- from the defaults, drop any existing bare-Enter binding, then add copy-and-close.
-    local copy_mode = wezterm.gui.default_key_tables().copy_mode
-    local copy_mode_keys = {}
-    for _, m in ipairs(copy_mode) do
-        if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
-            table.insert(copy_mode_keys, m)
+    -- wezterm.gui is nil when the config is evaluated GUI-less (e.g. the mux server), where
+    -- default_key_tables() would throw and abort the whole config. Guard it; copy mode still
+    -- works from WezTerm's built-in defaults there, just without the Enter copy-and-exit tweak.
+    if wezterm.gui then
+        local copy_mode = wezterm.gui.default_key_tables().copy_mode
+        local copy_mode_keys = {}
+        for _, m in ipairs(copy_mode) do
+            if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
+                table.insert(copy_mode_keys, m)
+            end
         end
+        table.insert(copy_mode_keys, {
+            key = "Enter",
+            mods = "NONE",
+            action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
+        })
+        config.key_tables.copy_mode = copy_mode_keys
     end
-    table.insert(copy_mode_keys, {
-        key = "Enter",
-        mods = "NONE",
-        action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
-    })
-    config.key_tables.copy_mode = copy_mode_keys
 
     -- Register our custom tab component under the name tabline.wez will require()
     -- for it. require() checks package.loaded first, so this avoids depending on
