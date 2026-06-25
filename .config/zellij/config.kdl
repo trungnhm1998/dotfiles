@@ -26,49 +26,15 @@ scrollback_editor "nvim"
 default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
 
 keybinds {
+    // Ctrl+hjkl pass straight through to the focused pane so zellij-nav.nvim can drive navigation:
+    // inside nvim it moves between nvim windows, then crosses into the adjacent Zellij pane at the
+    // editor edge (see .config/nvim/lua/plugins/zellij-nav.lua). We deliberately do NOT use the
+    // vim-zellij-navigator wasm: its vim-detection relies on process-inspection, which can't see
+    // nvim running *under* pwsh on Windows (same root cause as the default_shell cwd note above /
+    // zellij#5052), so it mis-detected the nvim pane and switched tabs. Move between NON-nvim panes
+    // (e.g. pwsh agent panes) with Zellij's native Alt+hjkl.
+    unbind "Ctrl h" "Ctrl j" "Ctrl k" "Ctrl l"
     shared_except "tmux" "locked" {
         bind "Ctrl Space" { SwitchToMode "Tmux"; }
-    }
-    // nvim <-> Zellij Ctrl+hjkl navigation via vim-zellij-navigator. The wasm loads straight from
-    // its release URL (Zellij downloads + caches it) — no local file or `plugins` block, which
-    // avoids Windows file: path/URL pitfalls. Pairs with .config/nvim/lua/plugins/zellij-nav.lua.
-    // move_mod/use_arrow_keys are repeated on every bind because the plugin adopts the config of the
-    // FIRST command it processes (per the hiasr README). First Ctrl+h triggers a one-time Zellij
-    // permission prompt for the plugin — approve it.
-    // NOTE: Ctrl+j can arrive as Enter (LF 0x0A) at the terminal; if "down" misbehaves it falls back
-    // to nvim-only window moves. Verify in-session.
-    shared_except "locked" {
-        bind "Ctrl h" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
-                name "move_focus_or_tab"
-                payload "left"
-                move_mod "ctrl"
-                use_arrow_keys "false"
-            }
-        }
-        bind "Ctrl j" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
-                name "move_focus"
-                payload "down"
-                move_mod "ctrl"
-                use_arrow_keys "false"
-            }
-        }
-        bind "Ctrl k" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
-                name "move_focus"
-                payload "up"
-                move_mod "ctrl"
-                use_arrow_keys "false"
-            }
-        }
-        bind "Ctrl l" {
-            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.3.0/vim-zellij-navigator.wasm" {
-                name "move_focus_or_tab"
-                payload "right"
-                move_mod "ctrl"
-                use_arrow_keys "false"
-            }
-        }
     }
 }
