@@ -8,4 +8,4 @@ echo "sketchybarrc-desktop loaded"
 # If you are looking for other colors, see the color picker:
 # https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
 
-sketchybar --bar position=top height=24 blur_radius=30 color=0x40000000 display=main
+sketchybar --bar position=top height=24 blur_radius=30 color=0x40303446 display=main
