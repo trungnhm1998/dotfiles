@@ -330,6 +330,19 @@ if is_windows then
         end
     end)
 
+    -- Claude notification badge: record which pane is waiting on you so the tabline
+    -- component can flag its tab without switching to it. notify-lib.sh sets the
+    -- claude_status user var via OSC (value "notification" | "stop"; "" clears).
+    -- GLOBAL is a serialization proxy, so read-mutate-reassign the whole sub-table.
+    wezterm.on("user-var-changed", function(_, pane, name, value)
+        if name ~= "claude_status" then
+            return
+        end
+        local t = wezterm.GLOBAL.claude_alert or {}
+        t[tostring(pane:pane_id())] = (value ~= "" and value) or nil
+        wezterm.GLOBAL.claude_alert = t
+    end)
+
     -- Define leader key table with all leader bindings
     config.key_tables = {
         leader_mode = {
@@ -435,6 +448,11 @@ if is_windows then
         })
     end
 
+    -- Register our custom tab component under the name tabline.wez will require()
+    -- for it. require() checks package.loaded first, so this avoids depending on
+    -- nested path resolution into the plugin's namespace.
+    package.loaded['tabline.components.tab.claude'] = require('tabline_claude_badge')
+
     tabline.setup({
         options = {
             icons_enabled = true,
@@ -507,7 +525,8 @@ if is_windows then
             },
             tab_inactive = {
                 "index",
-                -- { "output" },
+                "claude", -- Claude bell badge: precise alert, else unseen-output fallback;
+                          -- also runs clear-on-visit for the active tab (see note above)
                 { "tab", padding = { left = 0, right = 1 } },
             },
             -- tabline_x = { "ram", "cpu" },
