@@ -415,11 +415,7 @@ if is_windows then
             {
                 key = "t",
                 action = wezterm.action_callback(function(window, pane)
-                    local command = { domain = "CurrentPaneDomain" }
-                    if pane:get_domain_name() == "local" then
-                        command.args = { pwsh, "-NoLogo" }
-                    end
-                    window:perform_action(act.SpawnCommandInNewTab(command), pane)
+                    window:perform_action(act.SpawnCommandInNewTab(pane_command(pane)), pane)
                 end),
             },
             { key = "p", action = act.ActivateTabRelative(-1) },
