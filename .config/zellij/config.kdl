@@ -2,6 +2,13 @@
 // Tmux keybinding mode is a Zellij default; we add Ctrl+Space as the mode prefix to
 // match the existing tmux/WezTerm muscle memory. Ctrl+b stays bound as a fallback
 // (useful if Ctrl+Space doesn't register — see Step 3).
+//
+// Modifier contract (Windows): Komorebi/AHK now lives entirely on the Hyper key
+// (Ctrl+Alt+Shift+Win), so Alt is free for the terminal — Zellij's default Alt binds
+// (Alt+n new pane, Alt+f floating, Alt+hjkl move-focus) are live again here. To pass an
+// Alt key THROUGH to a TUI like Claude Code (e.g. Alt+P), toggle locked mode with Ctrl+g.
+// See .config/komorebi/komorebi.ahk and
+// docs/superpowers/specs/2026-06-25-komorebi-hyper-keybinds-design.md.
 
 theme "catppuccin-frappe"
 
