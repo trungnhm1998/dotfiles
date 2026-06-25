@@ -12,6 +12,64 @@ Komorebic(cmd) {
 }
 
 ; ============================================================
+; Binding modes — engine + OSD
+;   g_mode: "" | "resize" | "service"
+;   Spec: docs/superpowers/specs/2026-06-25-komorebi-modes-osd-design.md
+; ============================================================
+g_mode := ""        ; reset on (re)load — never inherit a phantom mode
+osd := ""
+
+EnterMode(m) {
+    global g_mode := m
+    OSD_Show(m)
+    SetTimer(ExitMode, -2500)         ; idle self-heal (one-shot)
+}
+
+ExitMode(*) {
+    global g_mode := ""
+    SetTimer(ExitMode, 0)             ; cancel any pending self-heal
+    OSD_Hide()
+}
+
+Legend(m) {
+    switch m {
+        case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  o reload  ·  ⌫ restart  ·  esc"
+    }
+    return ""
+}
+
+OSD_Show(m) {
+    global osd
+    OSD_Hide()                        ; never stack two badges
+    osd := Gui("-Caption +AlwaysOnTop +ToolWindow +E0x08000000 +E0x20")  ; no-activate + click-through
+    osd.Title := "KomorebiModeOSD"    ; matched by the komorebi floating rule (Task 4)
+    osd.BackColor := "303446"         ; Catppuccin Frappe base
+    osd.MarginX := 16
+    osd.MarginY := 10
+    osd.SetFont("s11 cC6D0F5", "JetBrains Mono")
+    osd.Add("Text", , Legend(m))
+    osd.Show("NoActivate AutoSize yCenter Center")
+}
+
+OSD_Hide(*) {
+    global osd
+    if (osd) {
+        try osd.Destroy()
+        osd := ""
+    }
+}
+
+ResizeNudge(dir, delta) {
+    Komorebic("resize-edge " dir " " delta)
+    SetTimer(ExitMode, -2500)         ; each nudge re-arms the idle timer
+}
+
+; --- always-active mode triggers ---
+^!+#r::EnterMode("resize")            ; Hyper+r
+^!+#Escape::ExitMode()                ; panic exit — works from ANY state
+
+; ============================================================
 ; Hyper (^!+#) — focus / act layer
 ; ============================================================
 
@@ -34,12 +92,6 @@ Komorebic(cmd) {
 ; Focus monitors (was Meh+1/2; remapped to free the digit row for workspaces)
 ^!+#,::Komorebic("focus-monitor 0")
 ^!+#.::Komorebic("focus-monitor 1")
-
-; Resize (was Ctrl+Alt+hjkl; moved to Hyper+arrows)
-^!+#Left::Komorebic("resize-edge left increase")
-^!+#Down::Komorebic("resize-edge down increase")
-^!+#Up::Komorebic("resize-edge up increase")
-^!+#Right::Komorebic("resize-edge right increase")
 
 ; Layouts
 ^!+#x::Komorebic("flip-layout horizontal")
@@ -73,7 +125,6 @@ Komorebic(cmd) {
 ; into the Meh action. Bind them on Hyper as explicit no-ops to prevent that.
 ^!+#p::return
 ^!+#n::return
-^!+#r::return
 ^!+#`;::return
 
 ; ============================================================
@@ -123,3 +174,19 @@ Komorebic(cmd) {
 ^!+8::Komorebic("move-to-workspace 7")
 ^!+9::Komorebic("move-to-workspace 8")
 ^!+0::Komorebic("move-to-workspace 9")
+
+; ============================================================
+; Mode hotkeys — bare keys, live ONLY inside a mode
+; ============================================================
+#HotIf g_mode = "resize"
+h::ResizeNudge("left", "increase")
+j::ResizeNudge("down", "increase")
+k::ResizeNudge("up", "increase")
+l::ResizeNudge("right", "increase")
++h::ResizeNudge("left", "decrease")
++j::ResizeNudge("down", "decrease")
++k::ResizeNudge("up", "decrease")
++l::ResizeNudge("right", "decrease")
+Enter::ExitMode()
+Escape::ExitMode()
+#HotIf
