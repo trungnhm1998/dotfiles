@@ -359,8 +359,22 @@ if is_windows then
     -- Define leader key table with all leader bindings
     config.key_tables = {
         leader_mode = {
-            -- Escape to cancel leader mode
-            { key = "Escape", action = act.PopKeyTable },
+            -- tmux: prefix Escape -> copy mode (your `bind Escape copy-mode`; `[` is unbound).
+            -- Cancel-leader is intentionally gone: press any unbound key (swallowed) to exit,
+            -- or use the Ctrl+Shift+Space backstop.
+            { key = "Escape", action = act.ActivateCopyMode },
+            -- tmux: send-prefix — Ctrl+Space Ctrl+Space sends a literal Ctrl+Space (NUL) to
+            -- the program. The active table is searched before the global Ctrl+Space binding.
+            { key = " ", mods = "CTRL", action = act.SendKey({ key = " ", mods = "CTRL" }) },
+            -- tmux: prefix r -> reload config (your `bind r source-file`).
+            { key = "r", action = act.ReloadConfiguration },
+            -- tmux: prefix ] -> paste (your `bind ] paste-buffer`).
+            { key = "]", action = act.PasteFrom("Clipboard") },
+            -- tmux: prefix hjkl -> select pane (your `bind hjkl select-pane`).
+            { key = "h", action = act.ActivatePaneDirection("Left") },
+            { key = "j", action = act.ActivatePaneDirection("Down") },
+            { key = "k", action = act.ActivatePaneDirection("Up") },
+            { key = "l", action = act.ActivatePaneDirection("Right") },
             -- Launcher
             { key = "T", mods = "SHIFT", action = act.ShowLauncher },
             -- Split horizontal
