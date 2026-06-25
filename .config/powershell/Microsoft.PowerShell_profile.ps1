@@ -106,3 +106,12 @@ Set-Alias -Name fg -Value fix-grammar
 # OPENSPEC:START - OpenSpec completion (managed block, do not edit manually)
 . "C:\Users\mint\Documents\PowerShell\OpenSpecCompletion.ps1"
 # OPENSPEC:END
+
+# --- Zellij ---
+# Launch Zellij and flag the WezTerm pane (user var) so wezterm.lua stops emulating tmux
+# while Zellij is the active multiplexer (see is_zellij_pane in wezterm.lua). MQ==/MA== are
+# base64 for "1"/"0"; the flag clears on exit so the pane returns to WezTerm's leader.
+function zj {
+    [Console]::Write("`e]1337;SetUserVar=zellij=MQ==`a")
+    try { zellij @args } finally { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") }
+}
