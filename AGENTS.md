@@ -183,6 +183,7 @@ Defined in `.editorconfig` for consistency:
 | Shell Config | `zsh/zshrc.sh`, `zsh/zshrc_manager.sh` |
 | Tmux Config | `tmux/tmux.conf` |
 | Komorebi Config | `.config/komorebi/` |
+| YASB Status Bar (Windows) | `.config/yasb/` (→ `~/.config/yasb`) |
 | Yabai Config | `.config/yabai/yabairc` |
 | Starship Prompt | `.config/starship.toml` |
 | Windows PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
