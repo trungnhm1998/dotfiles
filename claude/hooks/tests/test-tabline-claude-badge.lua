@@ -8,9 +8,8 @@ local function ok(cond, msg)
 end
 
 local stub = {
-  nerdfonts = { md_bell_ring = "RING", md_bell = "BELL", md_bell_outline = "OUT" },
+  nerdfonts = { md_bell_ring = "RING", md_bell = "BELL" },
   GLOBAL = {},
-  time = { now = function() return { format = function() return "00" end } end },
 }
 package.loaded.wezterm = stub
 
@@ -34,31 +33,32 @@ badge.update(tab(false, { pane(5) }), opts)
 ok(opts.icon[1] == "BELL", "stop uses md_bell")
 ok(opts.icon.color.bg == "#e5c890", "stop badge bg is yellow")
 
--- 3. no alert + unseen output -> outline fallback
+-- 3. unseen output but NO claude alert -> no badge (fallback tier removed)
 stub.GLOBAL.claude_alert = {}
 opts = {}
-badge.update(tab(false, { pane(9, true) }), opts)
-ok(opts.icon[1] == "OUT", "unseen output uses md_bell_outline fallback")
+r = badge.update(tab(false, { pane(9, true) }), opts)
+ok(r == nil, "unseen output without an alert renders nothing")
+ok(opts.icon == nil, "unseen output sets no icon")
 
--- 4. no alert + no output -> no badge
+-- 4. no alert at all -> no badge
 stub.GLOBAL.claude_alert = {}
 opts = {}
 r = badge.update(tab(false, { pane(9, false) }), opts)
-ok(r == nil, "no alert and no output renders nothing")
+ok(r == nil, "no alert renders nothing")
 
--- 5. active tab clears its alert and renders nothing (clear-on-visit)
+-- 5. active tab -> no badge, and the component does NOT mutate GLOBAL
+--    (the update-status poller in wezterm.lua owns all clearing now).
 stub.GLOBAL.claude_alert = { ["5"] = "notification" }
 opts = {}
 r = badge.update(tab(true, { pane(5) }), opts)
 ok(r == nil, "active tab renders no badge")
-ok(stub.GLOBAL.claude_alert["5"] == nil, "active tab clears its pane's alert")
+ok(stub.GLOBAL.claude_alert["5"] == "notification", "component leaves GLOBAL untouched (poller clears)")
 
--- precise alert WINS over has_unseen_output on the same pane
+-- 6. alert present and pane also has unseen output -> alert still wins
 stub.GLOBAL.claude_alert = { ["5"] = "notification" }
 opts = {}
-badge.update(tab(false, { pane(5, true) }), opts)   -- pane 5 has BOTH alert and unseen output
-ok(opts.icon[1] == "RING", "precise alert beats has_unseen_output (ring, not outline)")
-ok(opts.icon.color.bg == "#ef9f76", "precedence case stays peach")
+badge.update(tab(false, { pane(5, true) }), opts)
+ok(opts.icon[1] == "RING", "alert renders regardless of unseen output")
 
 print(string.format("--- %d passed, %d failed ---", PASS, FAIL))
 os.exit(FAIL == 0 and 0 or 1)
