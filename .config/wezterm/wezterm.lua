@@ -514,6 +514,25 @@ if is_windows then
         })
     end
 
+    -- tmux copy-mode-vi parity. WezTerm's default copy_mode is already vi-style (hjkl,
+    -- v/V/Ctrl+v select, y -> ClipboardAndPrimarySelection then exit, / search, g/G,
+    -- Ctrl+u/Ctrl+d, q/Esc exit) — which matches the user's `mode-keys vi` + tmux-yank. The
+    -- only gap is Enter: tmux's `copy-mode-vi Enter send -X copy-selection-and-cancel`. Start
+    -- from the defaults, drop any existing bare-Enter binding, then add copy-and-close.
+    local copy_mode = wezterm.gui.default_key_tables().copy_mode
+    local copy_mode_keys = {}
+    for _, m in ipairs(copy_mode) do
+        if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
+            table.insert(copy_mode_keys, m)
+        end
+    end
+    table.insert(copy_mode_keys, {
+        key = "Enter",
+        mods = "NONE",
+        action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
+    })
+    config.key_tables.copy_mode = copy_mode_keys
+
     -- Register our custom tab component under the name tabline.wez will require()
     -- for it. require() checks package.loaded first, so this avoids depending on
     -- nested path resolution into the plugin's namespace.
