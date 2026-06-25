@@ -340,6 +340,7 @@ if is_windows then
         end
         local t = wezterm.GLOBAL.claude_alert or {}
         t[tostring(pane:pane_id())] = (value ~= "" and value) or nil
+        ---@diagnostic disable-next-line: inject-field
         wezterm.GLOBAL.claude_alert = t
     end)
 
