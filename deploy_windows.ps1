@@ -56,6 +56,7 @@ $packages = @(
     @{ Id = "LGUG2Z.komorebi"; Name = "Komorebi" }
     @{ Id = "AutoHotkey.AutoHotkey"; Name = "AutoHotkey" }
     @{ Id = "wez.wezterm"; Name = "Wezterm" }
+    @{ Id = "AmN.yasb"; Name = "YASB" }
 
     # Fonts
     @{ Id = "DEVCOM.JetBrainsMonoNerdFont"; Name = "JetBrainsMono Nerd Font" }
@@ -74,6 +75,12 @@ $symlinks = @(
         Target      = "$HOME\.config\komorebi"
         IsDirectory = $true
         Description = "Komorebi tiling window manager"
+    }
+    @{
+        Source      = "$dotfilesRoot\.config\yasb"
+        Target      = "$HOME\.config\yasb"
+        IsDirectory = $true
+        Description = "YASB status bar (Windows)"
     }
     @{
         Source      = "$dotfilesRoot\.config\nvim"
@@ -738,6 +745,10 @@ Next steps:
 
   5. Wezterm should automatically pick up config from
      $HOME\.config\wezterm
+
+  6. Start the YASB status bar (replaces komorebi-bar)
+     > yasb
+     Enable launch-at-login (one-time): > yasbc enable-autostart
 
 ================================================================================
 "@ -ForegroundColor Green
