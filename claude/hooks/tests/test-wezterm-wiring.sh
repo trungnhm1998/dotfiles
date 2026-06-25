@@ -8,6 +8,8 @@ WT="$repo_root/.config/wezterm/wezterm.lua"
 
 grep -q "require('wezterm_claude_alerts')" "$WT"; assert_exit "$?" "0" "wezterm.lua requires the reconcile module"
 grep -q "claude_alerts.reconcile(" "$WT"; assert_exit "$?" "0" "wezterm.lua calls reconcile() in update-status"
+grep -q "claude_alerts.mux_dir(" "$WT"; assert_exit "$?" "0" "wezterm.lua reads the per-mux alert subdir (mux_dir)"
+grep -q "WEZTERM_UNIX_SOCKET" "$WT"; assert_exit "$?" "0" "wezterm.lua namespaces the alert dir by WEZTERM_UNIX_SOCKET"
 grep -q "user-var-changed" "$WT"; assert_exit "$?" "1" "user-var-changed handler removed"
 grep -q "package.loaded\['tabline.components.tab.claude'\]" "$WT"; assert_exit "$?" "0" "badge component still registered"
 

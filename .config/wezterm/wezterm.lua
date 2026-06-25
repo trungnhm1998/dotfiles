@@ -345,9 +345,11 @@ if is_windows then
             wezterm.GLOBAL.current_workspace = current
         end
 
-        -- Claude tab badge: reconcile the pane-keyed alert dir into GLOBAL.claude_alert.
-        -- Sole writer of that table; prunes dead panes and clears the visited tab.
-        local dir = claude_alerts.dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'))
+        -- Claude tab badge: reconcile THIS mux's alert subdir into GLOBAL.claude_alert. The dir
+        -- is namespaced per WezTerm mux (basename of WEZTERM_UNIX_SOCKET) so multiple windows --
+        -- separate muxes with colliding pane-id spaces -- don't prune each other's files over the
+        -- shared dir. Sole writer of that table; prunes this mux's dead panes, clears visited tab.
+        local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), os.getenv('WEZTERM_UNIX_SOCKET'))
         local paths = {}
         pcall(function() paths = wezterm.read_dir(dir) end)   -- missing dir -> {}
         local live = {}
