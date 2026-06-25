@@ -1,7 +1,9 @@
 // Zellij config — shared across OSes via ~/.config/zellij.
-// Tmux keybinding mode is a Zellij default; we add Ctrl+Space as the mode prefix to
-// match the existing tmux/WezTerm muscle memory. Ctrl+b stays bound as a fallback
-// (useful if Ctrl+Space doesn't register — see Step 3).
+// Stock keybindings: we deliberately use Zellij's DEFAULT preset (NO custom keybinds block) —
+// prefix-free Alt+hjkl nav, modal Ctrl-p/t/n/s/o, Ctrl+g locked mode. tmux is mimicked only in
+// WezTerm's leader for native pwsh panes, not here. TUI keys Zellij grabs (e.g. Claude Code's
+// Alt+P) pass through via on-demand Ctrl+g locked mode.
+// Design: docs/superpowers/specs/2026-06-25-zellij-stock-keybindings-design.md
 //
 // Modifier contract (Windows): Komorebi/AHK now lives entirely on the Hyper key
 // (Ctrl+Alt+Shift+Win), so Alt is free for the terminal — Zellij's default Alt binds
@@ -31,18 +33,3 @@ scrollback_editor "nvim"
 // fails for pwsh on Windows (same class as nushell #3068); it does NOT consume OSC-7 yet (#3512), so
 // our prompt's OSC-7 emission can't help. Workaround: `cd` in the new pane, or pin `cwd` in a layout.
 default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
-
-keybinds {
-    // Ctrl+hjkl pass straight through to the focused pane so zellij-nav.nvim can drive navigation:
-    // inside nvim it moves between nvim windows, then crosses into the adjacent Zellij pane at the
-    // editor edge (see .config/nvim/lua/plugins/zellij-nav.lua). We deliberately do NOT use the
-    // vim-zellij-navigator wasm: its vim-detection relies on process-inspection, which can't see
-    // nvim running *under* pwsh on Windows (same root cause as the default_shell cwd note above /
-    // zellij#5052), so it mis-detected the nvim pane and switched tabs. Move between NON-nvim panes
-    // (e.g. pwsh agent panes) with the tmux prefix: Ctrl+Space then h/j/k/l. NOT Alt+hjkl —
-    // komorebi owns Alt+hjkl for OS-window nav on this machine, so it never reaches Zellij anyway.
-    unbind "Ctrl h" "Ctrl j" "Ctrl k" "Ctrl l"
-    shared_except "tmux" "locked" {
-        bind "Ctrl Space" { SwitchToMode "Tmux"; }
-    }
-}
