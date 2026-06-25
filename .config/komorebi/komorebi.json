@@ -24,7 +24,7 @@
     "2": "Default_Monitor-2&256d833f&0&UID256"
   },
   "bar_configurations": [],
-  "global_work_area_offset": { "left": 0, "top": 30, "right": 0, "bottom": 0 },
+  "global_work_area_offset": { "left": 0, "top": 30, "right": 0, "bottom": 30 },
   "stackbar": {
     "height": 40,
     "mode": "OnStack",
