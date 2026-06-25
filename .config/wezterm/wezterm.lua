@@ -277,17 +277,29 @@ if is_windows then
                 -- pass it through (not into leader_mode) so WezTerm's leader can't hijack it in Zellij.
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
             else
-                -- Native pwsh pane: activate wezterm leader key table (tmux emulation)
+                -- Native pwsh pane: activate wezterm leader key table (tmux emulation).
+                -- No timeout: tmux's prefix waits indefinitely for the next key.
+                -- prevent_fallback: an unbound key is swallowed, not sent to the shell
+                -- (tmux cancel-and-discard). one_shot: exit after a single command key,
+                -- which also means the prevent_fallback lock-out risk can't apply here.
                 window:perform_action(
                     act.ActivateKeyTable({
                         name = "leader_mode",
                         one_shot = true,
-                        timeout_milliseconds = 1000,
+                        prevent_fallback = true,
                     }),
                     pane
                 )
             end
         end),
+    })
+
+    -- Lockout backstop: clear the whole key-table stack from anywhere. Ctrl+Shift+Esc is
+    -- NOT usable (Windows reserves it for Task Manager), so use Ctrl+Shift+Space.
+    table.insert(config.keys, {
+        key = " ",
+        mods = "CTRL|SHIFT",
+        action = act.ClearKeyTableStack,
     })
 
     -- Build a SpawnCommand for actions launched from the current pane: keep the
