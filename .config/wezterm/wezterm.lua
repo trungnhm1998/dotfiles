@@ -326,6 +326,10 @@ if is_windows then
         end)
     end
 
+    -- Reconcile module for the Claude tab-badge alert dir (pure logic, unit-tested in
+    -- claude/hooks/tests/test-claude-alerts.lua).
+    local claude_alerts = require('wezterm_claude_alerts')
+
     -- Track the previously-active workspace so Leader+L can jump back (tmux `prefix + L`).
     -- update-status fires ~1x/sec and on switch, so it captures every switch path (relative
     -- cycle, w-prompt, launcher, fuzzy switcher) without wrapping them. Multiple update-status
@@ -340,20 +344,33 @@ if is_windows then
             ---@diagnostic disable-next-line: inject-field
             wezterm.GLOBAL.current_workspace = current
         end
-    end)
 
-    -- Claude notification badge: record which pane is waiting on you so the tabline
-    -- component can flag its tab without switching to it. notify-lib.sh sets the
-    -- claude_status user var via OSC (value "notification" | "stop"; "" clears).
-    -- GLOBAL is a serialization proxy, so read-mutate-reassign the whole sub-table.
-    wezterm.on("user-var-changed", function(_, pane, name, value)
-        if name ~= "claude_status" then
-            return
+        -- Claude tab badge: reconcile the pane-keyed alert dir into GLOBAL.claude_alert.
+        -- Sole writer of that table; prunes dead panes and clears the visited tab.
+        local dir = claude_alerts.dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'))
+        local paths = {}
+        pcall(function() paths = wezterm.read_dir(dir) end)   -- missing dir -> {}
+        local live = {}
+        for _, w in ipairs(wezterm.mux.all_windows()) do
+            for _, t in ipairs(w:tabs()) do
+                for _, p in ipairs(t:panes()) do
+                    live[tostring(p:pane_id())] = true
+                end
+            end
         end
-        local t = wezterm.GLOBAL.claude_alert or {}
-        t[tostring(pane:pane_id())] = (value ~= "" and value) or nil
+        local visited = {}
+        local at = window:active_tab()
+        if at then
+            for _, p in ipairs(at:panes()) do
+                visited[tostring(p:pane_id())] = true
+            end
+        end
+        local function read_file(path)
+            local fh = io.open(path, 'r'); if not fh then return nil end
+            local s = fh:read('*a'); fh:close(); return s
+        end
         ---@diagnostic disable-next-line: inject-field
-        wezterm.GLOBAL.claude_alert = t
+        wezterm.GLOBAL.claude_alert = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
     end)
 
     -- Define leader key table with all leader bindings
