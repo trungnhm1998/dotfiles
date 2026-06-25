@@ -111,6 +111,9 @@ ResizeNudge(dir, delta) {
 ^!+#9::Komorebic("focus-workspace 8")
 ^!+#0::Komorebic("focus-workspace 9")
 
+; Workspace back-and-forth (last-focused)
+^!+#Tab::Komorebic("focus-last-workspace")
+
 ; Suspend these hotkeys
 ^!+#Home::Suspend
 
@@ -119,6 +122,7 @@ ResizeNudge(dir, delta) {
 ; into the Meh action. Bind them on Hyper as explicit no-ops to prevent that.
 ^!+#p::return
 ^!+#n::return
+^!+#Enter::return                            ; Hyper+Enter must not bleed into Meh+Enter (promote)
 
 ; ============================================================
 ; Meh (^!+) — move / relocate layer
@@ -151,6 +155,9 @@ ResizeNudge(dir, delta) {
 
 ; Cycle layout (previous)
 ^!+c::Komorebic("cycle-layout previous")
+
+; Promote focused window to the main tile
+^!+Enter::Komorebic("promote")
 
 ; Move windows to workspaces 1-10
 ^!+1::Komorebic("move-to-workspace 0")
