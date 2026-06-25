@@ -380,9 +380,10 @@ if is_windows then
             -- Cancel-leader is intentionally gone: press any unbound key (swallowed) to exit,
             -- or use the Ctrl+Shift+Space backstop.
             { key = "Escape", action = act.ActivateCopyMode },
-            -- tmux: send-prefix — Ctrl+Space Ctrl+Space sends a literal Ctrl+Space (NUL) to
-            -- the program. The active table is searched before the global Ctrl+Space binding.
-            { key = " ", mods = "CTRL", action = act.SendKey({ key = " ", mods = "CTRL" }) },
+            -- tmux: send-prefix. Ideally this would be Ctrl+Space Ctrl+Space, but a MODIFIED
+            -- key can't match inside a custom key table on Windows WezTerm (see WezTerm #6824),
+            -- so the literal Ctrl+Space (NUL) is sent via prefix then plain Space instead.
+            { key = " ", action = act.SendKey({ key = " ", mods = "CTRL" }) },
             -- tmux: prefix ] -> paste (your `bind ] paste-buffer`).
             { key = "]", action = act.PasteFrom("Clipboard") },
             -- tmux: prefix hjkl -> select pane (your `bind hjkl select-pane`).
