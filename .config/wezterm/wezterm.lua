@@ -366,8 +366,6 @@ if is_windows then
             -- tmux: send-prefix — Ctrl+Space Ctrl+Space sends a literal Ctrl+Space (NUL) to
             -- the program. The active table is searched before the global Ctrl+Space binding.
             { key = " ", mods = "CTRL", action = act.SendKey({ key = " ", mods = "CTRL" }) },
-            -- tmux: prefix r -> reload config (your `bind r source-file`).
-            { key = "r", action = act.ReloadConfiguration },
             -- tmux: prefix ] -> paste (your `bind ] paste-buffer`).
             { key = "]", action = act.PasteFrom("Clipboard") },
             -- tmux: prefix hjkl -> select pane (your `bind hjkl select-pane`).
@@ -464,6 +462,29 @@ if is_windows then
             { key = "z", action = act.TogglePaneZoomState },
             -- Debug overlay / Lua REPL (tmux `prefix :` + vim `:` command-prompt parallel)
             { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
+            -- tmux: sticky repeatable resize (parallels `bind -r ... resize-pane`). Shift+R
+            -- enters resize_mode; arrows/hjkl repeat without re-pressing prefix; Esc/q exit.
+            -- tmux-style sticky resize. Entered with plain `r` (the prefix-r reload bind was
+            -- dropped — WezTerm auto-reloads on save, so it was redundant). A MODIFIED entry
+            -- key (Shift+R, Ctrl+r) can NOT be used: modifiers don't match inside a custom key
+            -- table on Windows WezTerm (see WezTerm #6824) — only plain keys match here.
+            {
+                key = "r",
+                action = act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
+            },
+        },
+        -- Sticky resize: one_shot=false keeps it active across repeats; Esc/q exit.
+        resize_mode = {
+            { key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
+            { key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
+            { key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
+            { key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
+            { key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 1 }) },
+            { key = "DownArrow", action = act.AdjustPaneSize({ "Down", 1 }) },
+            { key = "UpArrow", action = act.AdjustPaneSize({ "Up", 1 }) },
+            { key = "RightArrow", action = act.AdjustPaneSize({ "Right", 1 }) },
+            { key = "Escape", action = act.PopKeyTable },
+            { key = "q", action = act.PopKeyTable },
         },
     }
 
