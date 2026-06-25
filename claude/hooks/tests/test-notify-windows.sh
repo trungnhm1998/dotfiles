@@ -31,23 +31,33 @@ export PATH="$STUB:$PATH"
 
 export CC_ALERT_DIR="$(mktemp -d)"
 export WEZTERM_PANE=42
+# Per-mux namespacing: the file goes in a subdir = basename($WEZTERM_UNIX_SOCKET), so two
+# WezTerm windows (separate muxes) don't prune each other's alerts. Mixed \ and / on purpose.
+export WEZTERM_UNIX_SOCKET='C:\Users\me\.local/share/wezterm\gui-sock-77'
+TAG="gui-sock-77"
 unset TMUX TMUX_PANE            # exercise only the Windows path
 . "$LIB"
 
 cc_notify "Claude Code" "needs you" notification
-assert_eq "$(cat "$CC_ALERT_DIR/42" 2>/dev/null)" "notification" "writes 'notification' to pane 42's alert file"
+assert_eq "$(cat "$CC_ALERT_DIR/$TAG/42" 2>/dev/null)" "notification" "writes 'notification' to the per-mux pane file (<tag>/42)"
 assert_contains "$(cat "$PSLOG")" "called" "desktop toast notifier still invoked"
+assert_eq "$(cat "$CC_ALERT_DIR/42" 2>/dev/null)" "" "nothing written to the old non-namespaced path"
 
 cc_notify "Claude Code" "done" stop
-assert_eq "$(cat "$CC_ALERT_DIR/42" 2>/dev/null)" "stop" "stop overwrites the same pane's alert file"
+assert_eq "$(cat "$CC_ALERT_DIR/$TAG/42" 2>/dev/null)" "stop" "stop overwrites the same per-mux pane file"
 
 cc_notify "Claude Code" "hi"   # kind omitted -> defaults to notification
-assert_eq "$(cat "$CC_ALERT_DIR/42" 2>/dev/null)" "notification" "kind defaults to notification"
+assert_eq "$(cat "$CC_ALERT_DIR/$TAG/42" 2>/dev/null)" "notification" "kind defaults to notification"
+
+# --- Part 3b: no WEZTERM_UNIX_SOCKET -> 'default' tag subdir (producer/poller agree) ---
+unset WEZTERM_UNIX_SOCKET
+cc_notify "Claude Code" "needs you" notification
+assert_eq "$(cat "$CC_ALERT_DIR/default/42" 2>/dev/null)" "notification" "falls back to 'default' tag when socket unset"
 
 # --- Part 4: no WEZTERM_PANE -> no file written (graceful no-op) ---
-rm -f "$CC_ALERT_DIR"/*
+rm -rf "$CC_ALERT_DIR"/*
 unset WEZTERM_PANE
 cc_notify "Claude Code" "no pane" notification
-assert_eq "$(ls -A "$CC_ALERT_DIR")" "" "no alert file written when WEZTERM_PANE is unset"
+assert_eq "$(find "$CC_ALERT_DIR" -type f | head -1)" "" "no alert file written when WEZTERM_PANE is unset"
 
 finish

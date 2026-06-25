@@ -74,12 +74,19 @@ cc_notify() {
   # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      # Tab-badge cue: record which WezTerm pane is waiting, keyed by $WEZTERM_PANE, so the
-      # tab bar can flag it without switching (see .config/wezterm/tabline_claude_badge.lua +
+      # Tab-badge cue: record which WezTerm pane is waiting, keyed by $WEZTERM_PANE inside a
+      # per-mux subdir = basename of $WEZTERM_UNIX_SOCKET. Multiple WezTerm windows are SEPARATE
+      # muxes with their own pane-id spaces; without this each window's poller would prune the
+      # others' alerts over the shared dir (see wezterm_claude_alerts.lua M.mux_tag/M.mux_dir and
       # the update-status poller in wezterm.lua). File channel -- robust on Windows, where
       # OSC-through-ConPTY to WezTerm does not arrive. CC_ALERT_DIR is a test seam.
       if [ -n "${WEZTERM_PANE:-}" ]; then
-        local alert_dir="${CC_ALERT_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts}"
+        local alert_base="${CC_ALERT_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts}"
+        # basename of the socket across mixed \ and / separators; 'default' when unset (matches
+        # M.mux_tag, so producer and poller always agree on the subdir).
+        local mux_tag="default" _re='([^/\]+)$'
+        [[ "${WEZTERM_UNIX_SOCKET:-}" =~ $_re ]] && mux_tag="${BASH_REMATCH[1]}"
+        local alert_dir="$alert_base/$mux_tag"
         mkdir -p "$alert_dir" 2>/dev/null \
           && printf '%s' "$kind" > "$alert_dir/$WEZTERM_PANE" 2>/dev/null || true
       fi
