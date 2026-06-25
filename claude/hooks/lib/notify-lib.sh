@@ -74,6 +74,11 @@ cc_notify() {
   # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
+      # Tab-badge cue: set the claude_status WezTerm user var on this pane's terminal
+      # so the tab bar can flag which tab is waiting, without switching to it (see
+      # .config/wezterm/tabline_claude_badge.lua). Invisible OSC; CC_TTY is a test seam.
+      printf '\033]1337;SetUserVar=claude_status=%s\007' \
+        "$(printf '%s' "$kind" | base64 | tr -d '\n')" > "${CC_TTY:-/dev/tty}" 2>/dev/null || true
       # Desktop toast via the repo-vendored notifier (resolved relative to this lib,
       # so it rides the claude/ -> ~/.claude symlink; no machine-local C:\Tools file).
       local notifier_sh; notifier_sh="$(dirname "${BASH_SOURCE[0]}")/../bin/claude-notify.ps1"
