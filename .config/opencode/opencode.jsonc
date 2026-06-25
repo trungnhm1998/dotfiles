@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
+  "theme": "catppuccin",
   "small_model": "9router/cu/claude-4.5-haiku",
   "agent": {
     "title": {
