@@ -15,6 +15,7 @@ return {
     -- on focus). The poller is the sole writer of GLOBAL.claude_alert; this component
     -- only reads it.
     if tab.is_active then return end
+    ---@diagnostic disable-next-line: undefined-field
     local alerts = wezterm.GLOBAL.claude_alert or {}
     local kind
     for _, p in ipairs(tab.panes) do
