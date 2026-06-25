@@ -88,6 +88,12 @@ $symlinks = @(
         Description = "Wezterm terminal"
     }
     @{
+        Source      = "$dotfilesRoot\.config\zellij"
+        Target      = "$HOME\.config\zellij"
+        IsDirectory = $true
+        Description = "Zellij multiplexer (Windows)"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\yazi"
         Target      = "$env:APPDATA\yazi\config"
         IsDirectory = $true
@@ -610,6 +616,8 @@ Write-Host "`n=== Setting Environment Variables ===" -ForegroundColor Magenta
 $envVars = @{
     "KOMOREBI_CONFIG_HOME" = "$HOME\.config\komorebi"
     "XDG_CONFIG_HOME"      = "$HOME\.config"
+    # Zellij ignores XDG_CONFIG_HOME on Windows; ZELLIJ_CONFIG_DIR gives ~/.config/zellij parity across OSes.
+    "ZELLIJ_CONFIG_DIR"    = "$HOME\.config\zellij"
     # Windows-only: Claude Code routes through the local proxy on :8080. The synced
     # ~/.claude/settings.json carries no proxy, so machines without this var (e.g. macOS)
     # talk to the API directly.
