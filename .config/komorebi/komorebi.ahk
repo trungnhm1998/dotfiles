@@ -208,7 +208,11 @@ o:: {
 Backspace:: {
     RunWait("komorebic.exe stop", , "Hide")
     Sleep(1000)
-    RunWait("komorebic.exe start", , "Hide")
+    ; Restart faithfully: mirror the boot shortcut's flags (config + masir).
+    ; (--ahk is not a valid start flag on komorebi 0.1.41; the AHK script runs
+    ;  independently of komorebi and survives the bounce, so it needs no relaunch.)
+    cfg := EnvGet("KOMOREBI_CONFIG_HOME") "\komorebi.json"
+    RunWait('komorebic.exe start --config "' cfg '" --masir', , "Hide")
     ExitMode()
 }
 Enter::ExitMode()
