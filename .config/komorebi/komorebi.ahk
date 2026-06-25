@@ -67,6 +67,7 @@ ResizeNudge(dir, delta) {
 
 ; --- always-active mode triggers ---
 ^!+#r::EnterMode("resize")            ; Hyper+r
+^!+#`;::EnterMode("service")          ; Hyper+;  (semicolon escaped)
 ^!+#Escape::ExitMode()                ; panic exit — works from ANY state
 
 ; ============================================================
@@ -110,13 +111,6 @@ ResizeNudge(dir, delta) {
 ^!+#9::Komorebic("focus-workspace 8")
 ^!+#0::Komorebic("focus-workspace 9")
 
-; Restart komorebi
-^!+#Backspace::{
-    RunWait("komorebic.exe stop", , "Hide")
-    Sleep(1000)
-    RunWait("komorebic.exe start", , "Hide")
-}
-
 ; Suspend these hotkeys
 ^!+#Home::Suspend
 
@@ -125,7 +119,6 @@ ResizeNudge(dir, delta) {
 ; into the Meh action. Bind them on Hyper as explicit no-ops to prevent that.
 ^!+#p::return
 ^!+#n::return
-^!+#`;::return
 
 ; ============================================================
 ; Meh (^!+) — move / relocate layer
@@ -159,10 +152,6 @@ ResizeNudge(dir, delta) {
 ; Cycle layout (previous)
 ^!+c::Komorebic("cycle-layout previous")
 
-; Window manager options
-^!+r::Komorebic("retile")
-^!+q::Komorebic("toggle-pause")
-
 ; Move windows to workspaces 1-10
 ^!+1::Komorebic("move-to-workspace 0")
 ^!+2::Komorebic("move-to-workspace 1")
@@ -187,6 +176,34 @@ l::ResizeNudge("right", "increase")
 +j::ResizeNudge("down", "decrease")
 +k::ResizeNudge("up", "decrease")
 +l::ResizeNudge("right", "decrease")
+Enter::ExitMode()
+Escape::ExitMode()
+#HotIf
+
+#HotIf g_mode = "service"
+r:: {
+    Komorebic("retile")
+    ExitMode()
+}
+p:: {
+    Komorebic("toggle-pause")
+    ExitMode()
+}
+t:: {
+    Komorebic("toggle-tiling")
+    ExitMode()
+}
+o:: {
+    cfg := EnvGet("KOMOREBI_CONFIG_HOME") "\komorebi.json"
+    Komorebic('replace-configuration "' cfg '"')
+    ExitMode()
+}
+Backspace:: {
+    RunWait("komorebic.exe stop", , "Hide")
+    Sleep(1000)
+    RunWait("komorebic.exe start", , "Hide")
+    ExitMode()
+}
 Enter::ExitMode()
 Escape::ExitMode()
 #HotIf
