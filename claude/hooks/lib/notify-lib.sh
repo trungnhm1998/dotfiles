@@ -74,10 +74,12 @@ cc_notify() {
   # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      local notifier="/c/Tools/claude-notify.ps1"
-      if [ -f "$notifier" ]; then
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\\Tools\\claude-notify.ps1" \
-          -Title "$title" -Message "$body" -PaneId "${WEZTERM_PANE:-}"
+      # Desktop toast via the repo-vendored notifier (resolved relative to this lib,
+      # so it rides the claude/ -> ~/.claude symlink; no machine-local C:\Tools file).
+      local notifier_sh; notifier_sh="$(dirname "${BASH_SOURCE[0]}")/../bin/claude-notify.ps1"
+      if [ -f "$notifier_sh" ]; then
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$notifier_sh")" \
+          -Title "$title" -Message "$body"
       fi
       ;;
     Darwin)
