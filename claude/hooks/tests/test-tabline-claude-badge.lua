@@ -41,6 +41,7 @@ badge.update(tab(false, { pane(9, true) }), opts)
 ok(opts.icon[1] == "OUT", "unseen output uses md_bell_outline fallback")
 
 -- 4. no alert + no output -> no badge
+stub.GLOBAL.claude_alert = {}
 opts = {}
 r = badge.update(tab(false, { pane(9, false) }), opts)
 ok(r == nil, "no alert and no output renders nothing")
@@ -51,6 +52,13 @@ opts = {}
 r = badge.update(tab(true, { pane(5) }), opts)
 ok(r == nil, "active tab renders no badge")
 ok(stub.GLOBAL.claude_alert["5"] == nil, "active tab clears its pane's alert")
+
+-- precise alert WINS over has_unseen_output on the same pane
+stub.GLOBAL.claude_alert = { ["5"] = "notification" }
+opts = {}
+badge.update(tab(false, { pane(5, true) }), opts)   -- pane 5 has BOTH alert and unseen output
+ok(opts.icon[1] == "RING", "precise alert beats has_unseen_output (ring, not outline)")
+ok(opts.icon.color.bg == "#ef9f76", "precedence case stays peach")
 
 print(string.format("--- %d passed, %d failed ---", PASS, FAIL))
 os.exit(FAIL == 0 and 0 or 1)
