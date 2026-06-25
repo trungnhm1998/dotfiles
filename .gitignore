@@ -14,6 +14,7 @@ desktop.ini
 # AI Assistant (temporary state)
 .claude/
 .opencode/
+.superpowers/
 # Per-machine state populated by the unity-mcp-skill-sync tool (not authored config)
 claude/skills/unity-mcp-skill/
 
@@ -32,3 +33,8 @@ node_modules/
 # Secrets (defense-in-depth; real secrets live in ~/.config/dotfiles/secrets.env, outside the repo)
 secrets.env
 **/settings.local.json
+
+# Agent-generated planning artifacts (specs, plans, continuity) — kept local, not versioned
+docs/superpowers/plans/
+docs/superpowers/specs/
+.planning/
