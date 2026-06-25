@@ -7,14 +7,35 @@
 // already-active session and fails with "Session 'agents' not found" (zellij #3734 / #3868).
 // Use --new-session-with-layout/-n to start a fresh named session (also works from inside one).
 // Pin a command to a pane by replacing `ps` with: pane command="claude" { cwd "D:/projects/…" }
+//
+// default_tab_template re-adds the Frappe-themed chrome (tab-bar + status-bar). A custom `layout`
+// REPLACES Zellij's default UI, so without this the themed bars never draw — only the pane frames
+// do. `children` marks where this tab's panes go.
+//
+// IMPORTANT: use FULLY-QUALIFIED plugin URLs (zellij:tab-bar / zellij:status-bar), NOT the bare
+// `tab-bar` aliases from `--dump-layout default`. The session-manager / layout-manager pickers
+// validate layout files WITHOUT loading config (Layout::from_path_or_default_without_config), so
+// the bare aliases — defined in config's plugins{} block — fail to resolve there and this layout
+// silently drops from the picker (you'd see only the built-ins). The zellij: scheme needs no alias.
+// Launching via `zellij -n agents` works with either form; the picker is the strict path.
 layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
     pane_template name="ps" {
         command "pwsh"
         args "-NoLogo"
     }
+    // Named invocations → the themed frame title of each pane reads agent-1/2/3.
     tab name="agents" focus=true {
-        ps
-        ps
-        ps
+        ps name="agent-1"
+        ps name="agent-2"
+        ps name="agent-3"
     }
 }

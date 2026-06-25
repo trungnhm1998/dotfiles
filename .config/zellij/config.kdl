@@ -33,3 +33,15 @@ scrollback_editor "nvim"
 // fails for pwsh on Windows (same class as nushell #3068); it does NOT consume OSC-7 yet (#3512), so
 // our prompt's OSC-7 emission can't help. Workaround: `cd` in the new pane, or pin `cwd` in a layout.
 default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+
+// layout_dir MUST be set explicitly on Windows for custom layouts (e.g. `agents`) to show up in the
+// session-manager / layout-manager pickers. Those pickers enumerate the layout dir with Rust
+// `read_dir`, which returns EMPTY when the path is reached through a Windows SYMLINK — and
+// deploy_windows.ps1 symlinks ~/.config/zellij. (With no explicit layout_dir, Windows' default
+// layout-dir resolution also comes back unusable.) Pointing layout_dir at the REAL repo dir (no
+// reparse point) lets read_dir enumerate, so the pickers list custom layouts. Proven via
+// `zellij action dump-screen`. The `zellij -n agents` CLI worked regardless — it opens the file by
+// name, not via read_dir, which is why this was easy to miss.
+// MACHINE-SPECIFIC path: KDL can't expand env vars or ~, so update this if the repo lives elsewhere.
+// (Requires a Zellij server restart — `zellij ka`, then relaunch.)
+layout_dir "C:\\Users\\mint\\dotfiles\\.config\\zellij\\layouts"
