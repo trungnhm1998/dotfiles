@@ -60,11 +60,16 @@ therefore already knows *which WezTerm pane it is in* — no round-trip needed.
 ## The contract (the entire interface between hook and WezTerm)
 
 ```
-${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts/<pane_id>
+${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts/<mux_tag>/<pane_id>
 ```
 
 - **Directory** reuses the `claude-notify` cache namespace `notify-lib.sh:34`
   already established.
+- **`<mux_tag>`** is the basename of `$WEZTERM_UNIX_SOCKET` (e.g. `gui-sock-41292`),
+  or `default` when unset. It namespaces alerts **per WezTerm mux**: each window is a
+  separate mux with its own pane-id space, so without this each window's poller would
+  prune the others' files over the shared dir. Producer and poller derive it identically
+  (`M.mux_tag`). See the per-mux revision note below.
 - **Filename** is the WezTerm pane id (`$WEZTERM_PANE`), e.g. `10`.
 - **File body** is the alert kind: the literal string `notification` or `stop`
   (no trailing newline; written with `printf '%s'`).
@@ -313,6 +318,30 @@ All three units are tested off-GUI. New `.sh` wrappers are auto-discovered by
 - `wezterm.read_dir` returns absolute paths (per WezTerm docs); the basename
   match and `read_file` rely on this. The plan confirms it on the installed
   build.
+
+## Revision: per-mux namespacing (2026-06-25, found in GUI acceptance)
+
+The original design assumed a single WezTerm process. In practice the user runs **multiple
+WezTerm windows** (komorebi-tiled), and on Windows each `wezterm-gui` is its **own mux** with
+its **own pane-id space** (socket `gui-sock-<pid>`). Every poller reconciles the **one shared**
+alert dir, so a window's poller hits `not live[id]` for another window's pane and **deletes its
+alert file** (write-once → gone permanently). Captured directly via a temporary poller log:
+
+```
+win=0 sock=…\gui-sock-41292 files=[10] live=[16,30,33,34,6,8] visited=[33,34] kept=[]
+```
+
+(pane `10` lives in the *other* mux; this poller saw the file, found `10` not in its live set,
+and deleted it.) This is why the bell "appeared then vanished after a second."
+
+**Fix:** alerts are namespaced by `<mux_tag>` = basename of `$WEZTERM_UNIX_SOCKET` — readable by
+both the hook (it's in the pane env) and the poller (`os.getenv`, the probe confirmed it). Each
+poller reads/prunes only `…/wezterm-alerts/<its own mux_tag>/`, so cross-window deletion **and**
+pane-id collisions are both eliminated, and the `not live` cleanup becomes *correct* (it only
+ever sees this mux's own panes). Orphaned subdirs from exited WezTerm PIDs are inert — no live
+poller reads them. Helpers `M.mux_tag` / `M.mux_dir` in `wezterm_claude_alerts.lua`; the
+producer mirrors the basename rule with a bash regex `([^/\]+)$`. Also in this revision: the
+badge renders as a centered colored pill (` glyph `) instead of color hugging only the glyph.
 
 ## Deployment
 
