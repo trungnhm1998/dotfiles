@@ -9,7 +9,7 @@ This document describes the keybindings for the **komorebi** tiling window manag
 
 `Alt` is left **entirely free** for the terminal (Zellij) — there are no bare-Alt bindings. The split exists because Hyper already contains Shift, so the i3 idiom `$mod+key` (focus) / `$mod+Shift+key` (move) is impossible; the move layer gets its own physical key (Meh) instead. See [`docs/superpowers/specs/2026-06-25-komorebi-hyper-keybinds-design.md`](../../docs/superpowers/specs/2026-06-25-komorebi-hyper-keybinds-design.md).
 
-> **Status:** The flat Hyper/Meh layers below are **live**. The **resize mode**, **service mode**, and **OSD** (marked 🆕) are the **designed** next addition, landing with the `komorebi.ahk` update tracked in [`2026-06-25-komorebi-modes-osd-design.md`](../../docs/superpowers/specs/2026-06-25-komorebi-modes-osd-design.md).
+> **Status:** Live — the flat Hyper/Meh layers, the **resize mode**, **service mode**, the daily adds (`Hyper+Tab`, `Meh+Enter`), and the **OSD** are all implemented in `komorebi.ahk` and verified on the live WM. Design: [`2026-06-25-komorebi-modes-osd-design.md`](../../docs/superpowers/specs/2026-06-25-komorebi-modes-osd-design.md).
 
 ---
 
@@ -21,7 +21,7 @@ Think i3, with the modifier lifted off `Alt`:
 |---|---|---|
 | `$mod + key` | **Hyper + key** | focus / act |
 | `$mod+Shift + key` | **Meh + key** | move / relocate |
-| `$mod + r` → resize mode | **Hyper + r** 🆕 | enter resize mode |
+| `$mod + r` → resize mode | **Hyper + r** | enter resize mode |
 
 Everything you do daily is a flat chord (no modes). Resize and rare/destructive ops live behind a **mode** so the daily layer stays small — exactly how i3/sway/GlazeWM/AeroSpace structure it.
 
@@ -35,7 +35,7 @@ Everything you do daily is a flat chord (no modes). Resize and rare/destructive 
 | `Hyper + 1`–`0` | Focus workspace 1–10 (I–X) | `focus-workspace 0`–`9` |
 | `Hyper + [` / `]` | Cycle focus previous / next | `cycle-focus previous/next` |
 | `Hyper + ,` / `.` | Focus monitor 0 / 1 | `focus-monitor 0/1` |
-| `Hyper + Tab` 🆕 | Switch to last workspace (back-and-forth) | `focus-last-workspace` |
+| `Hyper + Tab` | Switch to last workspace (back-and-forth) | `focus-last-workspace` |
 | `Hyper + T` | Toggle float (centered) | `toggle-float` |
 | `Hyper + F` | Toggle monocle (zoom) | `toggle-monocle` |
 | `Hyper + X` / `Y` | Flip layout horizontal / vertical | `flip-layout horizontal/vertical` |
@@ -58,11 +58,11 @@ Everything you do daily is a flat chord (no modes). Resize and rare/destructive 
 | `Meh + ;` | Unstack window | `unstack` |
 | `Meh + [` / `]` | Cycle stack previous / next | `cycle-stack previous/next` |
 | `Meh + C` | Cycle layout previous | `cycle-layout previous` |
-| `Meh + Enter` 🆕 | Promote to main tile | `promote` |
+| `Meh + Enter` | Promote to main tile | `promote` |
 
 ---
 
-## 🆕 Resize mode
+## Resize mode
 
 Tap **`Hyper + R`** to enter. While in the mode, bare keys resize the **focused** window — no modifier held. An OSD badge shows the active mode.
 
@@ -77,7 +77,7 @@ Tap **`Hyper + R`** to enter. While in the mode, bare keys resize the **focused*
 
 ---
 
-## 🆕 Service mode
+## Service mode
 
 Tap **`Hyper + ;`** to enter. Houses rare / destructive ops so they don't clutter the daily layer (AeroSpace's "service mode" pattern). OSD badge shows the mode.
 
@@ -92,7 +92,7 @@ Tap **`Hyper + ;`** to enter. Houses rare / destructive ops so they don't clutte
 
 ---
 
-## 🆕 Modes — safety
+## Modes — safety
 
 Modes can't trap you. Five safeguards:
 
@@ -100,13 +100,13 @@ Modes can't trap you. Five safeguards:
 2. **`Esc` / `Enter` always exit.**
 3. **Panic exit** — `Hyper + Escape` force-exits from *any* state.
 4. **Reset on reload** — an AHK reload never leaves you stuck in a phantom mode.
-5. **OSD never steals focus** and is never tiled by komorebi.
+5. **OSD never steals focus and is never tiled** — it's a no-activate tool window (`WS_EX_NOACTIVATE` + `ToolWindow`), so komorebi doesn't manage it. _(A belt-and-suspenders `floating_applications` rule in `komorebi.json` is **deferred** — unneeded so far, since the badge already floats untiled.)_
 
 While in a mode, the mode's bare keys (e.g. `hjkl` in resize) are captured — that's the point — so the OSD badge is your reminder to `Esc` out before typing.
 
 ---
 
-## 🆕 On-screen mode indicator (OSD)
+## On-screen mode indicator (OSD)
 
 A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is active and vanishes on exit. Themed Catppuccin Frappe / JetBrains Mono to match the WM border. It does **not** live in the komorebi bar (the bar has no external-state widget) — it's self-contained in `komorebi.ahk`, so it can't desync and survives bar reloads.
 
@@ -129,9 +129,9 @@ A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is ac
 | **Stack** | `Meh + ←↓↑→` stack · `Meh + ;` unstack · `Meh + [ ]` cycle stack |
 | **Monitors** | `Hyper + , .` focus 0/1 · `Meh + , .` send 0/1 |
 | **Window** | `Hyper + q` close · `Hyper + m` minimize |
-| 🆕 **Resize mode** | `Hyper + r` → `hjkl` nudge · `⇧` shrink · `esc` exit |
-| 🆕 **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `o` reload · `⌫` restart |
-| 🆕 **Escape hatch** | `Hyper + Escape` panic-exit any mode |
+| **Resize mode** | `Hyper + r` → `hjkl` nudge · `⇧` shrink · `esc` exit |
+| **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `o` reload · `⌫` restart |
+| **Escape hatch** | `Hyper + Escape` panic-exit any mode |
 
 ---
 
