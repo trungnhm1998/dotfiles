@@ -15,8 +15,15 @@
   "theme": {
     "palette": "Base16",
     "name": "CatppuccinFrappe",
+    "single_border": "Base0E",
+    "stack_border": "Base0D",
+    "monocle_border": "Base0B",
+    "floating_border": "Base0A",
     "unfocused_border": "Base03",
-    "bar_accent": "Base0D"
+    "bar_accent": "Base0E",
+    "stackbar_focused_text": "Base0E",
+    "stackbar_background": "Base02",
+    "stackbar_unfocused_text": "Base04"
   },
   "display_index_preferences": {
     "0": "T1LMQS041357",
