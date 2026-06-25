@@ -23,14 +23,14 @@ stub.GLOBAL.claude_alert = { ["5"] = "notification" }
 local opts = {}
 local r = badge.update(tab(false, { pane(5) }), opts)
 ok(r == ' ', "notification renders a badge")
-ok(opts.icon and opts.icon[1] == "RING", "notification uses md_bell_ring")
+ok(opts.icon and opts.icon[1] == " RING", "notification icon is md_bell_ring, space-padded into a centered pill")
 ok(opts.icon.color.bg == "#ef9f76", "notification badge bg is peach")
 
 -- 2. precise stop -> bell glyph + yellow bg
 stub.GLOBAL.claude_alert = { ["5"] = "stop" }
 opts = {}
 badge.update(tab(false, { pane(5) }), opts)
-ok(opts.icon[1] == "BELL", "stop uses md_bell")
+ok(opts.icon[1] == " BELL", "stop icon is md_bell, space-padded into a centered pill")
 ok(opts.icon.color.bg == "#e5c890", "stop badge bg is yellow")
 
 -- 3. unseen output but NO claude alert -> no badge (fallback tier removed)
@@ -58,7 +58,7 @@ ok(stub.GLOBAL.claude_alert["5"] == "notification", "component leaves GLOBAL unt
 stub.GLOBAL.claude_alert = { ["5"] = "notification" }
 opts = {}
 badge.update(tab(false, { pane(5, true) }), opts)
-ok(opts.icon[1] == "RING", "alert renders regardless of unseen output")
+ok(opts.icon[1] == " RING", "alert renders regardless of unseen output")
 
 print(string.format("--- %d passed, %d failed ---", PASS, FAIL))
 os.exit(FAIL == 0 and 0 or 1)

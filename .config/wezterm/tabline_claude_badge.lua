@@ -21,11 +21,14 @@ return {
     for _, p in ipairs(tab.panes) do
       kind = kind or alerts[tostring(p.pane_id)]
     end
+    -- Pad the glyph with a leading space so the colored cell reads as a centered pill: tabline
+    -- appends a trailing space to the icon text, so ' '..glyph renders as ' glyph ' entirely in
+    -- the badge color, instead of the color hugging only the glyph.
     if kind == 'notification' then
-      opts.icon = { wezterm.nerdfonts.md_bell_ring, color = { fg = frappe.crust, bg = frappe.peach } }
+      opts.icon = { ' ' .. wezterm.nerdfonts.md_bell_ring, color = { fg = frappe.crust, bg = frappe.peach } }
       return ' '
     elseif kind == 'stop' then
-      opts.icon = { wezterm.nerdfonts.md_bell, color = { fg = frappe.crust, bg = frappe.yellow } }
+      opts.icon = { ' ' .. wezterm.nerdfonts.md_bell, color = { fg = frappe.crust, bg = frappe.yellow } }
       return ' '
     end
   end,
