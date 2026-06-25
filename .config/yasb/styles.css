@@ -1,5 +1,5 @@
 /* YASB — minimal Catppuccin Frappe theme. Font: JetBrainsMono Nerd Font.
-   Frappe: base #303446, text #c6d0f5, blue #8caaee, overlay1 #838ba7. */
+   Frappe: base #303446, text #c6d0f5, mauve #ca9ee6 (accent), overlay1 #838ba7. */
 * {
     font-family: 'JetBrainsMono Nerd Font';
     font-size: 13px;
@@ -23,6 +23,6 @@
 }
 .ws-btn.active {
     color: #303446;          /* base on accent */
-    background-color: #8caaee;
+    background-color: #ca9ee6;  /* mauve — unified focus accent */
     border-radius: 4px;
 }
