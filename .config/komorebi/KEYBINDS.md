@@ -88,7 +88,10 @@ Tap **`Hyper + ;`** to enter. Houses rare / destructive ops so they don't clutte
 | `T` | Toggle tiling for workspace | `toggle-tiling` |
 | `O` | Reload configuration | `replace-configuration` |
 | `Backspace` | Restart komorebi | `stop` + `start` |
+| `X` | **Quit AHK entirely** — process gone, for anti-cheat games | `ExitApp` |
 | `Esc` / `Enter` | Exit the mode | — |
+
+> **`X` fully terminates AutoHotkey** (not just suspend), so no `AutoHotkey64.exe` is left for an anti-cheat to flag. Hotkeys stay dead until you relaunch the script (run `komorebi.ahk` again). `Hyper + Home` only *suspends* — the process keeps running — so use `X` before launching a protected game.
 
 ---
 
@@ -112,7 +115,7 @@ A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is ac
 
 ```
 ⟨ RESIZE ⟩   h j k l nudge · ⇧ shrink · esc done
-⟨ SERVICE ⟩  r retile · p pause · t tiling · o reload · ⌫ restart · esc
+⟨ SERVICE ⟩  r retile · p pause · t tiling · o reload · ⌫ restart · x quit ahk · esc
 ```
 
 ---
@@ -130,7 +133,7 @@ A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is ac
 | **Monitors** | `Hyper + , .` focus 0/1 · `Meh + , .` send 0/1 |
 | **Window** | `Hyper + q` close · `Hyper + m` minimize |
 | **Resize mode** | `Hyper + r` → `hjkl` nudge · `⇧` shrink · `esc` exit |
-| **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `o` reload · `⌫` restart |
+| **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `o` reload · `⌫` restart · `x` quit-ahk |
 | **Escape hatch** | `Hyper + Escape` panic-exit any mode |
 
 ---

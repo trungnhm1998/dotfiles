@@ -34,7 +34,7 @@ ExitMode(*) {
 Legend(m) {
     switch m {
         case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
-        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  o reload  ·  ⌫ restart  ·  esc"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  o reload  ·  ⌫ restart  ·  x quit ahk  ·  esc"
     }
     return ""
 }
@@ -214,6 +214,10 @@ Backspace:: {
     cfg := EnvGet("KOMOREBI_CONFIG_HOME") "\komorebi.json"
     RunWait('komorebic.exe start --config "' cfg '" --masir', , "Hide")
     ExitMode()
+}
+x:: {
+    OSD_Hide()      ; clear the badge before the process exits
+    ExitApp()       ; fully QUIT AutoHotkey (process gone) — for anti-cheat games
 }
 Enter::ExitMode()
 Escape::ExitMode()
