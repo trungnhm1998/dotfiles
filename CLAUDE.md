@@ -49,6 +49,7 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 | `.config/nvim` | `$HOME\.config\nvim` |
 | `.config/wezterm` | `$HOME\.config\wezterm` |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
+| `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
 | `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
 | `.config/lazygit` | `$env:APPDATA\lazygit` |
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
