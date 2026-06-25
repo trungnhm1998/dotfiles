@@ -1,7 +1,9 @@
 # WezTerm: preserve working directory on pane split and new tab
 
 - **Date:** 2026-06-25
-- **Status:** Approved (design)
+- **Status:** Implemented & verified. **Note:** the originally-approved fix
+  (`command.cwd = cwd.file_path`) was wrong on Windows — see "Root cause" and
+  "Correction" below. The shipped fix is *not* to set `cwd` at all.
 - **Scope:** `.config/wezterm/wezterm.lua` — Windows / native-pwsh-pane path only
 
 ## Problem
@@ -13,27 +15,15 @@ split — and a new tab — starts in the same directory as the pane it spawned 
 
 ## Root cause
 
-`split_current_pane()` (`wezterm.lua:292-307`) builds a `SpawnCommand` and assigns
-the working directory like this:
+`split_current_pane()` built a `SpawnCommand` and assigned the working directory
+from the pane's reported cwd:
 
 ```lua
 local cwd = pane:get_current_working_dir()
 if cwd then
-    command.cwd = cwd
+    command.cwd = cwd          -- original code
 end
 ```
-
-Two facts make this silently wrong on the installed build (`wezterm 20260607`):
-
-1. `pane:get_current_working_dir()` returns a **`Url` object**, not a string, since
-   WezTerm `20240127-113634-bbcac864`.
-   (<https://wezterm.org/config/lua/pane/get_current_working_dir.html>)
-2. `SpawnCommand.cwd` expects a **string path**; when it cannot use the supplied
-   value it "fall[s] back to using the home directory of the current user."
-   (<https://wezterm.org/config/lua/SpawnCommand.html>)
-
-Passing the `Url` userdata into a string field therefore produces the observed
-home-directory fallback.
 
 The shell side is healthy and **not** implicated: `Invoke-Starship-PreCommand`
 (`Microsoft.PowerShell_profile.ps1:53-61`) emits OSC 7 correctly, and
@@ -41,13 +31,53 @@ The shell side is healthy and **not** implicated: `Invoke-Starship-PreCommand`
 multiple panes and drives (verified 2026-06-25 — e.g. one pane `…/dotfiles`,
 another on drive `H:`).
 
-The `Url` object exposes a `file_path` property that "decodes the path field and
-interprets it as a file path" — the native string `SpawnCommand.cwd` wants.
+The break is entirely in how `cwd` is fed back to `SpawnCommand`:
+
+1. `pane:get_current_working_dir()` returns a **`Url` object**, not a string, since
+   WezTerm `20240127-113634-bbcac864` (installed build: `20260607`).
+   (<https://wezterm.org/config/lua/pane/get_current_working_dir.html>)
+2. `SpawnCommand.cwd` expects a **string path**; when it cannot use the supplied
+   value it "fall[s] back to using the home directory of the current user."
+   (<https://wezterm.org/config/lua/SpawnCommand.html>)
+
+So the original `command.cwd = <Url object>` was unusable → home-dir fallback.
+
+**The non-obvious part — and why `.file_path` is *also* wrong on Windows:** the
+`Url` object's `file_path` property returns the decoded *path component* of the
+URL, which on Windows is a Unix-style string with a leading slash. For a cwd of
+`file:///C:/Users/mint/dotfiles`, `cwd.file_path` is **`/C:/Users/mint/dotfiles`**.
+Windows rejects that as a directory, which WezTerm logged verbatim:
+
+```
+WARN  mux::domain > Directory "/C:/Users/mint/dotfiles" is not readable and will
+not be used for the command we are spawning: The filename, directory name, or
+volume label syntax is incorrect. (os error 123)
+```
+
+`os error 123` is `ERROR_INVALID_NAME`. The result is the same home-dir fallback.
+(The WezTerm docs' own `file_path` example, `file://host/some/path` →
+`/some/path`, shows this Unix-style shape but doesn't call out the Windows
+drive-letter consequence.)
 (<https://wezterm.org/config/lua/wezterm.url/Url.html>)
+
+**Conclusion:** any attempt to compute `cwd` ourselves from
+`get_current_working_dir()` and feed it to `SpawnCommand.cwd` is fighting the API.
+The correct value is the one WezTerm already derives internally.
 
 ## Design
 
-Introduce one shared helper and route both spawn sites through it.
+**Do not set `cwd`.** A `SpawnCommand` whose `domain` is `"CurrentPaneDomain"`
+already inherits the active pane's working directory, and WezTerm converts the
+pane's cwd URL to a native OS path *correctly* on its own:
+
+> "If omitted, wezterm will infer a value based on the active pane… If the active
+> pane matches the domain specified in this `SpawnCommand` instance then the
+> current working directory of the active pane will be used."
+> (<https://wezterm.org/config/lua/SpawnCommand.html>)
+
+Introduce one shared helper and route both spawn sites through it. The helper
+sets the domain and (for local panes) the program, and deliberately leaves `cwd`
+unset.
 
 ### `pane_command(pane)` helper
 
@@ -56,18 +86,17 @@ Defined inside the `if is_windows` block, immediately above `split_current_pane`
 module-scoped and in scope.
 
 ```lua
--- Build a SpawnCommand for actions launched from the current pane: stay in the
--- same domain, relaunch pwsh for local panes, and inherit the active pane's
--- working directory. get_current_working_dir() returns a Url object
--- (WezTerm 20240127+); SpawnCommand.cwd wants a string, so use .file_path.
+-- Build a SpawnCommand for actions launched from the current pane: keep the
+-- same domain and relaunch pwsh for local panes. Deliberately do NOT set `cwd`:
+-- a CurrentPaneDomain command already inherits the active pane's working
+-- directory, and WezTerm converts that URL to a native path correctly. Setting
+-- cwd ourselves from get_current_working_dir().file_path breaks on Windows --
+-- it returns a "/C:/..." path WezTerm rejects (os error 123), silently falling
+-- back to the home directory.
 local function pane_command(pane)
     local command = { domain = "CurrentPaneDomain" }
     if pane:get_domain_name() == "local" then
         command.args = { pwsh, "-NoLogo" }
-    end
-    local cwd = pane:get_current_working_dir()
-    if cwd then
-        command.cwd = cwd.file_path
     end
     return command
 end
@@ -99,37 +128,42 @@ The `Leader t` (new tab) handler becomes:
 },
 ```
 
-`Leader t` previously set no `cwd` at all and so already inherited the directory
-via WezTerm's domain-match default; routing it through the helper makes that
-behavior explicit and uniform rather than implicit, and removes the duplicated
-`domain` + pwsh-args block.
+`Leader t` already set no `cwd` and so already inherited correctly; routing it
+through the helper removes the duplicated `domain` + pwsh-args block and keeps
+both spawn sites consistent.
 
 ## Why it is safe
 
-- **Type-robust:** if `get_current_working_dir()` ever returned a string instead of
-  a `Url` (it does not on this build), `("…").file_path` evaluates to `nil` in Lua
-  without error — `command.cwd` stays unset and WezTerm falls back to its inherit
-  behavior. No crash either way.
-- **Non-file URLs:** an `ftp://`-style cwd would yield a `nil` `file_path`;
-  `command.cwd` stays unset and WezTerm falls back. Acceptable — local pwsh panes
-  always report `file://` URLs.
+- **Uses WezTerm's own mechanism:** cwd inheritance for a `CurrentPaneDomain`
+  spawn is the documented, supported behavior — no manual path conversion to get
+  wrong across platforms.
 - **WSL / Zellij panes unaffected:** those panes pass `Ctrl+Space` straight through
   (`wezterm.lua:275-277`), so `leader_mode` — and therefore `pane_command` — never
   executes in them. This change touches only the native-pwsh-pane path.
 
-## Files changed
+## Correction (history)
 
-| File | Change |
-|------|--------|
-| `.config/wezterm/wezterm.lua` | Add `pane_command` helper; simplify `split_current_pane` and the `Leader t` handler to call it. Net ≈ −8 lines. |
+The first implementation used `command.cwd = cwd.file_path` (committed as
+`fix(wezterm): preserve cwd on pane split via Url.file_path`). It did **not** work
+— `file_path` yields `/C:/…` on Windows (see Root cause). The shipped fix removes
+the explicit `cwd` entirely. If reading git history, treat the `.file_path` commit
+as superseded.
 
-## Verification
+## Verification (as performed)
 
-1. Reload the WezTerm config.
-2. `cd` into a non-home directory (e.g. the dotfiles repo).
-3. `Leader v`, `Leader s`, `|`, `-` — each new split starts in that directory.
-4. `Leader t` — the new tab starts in that directory.
-5. Optional cross-check: `wezterm cli list --format json`.
+1. **Mechanism proof (CLI):** `wezterm cli split-pane --pane-id <pwsh pane>` with
+   **no** `--cwd` produced a new pane in the source pane's directory
+   (`H:/project/AI/better-ccflare`), both with and without an explicit
+   `-- pwsh -NoLogo`. Confirms inheritance does the right thing on this machine.
+2. **Config-path proof (log marker):** a temporary `wezterm.log_warn` inside
+   `pane_command` confirmed the fixed (no-`cwd`) code actually ran on a real
+   `Ctrl+Space v` split after `Ctrl+Shift+R`, and **no** `os error 123` appeared
+   at or after that point. (Marker removed; never committed.)
+3. **Live state:** `wezterm cli list` showed all panes/tabs reporting their correct
+   directories.
+
+Standing regression check: `wezterm show-keys` must print `Key Table: leader_mode`
+and exit `0` (proves the config parses; a Lua error falls back to defaults).
 
 ## Out of scope
 
@@ -141,6 +175,6 @@ behavior explicit and uniform rather than implicit, and removes the duplicated
 
 ## Risks
 
-Minimal. A single-file Lua config change with graceful degradation. The only
-observable behavior change is the intended one: new splits and tabs inherit the
-active pane's working directory.
+Minimal. A single-file Lua config change that removes code and defers to WezTerm's
+built-in inheritance. The only observable behavior change is the intended one: new
+splits and tabs inherit the active pane's working directory.
