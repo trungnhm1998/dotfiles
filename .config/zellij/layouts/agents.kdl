@@ -1,4 +1,10 @@
-// `zellij --layout agents` — three pwsh panes for running parallel claude agents.
+// Three pwsh panes for running parallel claude agents.
+// Start a NAMED session (so you can reattach by name):
+//   zellij --session agents --layout agents
+// Reattach after closing the terminal:
+//   zellij attach agents
+// NOTE: --layout names the TAB, not the session. Without --session the session gets a
+// random name and `zellij attach agents` finds nothing — always pass -s/--session to name it.
 // Pin a command to a pane by replacing `ps` with: pane command="claude" { cwd "D:/projects/…" }
 layout {
     pane_template name="ps" {
