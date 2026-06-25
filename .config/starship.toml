@@ -7,9 +7,13 @@ command_timeout = 2000     # for git, node, ruby, etc.
 # Inserts a blank line between shell prompts
 add_newline = true
 
+# Catppuccin Frappe palette (see docs/catppuccin-frappe-theme.md)
+palette = 'frappe'
+
 # Replace the '❯' symbol in the prompt with '➜'
 [character] # The name of the module we are configuring is 'character'
-success_symbol = '[➜](bold green)' # The 'success_symbol' segment is being set to '➜' with the color 'bold green'
+success_symbol = '[➜](bold green)'
+error_symbol = '[➜](bold red)'
 
 [aws]
 symbol = "  "
@@ -34,6 +38,7 @@ symbol = " "
 
 [directory]
 read_only = " 󰌾"
+style = "bold mauve"
 
 [docker_context]
 symbol = " "
@@ -51,7 +56,11 @@ symbol = " "
 symbol = " "
 
 [git_branch]
+style = "bold green"
 symbol = " "
+
+[git_status]
+style = "bold yellow"
 
 [git_commit]
 tag_symbol = '  '
@@ -183,6 +192,34 @@ symbol = " "
 
 [zig]
 symbol = " "
+
+[palettes.frappe]
+rosewater = "#f2d5cf"
+flamingo = "#eebebe"
+pink = "#f4b8e4"
+mauve = "#ca9ee6"
+red = "#e78284"
+maroon = "#ea999c"
+peach = "#ef9f76"
+yellow = "#e5c890"
+green = "#a6d189"
+teal = "#81c8be"
+sky = "#99d1db"
+sapphire = "#85c1dc"
+blue = "#8caaee"
+lavender = "#babbf1"
+text = "#c6d0f5"
+subtext1 = "#b5bfe2"
+subtext0 = "#a5adce"
+overlay2 = "#949cbb"
+overlay1 = "#838ba7"
+overlay0 = "#737994"
+surface2 = "#626880"
+surface1 = "#51576d"
+surface0 = "#414559"
+base = "#303446"
+mantle = "#292c3c"
+crust = "#232634"
 
 [gradle]
 symbol = " "
