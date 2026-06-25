@@ -1,0 +1,20 @@
+// Zellij config — shared across OSes via ~/.config/zellij.
+// Tmux keybinding mode is a Zellij default; we add Ctrl+Space as the mode prefix to
+// match the existing tmux/WezTerm muscle memory. Ctrl+b stays bound as a fallback
+// (useful if Ctrl+Space doesn't register — see Step 3).
+
+theme "catppuccin-frappe"
+
+copy_on_select true
+// copy_command "clip.exe"   // uncomment ONLY if Zellij's native clipboard copy fails on Windows
+
+session_serialization true
+serialize_pane_viewport true
+
+scrollback_editor "nvim"
+
+keybinds {
+    shared_except "tmux" "locked" {
+        bind "Ctrl Space" { SwitchToMode "Tmux"; }
+    }
+}
