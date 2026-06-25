@@ -258,6 +258,12 @@ if is_windows then
         return domain_name and domain_name:find("WSL") ~= nil
     end
 
+    -- A pane is "Zellij-driven" when the zj wrapper set the user var (see PowerShell profile).
+    local function is_zellij_pane(pane)
+        local ok, vars = pcall(function() return pane:get_user_vars() end)
+        return ok and vars and vars.zellij == "1"
+    end
+
     -- Debug overlay / Lua REPL now lives in leader_mode below on `:` (tmux/vim
     -- command-prompt parallel); the old global Ctrl+Shift+L binding is removed.
 
@@ -266,11 +272,11 @@ if is_windows then
         key = " ",
         mods = "CTRL",
         action = wezterm.action_callback(function(window, pane)
-            if is_wsl_pane(pane) then
-                -- WSL pane: pass Ctrl+Space through to tmux
+            if is_wsl_pane(pane) or is_zellij_pane(pane) then
+                -- WSL pane -> tmux; Zellij pane -> Zellij. Both own Ctrl+Space, pass it through.
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
             else
-                -- Non-WSL pane: activate wezterm leader key table
+                -- Native pwsh pane: activate wezterm leader key table (tmux emulation)
                 window:perform_action(
                     act.ActivateKeyTable({
                         name = "leader_mode",
