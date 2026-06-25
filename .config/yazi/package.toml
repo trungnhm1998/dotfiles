@@ -24,16 +24,6 @@ rev = "de33976"
 hash = "76ea4ff62db6ebe62e4653c2de95cbd"
 
 [[flavor.deps]]
-use = "yazi-rs/flavors:catppuccin-macchiato"
-rev = "ca61658"
-hash = "2f60298d6c26b6d388c8091a9389fa8f"
-
-[[flavor.deps]]
-use = "dangooddd/kanagawa"
-rev = "04985d1"
-hash = "c69a63981e254a3a06a11c2bf0e6af1d"
-
-[[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
 rev = "ca61658"
 hash = "e25fb61c14484de843b52430a72b5196"

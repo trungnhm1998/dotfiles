@@ -23,8 +23,6 @@ Manual changes to these directories will be lost when packages are updated.
 | Flavor | Source | Commit | Description |
 |--------|--------|--------|-------------|
 | catppuccin-frappe | yazi-rs/flavors | fd85060 | Catppuccin Frappe (active theme) |
-| catppuccin-macchiato | yazi-rs/flavors | fd85060 | Catppuccin Macchiato |
-| kanagawa | dangooddd/kanagawa | d98f0c3 | Kanagawa color scheme |
 
 **Active Theme**: Catppuccin Frappe (set in `theme.toml`)
 
