@@ -1,0 +1,26 @@
+{
+  "name": "catppuccin-frappe",
+  "base": "dark",
+  "overrides": {
+    "text": "#c6d0f5",
+    "secondaryText": "#838ba7",
+    "inverseText": "#303446",
+    "suggestion": "#81c8be",
+    "claude": "#ef9f76",
+    "permission": "#8caaee",
+    "planMode": "#81c8be",
+    "autoAccept": "#ca9ee6",
+    "thinking": "#babbf1",
+    "success": "#a6d189",
+    "error": "#e78284",
+    "warning": "#e5c890",
+    "bashBorder": "#e78284",
+    "secondaryBorder": "#8caaee",
+    "diffAdded": "#a6d189",
+    "diffAddedWord": "#a6d189",
+    "diffAddedDimmed": "#738b71",
+    "diffRemoved": "#e78284",
+    "diffRemovedWord": "#e78284",
+    "diffRemovedDimmed": "#94636e"
+  }
+}
