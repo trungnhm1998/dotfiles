@@ -1,5 +1,5 @@
 /* YASB — Catppuccin Frappe · floating pills · auto-hide.
-   Font: JetBrainsMono Nerd Font. Transparent bar; each widget is a mantle pill;
+   Font: JetBrainsMono NF. Transparent bar; each widget is a mantle pill;
    accent-color the ICON, keep labels soft (#a5adce); state classes bring the accent. */
 
 * {
@@ -71,8 +71,9 @@
 .memory-widget .icon  { color: #e5c890; }   /* yellow */
 .gpu-widget .icon     { color: #ea999c; }   /* maroon */
 .traffic-widget .icon { color: #85c1dc; }   /* sapphire */
-/* threshold pop — class name per CPU/Memory wiki (verify: status-high vs high) */
-.cpu-widget .label.high, .memory-widget .label.high, .gpu-widget .label.high { color: #e78284; }
+/* threshold pop — YASB sets status-low/medium/high/critical on the label */
+.cpu-widget .label.status-high, .memory-widget .label.status-high, .gpu-widget .label.status-high,
+.cpu-widget .label.status-critical, .memory-widget .label.status-critical, .gpu-widget .label.status-critical { color: #e78284; }
 
 /* ── weather (open_meteo; condition keys are the widget's icon classes) ── */
 .open-meteo-widget .icon { color: #e5c890; }                                  /* sunny default */
@@ -84,9 +85,9 @@
 /* ── volume ── */
 .volume-widget .icon { color: #a6d189; }    /* green */
 
-/* ── microphone (verify muted class) ── */
+/* ── microphone (muted class lands on the label) ── */
 .microphone-widget .icon { color: #a5adce; }
-.microphone-widget .icon.muted { color: #e78284; }   /* red when muted */
+.microphone-widget .label.muted, .microphone-widget .icon.muted { color: #e78284; }   /* red when muted */
 
 /* ── wifi ── */
 .wifi-widget .icon { color: #99d1db; }      /* sky */
