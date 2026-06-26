@@ -17,7 +17,7 @@ bars:
     screens: ['primary']
     alignment:
       position: "top"
-      center: false
+      align: "center"
     window_flags:
       always_on_top: false
       windows_app_bar: false      # floating; lets toggle-maximize go edge-to-edge under the bar
@@ -32,7 +32,7 @@ bars:
       bottom: 0
       right: 8
     widgets:
-      left: ["workspaces", "taskbar", "active_layout"]
+      left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
       right: []
 
@@ -42,7 +42,7 @@ bars:
     screens: ['VI-01']
     alignment:
       position: "top"
-      center: false
+      align: "center"
     window_flags:
       always_on_top: false
       windows_app_bar: false
@@ -57,7 +57,7 @@ bars:
       bottom: 0
       right: 8
     widgets:
-      left: ["workspaces", "taskbar", "active_layout"]
+      left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
       right: []
 
