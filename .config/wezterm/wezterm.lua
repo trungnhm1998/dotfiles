@@ -33,7 +33,7 @@ config.set_environment_variables = {}
 -- the legacy OpenGL path, which is a known TUI-flicker offender. If WebGpu misbehaves on
 -- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
 -- See wiki: [[Claude Code TUI Rendering on Windows]].
-config.front_end = "OpenGL"
+config.front_end = "WebGpu"
 -- wgpu defaults to webgpu_power_preference = "LowPower", which on this desktop selects the
 -- Intel UHD 770 iGPU instead of the RTX 5070 Ti and tanks bulk-output throughput ~10x
 -- (12.3 MB `type`: 70.5 s vs 7.1 s, benched 2026-06-10; on the right GPU WezTerm == WT).

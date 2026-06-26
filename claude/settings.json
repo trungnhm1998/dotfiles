@@ -125,7 +125,9 @@
     "superpowers@claude-plugins-official": true,
     "csharp-lsp@claude-plugins-official": true,
     "gsd@gsd-plugin": false,
-    "frontend-design@claude-plugins-official": true
+    "frontend-design@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "context7@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "superpowers-dev": {
@@ -140,6 +142,12 @@
         "source": "github",
         "repo": "jnuyens/gsd-plugin"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "effortLevel": "xhigh",
@@ -148,13 +156,12 @@
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
-  "theme": "dark-ansi",
+  "theme": "dark",
   "editorMode": "vim",
   "verbose": true,
   "preferredNotifChannel": "auto",
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "haiku"
+  "skipAutoPermissionPrompt": true
 }

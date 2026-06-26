@@ -141,3 +141,19 @@ function zj {
     [Console]::Write("`e]1337;SetUserVar=zellij=MQ==`a")
     try { zellij @args } finally { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") }
 }
+
+# --- SuperDisplay (tablet-as-monitor) toggle ---
+# SuperDisplay is an indirect-display driver: its virtual ADAPTER owns the DISPLAY2
+# lifecycle, NOT the service. Stopping the service leaves the virtual display up, and a
+# stray 2nd display on a virtual GPU stalls WezTerm's GPU present path (DXGI occlusion ->
+# no repaint until you click/right-click; a new window works, the old one stays stuck).
+# So the real lever is the ADAPTER. Both need admin -> these self-elevate (one UAC click);
+# DISPLAY2 (dis)appearing is the confirmation. See vault: WezTerm Repaint Stall ... .
+function tablet-off {
+    Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
+      "Stop-Service SuperDisplay -EA SilentlyContinue; Get-PnpDevice -Class Display -FriendlyName 'SuperDisplay Virtual Adapter' | Disable-PnpDevice -Confirm:`$false"
+}
+function tablet-on {
+    Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
+      "Get-PnpDevice -Class Display -FriendlyName 'SuperDisplay Virtual Adapter' | Enable-PnpDevice -Confirm:`$false; Start-Service SuperDisplay"
+}
