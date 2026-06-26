@@ -37,7 +37,7 @@ Everything you do daily is a flat chord (no modes). Resize and rare/destructive 
 | `Hyper + ,` / `.` | Focus monitor 0 / 1 | `focus-monitor 0/1` |
 | `Hyper + Tab` | Switch to last workspace (back-and-forth) | `focus-last-workspace` |
 | `Hyper + T` | Toggle float (centered) | `toggle-float` |
-| `Hyper + F` | Toggle monocle (zoom) | `toggle-monocle` |
+| `Hyper + F` | Toggle monocle (zoom — keeps gaps; service `F` for true fullscreen) | `toggle-monocle` |
 | `Hyper + X` / `Y` | Flip layout horizontal / vertical | `flip-layout horizontal/vertical` |
 | `Hyper + C` | Cycle layout next | `cycle-layout next` |
 | `Hyper + Q` | Close window | `close` |
@@ -86,6 +86,7 @@ Tap **`Hyper + ;`** to enter. Houses rare / destructive ops so they don't clutte
 | `R` | Retile / reset layout | `retile` |
 | `P` | Toggle pause (freeze tiling) | `toggle-pause` |
 | `T` | Toggle tiling for workspace | `toggle-tiling` |
+| `F` | **Native fullscreen** — edge-to-edge, gaps gone (vs `Hyper+F` monocle, which keeps gaps) | `toggle-maximize` |
 | `O` | Reload configuration | `replace-configuration` |
 | `Backspace` | Restart komorebi | `stop` + `start` |
 | `X` | **Quit AHK entirely** — process gone, for anti-cheat games | `ExitApp` |
@@ -115,7 +116,7 @@ A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is ac
 
 ```
 ⟨ RESIZE ⟩   h j k l nudge · ⇧ shrink · esc done
-⟨ SERVICE ⟩  r retile · p pause · t tiling · o reload · ⌫ restart · x quit ahk · esc
+⟨ SERVICE ⟩  r retile · p pause · t tiling · f fullscreen · o reload · ⌫ restart · x quit ahk · esc
 ```
 
 ---
@@ -133,7 +134,7 @@ A small always-on-top, click-through badge (AHK `Gui`) appears when a mode is ac
 | **Monitors** | `Hyper + , .` focus 0/1 · `Meh + , .` send 0/1 |
 | **Window** | `Hyper + q` close · `Hyper + m` minimize |
 | **Resize mode** | `Hyper + r` → `hjkl` nudge · `⇧` shrink · `esc` exit |
-| **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `o` reload · `⌫` restart · `x` quit-ahk |
+| **Service mode** | `Hyper + ;` → `r` retile · `p` pause · `t` tiling · `f` fullscreen · `o` reload · `⌫` restart · `x` quit-ahk |
 | **Escape hatch** | `Hyper + Escape` panic-exit any mode |
 
 ---
