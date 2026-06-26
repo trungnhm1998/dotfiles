@@ -1,0 +1,47 @@
+// Zellij config — shared across OSes via ~/.config/zellij.
+// Stock keybindings: we deliberately use Zellij's DEFAULT preset (NO custom keybinds block) —
+// prefix-free Alt+hjkl nav, modal Ctrl-p/t/n/s/o, Ctrl+g locked mode. tmux is mimicked only in
+// WezTerm's leader for native pwsh panes, not here. TUI keys Zellij grabs (e.g. Claude Code's
+// Alt+P) pass through via on-demand Ctrl+g locked mode.
+// Design: docs/superpowers/specs/2026-06-25-zellij-stock-keybindings-design.md
+//
+// Modifier contract (Windows): Komorebi/AHK now lives entirely on the Hyper key
+// (Ctrl+Alt+Shift+Win), so Alt is free for the terminal — Zellij's default Alt binds
+// (Alt+n new pane, Alt+f floating, Alt+hjkl move-focus) are live again here. To pass an
+// Alt key THROUGH to a TUI like Claude Code (e.g. Alt+P), toggle locked mode with Ctrl+g.
+// See .config/komorebi/komorebi.ahk and
+// docs/superpowers/specs/2026-06-25-komorebi-hyper-keybinds-design.md.
+
+theme "catppuccin-frappe"
+
+copy_on_select true
+// copy_command "clip.exe"   // uncomment ONLY if Zellij's native clipboard copy fails on Windows
+
+session_serialization true
+serialize_pane_viewport true
+
+scrollback_editor "nvim"
+
+// Default shell for new panes/tabs — match the WezTerm setup (pwsh 7; see wezterm.lua:99-104,219).
+// Windows-only today: this dir is NOT symlinked on macOS/Linux (deploy.sh / setup_mac.sh skip zellij),
+// so a Windows path is safe here. If zellij is later adopted on mac/linux, guard this — those OSes
+// want $SHELL/zsh, not a Windows pwsh path.
+// NOTE: default_shell takes a PATH ONLY — it can't pass -NoLogo, so pwsh prints its 1-line startup
+// banner per pane (cosmetic; pwsh 7.2+ trimmed it to a single line). The `agents` layout still passes
+// -NoLogo. KNOWN LIMITATION (zellij#5052, verified 2026-06-25 on 0.44.3): a new ad-hoc pane opens in
+// the session STARTUP dir, not the cd'd dir. Cause: zellij infers cwd by process-inspection, which
+// fails for pwsh on Windows (same class as nushell #3068); it does NOT consume OSC-7 yet (#3512), so
+// our prompt's OSC-7 emission can't help. Workaround: `cd` in the new pane, or pin `cwd` in a layout.
+default_shell "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+
+// layout_dir MUST be set explicitly on Windows for custom layouts (e.g. `agents`) to show up in the
+// session-manager / layout-manager pickers. Those pickers enumerate the layout dir with Rust
+// `read_dir`, which returns EMPTY when the path is reached through a Windows SYMLINK — and
+// deploy_windows.ps1 symlinks ~/.config/zellij. (With no explicit layout_dir, Windows' default
+// layout-dir resolution also comes back unusable.) Pointing layout_dir at the REAL repo dir (no
+// reparse point) lets read_dir enumerate, so the pickers list custom layouts. Proven via
+// `zellij action dump-screen`. The `zellij -n agents` CLI worked regardless — it opens the file by
+// name, not via read_dir, which is why this was easy to miss.
+// MACHINE-SPECIFIC path: KDL can't expand env vars or ~, so update this if the repo lives elsewhere.
+// (Requires a Zellij server restart — `zellij ka`, then relaunch.)
+layout_dir "C:\\Users\\mint\\dotfiles\\.config\\zellij\\layouts"
