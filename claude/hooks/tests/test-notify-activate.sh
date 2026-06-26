@@ -9,7 +9,7 @@ VBS="$(dirname "$0")/../bin/claude-wez-launch.vbs"
 # --- Static guards: emit mode ---
 grep -q 'claude-wez://focus?pane=' "$PS1"; assert_exit "$?" "0" "emit mode builds the claude-wez focus launch URI"
 grep -qi 'ActivationType Protocol'  "$PS1"; assert_exit "$?" "0" "emit mode uses protocol activation"
-grep -q '\-Activate'                "$PS1"; assert_exit "$?" "0" "ps1 has an -Activate click-handler mode"
+grep -q '\$Activate'                "$PS1"; assert_exit "$?" "0" "ps1 declares the \$Activate handler param + if-block (not just a comment)"
 grep -qi 'activate-pane'            "$PS1"; assert_exit "$?" "1" "no WezTerm activate-pane CLI (focus is in-WezTerm)"
 
 # --- Static guards: windowless VBS launcher ---
