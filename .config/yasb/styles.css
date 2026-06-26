@@ -3,7 +3,9 @@
    accent-color the ICON, keep labels soft (#a5adce); state classes bring the accent. */
 
 * {
-    font-family: 'JetBrainsMono Nerd Font';
+    /* Installed family is "JetBrainsMono NF" (not "...Nerd Font"); Segoe UI Emoji
+       backs emoji/CJK in media titles that a mono font can't draw. */
+    font-family: 'JetBrainsMono NF', 'Segoe UI Emoji', 'Segoe UI';
     font-size: 13px;
     font-weight: 500;
     color: #a5adce;                  /* subtext0 — soft default label */
@@ -47,8 +49,10 @@
 /* ── clock ── */
 .clock-widget .label, .clock-widget .icon { color: #81c8be; }          /* teal */
 
-/* ── media ── */
-.media-widget .icon { color: #f4b8e4; }                                /* pink */
+/* ── media (prev · play/pause · next, spaced for legibility) ── */
+.media-widget .label { color: #c6d0f5; }                               /* title text */
+.media-widget .btn { color: #f4b8e4; padding: 0 3px; margin: 0 5px; }  /* pink, breathing room */
+.media-widget .btn.play { color: #a6d189; }                            /* green play/pause accent */
 
 /* ── system stats block: cpu · memory · gpu · traffic flush together ── */
 .cpu-widget, .memory-widget, .gpu-widget, .traffic-widget { margin: 0; }
@@ -70,10 +74,12 @@
 /* threshold pop — class name per CPU/Memory wiki (verify: status-high vs high) */
 .cpu-widget .label.high, .memory-widget .label.high, .gpu-widget .label.high { color: #e78284; }
 
-/* ── weather (condition classes are real YASB classes) ── */
-.weather-widget .icon { color: #e5c890; }                              /* sunny default */
-.weather-widget .icon.rainyDay, .weather-widget .icon.rainyNight { color: #85c1dc; }
-.weather-widget .icon.cloudyDay, .weather-widget .icon.cloudyNight { color: #a5adce; }
+/* ── weather (open_meteo; condition keys are the widget's icon classes) ── */
+.open-meteo-widget .icon { color: #e5c890; }                                  /* sunny default */
+.open-meteo-widget .icon.rainyDay, .open-meteo-widget .icon.rainyNight { color: #85c1dc; }
+.open-meteo-widget .icon.cloudyDay, .open-meteo-widget .icon.cloudyNight { color: #a5adce; }
+.open-meteo-widget .icon.snowyDay, .open-meteo-widget .icon.snowyNight { color: #c6d0f5; }
+.open-meteo-widget .icon.thunderstormDay, .open-meteo-widget .icon.thunderstormNight { color: #ca9ee6; }
 
 /* ── volume ── */
 .volume-widget .icon { color: #a6d189; }    /* green */

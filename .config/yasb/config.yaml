@@ -1,4 +1,4 @@
-# YASB — supercharged Catppuccin-Frappe bar. Theming in styles.css.
+# YASB - supercharged Catppuccin-Frappe bar. Theming in styles.css.
 # Docs: https://github.com/amnweb/yasb/wiki/Configuration
 watch_stylesheet: true
 watch_config: true
@@ -34,7 +34,7 @@ bars:
     widgets:
       left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
-      right: []
+      right: ["cpu", "memory", "gpu", "traffic", "weather", "media", "volume", "microphone", "wifi", "bluetooth", "systray", "power_menu"]
 
   secondary-bar:
     enabled: true
@@ -113,3 +113,160 @@ widgets:
       label: "{%H:%M}"
       label_alt: "{%a %d %b  %H:%M:%S}"
       timezones: []
+
+  # -- right cluster -------------------------------------------------
+  media:
+    type: "yasb.media.MediaWidget"
+    options:
+      label: "{title}"
+      label_alt: "{artist} - {title}"
+      hide_empty: true               # no pill when nothing is playing
+      max_field_size:
+        label: 22
+        label_alt: 40
+        truncate_whole_label: true
+      show_thumbnail: true
+      thumbnail_alpha: 80
+      thumbnail_corner_radius: 6
+      icons:
+        prev_track: ""
+        next_track: ""
+        play: ""
+        pause: ""
+
+  cpu:
+    type: "yasb.cpu.CpuWidget"
+    options:
+      label: " {info[percent][total]}%"
+      label_alt: " {info[percent][total]}% · {info[freq][current]:.0f} MHz"
+      update_interval: 2000
+      callbacks:
+        on_left: "toggle_label"
+
+  memory:
+    type: "yasb.memory.MemoryWidget"
+    options:
+      label: " {virtual_mem_percent}%"
+      label_alt: " {virtual_mem_used}/{virtual_mem_total}"
+      update_interval: 5000
+      callbacks:
+        on_left: "toggle_label"
+
+  gpu:
+    type: "yasb.gpu.GpuWidget"
+    options:
+      label: " {info[utilization]}%"
+      label_alt: " {info[utilization]}% · {info[temp]}°C · {info[mem_used]}"
+      gpu_index: 0
+      update_interval: 2000
+      units: "metric"
+      callbacks:
+        on_left: "toggle_label"
+
+  traffic:
+    type: "yasb.traffic.TrafficWidget"
+    options:
+      label: " {download_speed}    {upload_speed}"
+      label_alt: " {today_downloaded}    {today_uploaded}"
+      interface: "auto"
+      update_interval: 1000
+      speed_unit: "bits"
+      callbacks:
+        on_left: "toggle_label"
+
+  weather:
+    type: "yasb.open_meteo.OpenMeteoWidget"
+    options:
+      # No lat/long in config (v2.0.5). Click the pill (on_left: toggle_card) ->
+      # the card opens with a search box -> type "Ho Chi Minh City" -> pick it; it caches.
+      label: "<span class='icon'>{icon}</span> {temp}"
+      label_alt: "<span class='icon'>{icon}</span> {condition_text}  {temp}"
+      units: "metric"
+      update_interval: 1800
+      hide_decimal: true
+      callbacks:
+        on_left: "toggle_card"
+
+  volume:
+    type: "yasb.volume.VolumeWidget"
+    options:
+      label: "{icon}"
+      label_alt: "{icon} {level}"
+      icons:
+        muted: ""
+        "10": ""
+        "30": ""
+        "60": ""
+        "100": ""
+      callbacks:
+        on_left: "toggle_label"
+        on_right: "exec cmd.exe /c start ms-settings:sound"
+
+  microphone:
+    type: "yasb.microphone.MicrophoneWidget"
+    options:
+      label: "{icon}"
+      label_alt: "{icon} {level}"
+      mute_text: "muted"
+      icons:
+        normal: ""
+        muted: ""
+      callbacks:
+        on_left: "toggle_label"
+
+  wifi:
+    type: "yasb.wifi.WifiWidget"
+    options:
+      label: "{wifi_icon}"
+      label_alt: "{wifi_icon} {wifi_name}"
+      update_interval: 5000
+      ethernet_label: "{wifi_icon}"
+      ethernet_label_alt: "{wifi_icon} {ip_addr}"
+      ethernet_icon: ""
+      wifi_icons:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      callbacks:
+        on_left: "toggle_label"
+        on_right: "exec cmd.exe /c start ms-settings:network"
+
+  bluetooth:
+    type: "yasb.bluetooth.BluetoothWidget"
+    options:
+      label: "{icon}"
+      label_alt: "{device_name}"
+      icons:
+        bluetooth_on: ""
+        bluetooth_off: ""
+        bluetooth_connected: ""
+      callbacks:
+        on_left: "toggle_label"
+        on_right: "exec cmd.exe /c start ms-settings:bluetooth"
+
+  systray:
+    type: "yasb.systray.SystrayWidget"
+    options:
+      class_name: "systray"
+      label_collapsed: ""
+      label_expanded: ""
+      label_position: "left"
+      icon_size: 16
+      pin_click_modifier: "alt"
+      show_unpinned: true
+
+  power_menu:
+    type: "yasb.power_menu.PowerMenuWidget"
+    options:
+      label: ""
+      uptime: false
+      blur: false
+      button_row: 5
+      buttons:
+        signout: ["", "Sign out"]
+        sleep: ["", "Sleep"]
+        restart: ["", "Restart"]
+        shutdown: ["", "Shut Down"]
+        cancel: ["", "Cancel"]
