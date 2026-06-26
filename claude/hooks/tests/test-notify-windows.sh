@@ -24,7 +24,8 @@ cat > "$STUB/uname" <<'EOF'
 echo "MINGW64_NT-10.0-26200"
 EOF
 PSLOG="$(mktemp)"
-printf '#!/usr/bin/env bash\nprintf "called\\n" >> "%s"\nexit 0\n' "$PSLOG" > "$STUB/powershell.exe"
+# Emit now goes through pwsh (BurntToast lives in pwsh 7), not powershell.exe. Log argv.
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\nexit 0\n' "$PSLOG" > "$STUB/pwsh.exe"
 printf '#!/usr/bin/env bash\necho "$2"\n' > "$STUB/cygpath"
 chmod +x "$STUB"/*
 export PATH="$STUB:$PATH"
@@ -40,7 +41,9 @@ unset TMUX TMUX_PANE            # exercise only the Windows path
 
 cc_notify "Claude Code" "needs you" notification
 assert_eq "$(cat "$CC_ALERT_DIR/$TAG/42" 2>/dev/null)" "notification" "writes 'notification' to the per-mux pane file (<tag>/42)"
-assert_contains "$(cat "$PSLOG")" "called" "desktop toast notifier still invoked"
+assert_contains "$(cat "$PSLOG")" "-Title"          "desktop toast notifier still invoked (via pwsh)"
+assert_contains "$(cat "$PSLOG")" "-Pane 42"        "notifier receives -Pane <id> for click routing"
+assert_contains "$(cat "$PSLOG")" "-Mux gui-sock-77" "notifier receives -Mux <tag> for click routing"
 assert_eq "$(cat "$CC_ALERT_DIR/42" 2>/dev/null)" "" "nothing written to the old non-namespaced path"
 
 cc_notify "Claude Code" "done" stop

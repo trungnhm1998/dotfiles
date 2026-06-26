@@ -74,28 +74,28 @@ cc_notify() {
   # --- Desktop toast: per-OS native notifier. ---
   case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      # Tab-badge cue: record which WezTerm pane is waiting, keyed by $WEZTERM_PANE inside a
-      # per-mux subdir = basename of $WEZTERM_UNIX_SOCKET. Multiple WezTerm windows are SEPARATE
-      # muxes with their own pane-id spaces; without this each window's poller would prune the
-      # others' alerts over the shared dir (see wezterm_claude_alerts.lua M.mux_tag/M.mux_dir and
-      # the update-status poller in wezterm.lua). File channel -- robust on Windows, where
-      # OSC-through-ConPTY to WezTerm does not arrive. CC_ALERT_DIR is a test seam.
+      # Per-mux tag = basename of $WEZTERM_UNIX_SOCKET ('default' when unset); shared by the
+      # badge file AND the toast's click-routing URI (claude-notify.ps1 emit mode). Matches
+      # M.mux_tag in wezterm_claude_alerts.lua / wezterm_claude_focus.lua.
+      local mux_tag="default" _re='([^/\]+)$'
+      [[ "${WEZTERM_UNIX_SOCKET:-}" =~ $_re ]] && mux_tag="${BASH_REMATCH[1]}"
+
+      # Tab-badge cue (unchanged): record which WezTerm pane is waiting. CC_ALERT_DIR is a seam.
       if [ -n "${WEZTERM_PANE:-}" ]; then
         local alert_base="${CC_ALERT_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/claude-notify/wezterm-alerts}"
-        # basename of the socket across mixed \ and / separators; 'default' when unset (matches
-        # M.mux_tag, so producer and poller always agree on the subdir).
-        local mux_tag="default" _re='([^/\]+)$'
-        [[ "${WEZTERM_UNIX_SOCKET:-}" =~ $_re ]] && mux_tag="${BASH_REMATCH[1]}"
         local alert_dir="$alert_base/$mux_tag"
         mkdir -p "$alert_dir" 2>/dev/null \
           && printf '%s' "$kind" > "$alert_dir/$WEZTERM_PANE" 2>/dev/null || true
       fi
-      # Desktop toast via the repo-vendored notifier (resolved relative to this lib,
-      # so it rides the claude/ -> ~/.claude symlink; no machine-local C:\Tools file).
+
+      # Desktop toast via BurntToast on pwsh 7 (NOT powershell.exe 5.1, which can't see the
+      # module). Pass pane+mux so a body click routes back to this exact pane/window — see
+      # claude-notify.ps1 emit mode + the focus poller in wezterm.lua.
       local notifier_sh; notifier_sh="$(dirname "${BASH_SOURCE[0]}")/../bin/claude-notify.ps1"
-      if [ -f "$notifier_sh" ]; then
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$notifier_sh")" \
-          -Title "$title" -Message "$body"
+      local pwsh_bin; pwsh_bin="$(command -v pwsh.exe 2>/dev/null || command -v pwsh 2>/dev/null)"
+      if [ -n "$pwsh_bin" ] && [ -f "$notifier_sh" ]; then
+        "$pwsh_bin" -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$notifier_sh")" \
+          -Title "$title" -Message "$body" -Pane "${WEZTERM_PANE:-}" -Mux "$mux_tag"
       fi
       ;;
     Darwin)
