@@ -688,19 +688,6 @@ if ($wezCmdHave -eq $wezCmdWant) {
     }
 }
 
-# AUMID shortcut: branding + Action Center persistence (severable from the click-fix above).
-# NOTE (spike-pinned, spec Risk #2): confirm New-BTShortcut's exact params under BurntToast
-# 1.1.0 and whether a stub CLSID is needed for persistence before relying on this.
-if (-not $DryRun) {
-    Import-Module BurntToast -ErrorAction SilentlyContinue
-    if (Get-Command New-BTShortcut -ErrorAction SilentlyContinue) {
-        try { New-BTShortcut -AppId 'Claude.Code' -AppName 'Claude Code' -ErrorAction Stop }
-        catch { Write-Status "New-BTShortcut failed (toast branding only; click still works): $_" -Type Warning }
-    }
-} else {
-    Write-Host "  [DRY RUN] Would create 'Claude.Code' AUMID shortcut via New-BTShortcut" -ForegroundColor DarkGray
-}
-
 # --- AI tool secrets + context7 MCP registration ---
 $secretsFile = "$HOME\.config\dotfiles\secrets.env"
 if (Test-Path $secretsFile) {
