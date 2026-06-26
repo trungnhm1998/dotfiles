@@ -108,6 +108,7 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 - **Navigation:** Ctrl+hjkl works across tmux/wezterm panes and vim splits
 - **Theme:** Catppuccin Frappe used consistently (wezterm, tmux, yazi, komorebi)
 - **Font:** JetBrains Mono Nerd Font
+- **Notifications (Windows):** clicking a Claude Code desktop toast focuses the exact WezTerm window/workspace/tab/pane that fired it. The `claude-wez://` URL-protocol handler drops a one-shot focus-request file (`~/.cache/claude-notify/wezterm-focus/<mux>/<pane>`, UTC-epoch body, 60s TTL) that `wezterm.lua` consumes on its next status tick and raises natively — `wezterm cli` cannot focus across windows on Windows, so the GUI Lua API is the only reliable path. `deploy_windows.ps1` installs the `BurntToast` module and registers the handler as `wscript.exe → claude/hooks/bin/claude-wez-launch.vbs` (windowless, so clicking never flashes Windows Terminal). Distinct from the tab-badge alert channel (`wezterm-alerts/`).
 
 ## Session Memory Protocol (automated close-session capture)
 

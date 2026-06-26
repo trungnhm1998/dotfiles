@@ -208,6 +208,19 @@ Defined in `.editorconfig` for consistency:
 
 All of the above live under `claude/` which symlinks into `~/.claude/` at deploy (`deploy_windows.ps1` / `deploy.sh`), so they are active immediately after deployment — no separate install step. See `## Session Memory Protocol` in `CLAUDE.md` for the full design and toggle reference.
 
+### Claude Code Toast-Click Focus (Windows)
+
+Clicking a Claude Code desktop toast focuses the WezTerm pane that fired it, via a `claude-wez://` protocol handler → one-shot focus-request file → `wezterm.lua` native raise. See the **Notifications (Windows)** note under `## Architecture` → `### Cross-Tool Integration` in `CLAUDE.md` for the full mechanism.
+
+| Purpose | Path |
+|---------|------|
+| Toast emit + `-Activate` URI handler (writes the focus-request file) | `claude/hooks/bin/claude-notify.ps1` |
+| Windowless launcher (`wscript` → hidden pwsh; avoids a terminal flash) | `claude/hooks/bin/claude-wez-launch.vbs` |
+| Pure focus module (`dir`/`mux_tag`/`pending` helpers, unit-tested) | `.config/wezterm/wezterm_claude_focus.lua` |
+| Focus consumption (status-tick poll → `set_active_workspace`/`activate`/`focus`) | `.config/wezterm/wezterm.lua` |
+
+Registered + `BurntToast` installed by `deploy_windows.ps1`. Channel: `~/.cache/claude-notify/wezterm-focus/<mux>/<pane>` (UTC-epoch, 60s TTL, deleted on read). URI guard in `claude-notify.ps1`: pane `^\d+$`, mux `^[A-Za-z0-9_-]+$` (blocks path traversal).
+
 ## Important Patterns
 
 **Platform Detection (Lua):**
