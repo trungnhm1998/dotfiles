@@ -22,15 +22,15 @@ bars:
       always_on_top: false
       windows_app_bar: false      # floating; lets toggle-maximize go edge-to-edge under the bar
       hide_on_fullscreen: true    # don't pop over a real-fullscreen app/game
-      auto_hide: true             # hidden until top-edge hover (OLED)
+      auto_hide: false            # always visible; OLED burn-in handled by komorebi.ahk orbit guard
     dimensions:
       width: "100%"
       height: 30
     padding:
       top: 0
-      left: 8
+      left: 24
       bottom: 0
-      right: 8
+      right: 24
     widgets:
       left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
@@ -47,15 +47,15 @@ bars:
       always_on_top: false
       windows_app_bar: false
       hide_on_fullscreen: true
-      auto_hide: true
+      auto_hide: false
     dimensions:
       width: "100%"
       height: 30
     padding:
       top: 0
-      left: 8
+      left: 24
       bottom: 0
-      right: 8
+      right: 24
     widgets:
       left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
