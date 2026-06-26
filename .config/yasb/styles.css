@@ -36,7 +36,7 @@
 }
 .komorebi-workspaces .ws-btn.populated { color: #a5adce; }
 .komorebi-workspaces .ws-btn.active {
-    color: #303446; background-color: #ca9ee6;       /* base on mauve */
+    color: #c6d0f5; background-color: #5b5270;       /* OLED: dimmed mauve, light text (tune to taste) */
     border-radius: 6px;
 }
 
@@ -52,7 +52,7 @@
     background-color: transparent;
 }
 .taskbar-widget .app-container:hover      { background-color: #414559; }   /* surface0 — faint hover */
-.taskbar-widget .app-container.foreground { background-color: #ca9ee6; }   /* mauve — focused app, matches .ws-btn.active */
+.taskbar-widget .app-container.foreground { background-color: #5b5270; }   /* OLED: dimmed mauve — matches .ws-btn.active */
 
 /* ── clock ── */
 .clock-widget .label, .clock-widget .icon { color: #81c8be; }          /* teal */
@@ -116,3 +116,16 @@
 }
 .calendar .calendar-table::item:selected { background-color: #81c8be; color: #232634; }
 .power-menu-popup .button.hover { background-color: #414559; }
+
+/* ── wm-toggle (komorebi power switch — sits with the WM widgets) ── */
+.wm-toggle { margin: 0 3px; }
+.wm-toggle .widget-container {
+    background-color: #292c3c;       /* mantle — match the floating pills */
+    border-radius: 9px;
+    padding: 0 8px;
+}
+.wm-toggle .label {
+    color: #babbf1;                  /* lavender — groups with active-layout */
+    font-weight: 600;
+    padding: 0 4px;
+}
