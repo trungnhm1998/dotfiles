@@ -66,6 +66,7 @@ $powershellModules = @(
     "posh-git"
     "Terminal-Icons"
     "PSReadLine"
+    "BurntToast"   # clickable Claude toasts (claude-notify.ps1 emit mode)
 )
 
 $symlinks = @(
@@ -659,6 +660,45 @@ if ($officeVal -eq 'rundll32') {
     } else {
         Write-Host "  [DRY RUN] Would set $officeKey (default) = rundll32" -ForegroundColor DarkGray
     }
+}
+
+# --- Claude toast click → focus the waiting WezTerm pane ---
+# Registers the claude-wez:// URL protocol so a toast body-click runs claude-notify.ps1
+# in -Activate mode (drops a one-shot focus marker the WezTerm poller consumes). Per-user,
+# reversible. Undo: Remove-Item 'HKCU:\Software\Classes\claude-wez' -Recurse -Force
+$wezCmdKey   = 'HKCU:\Software\Classes\claude-wez\shell\open\command'
+$launcherVbs = "$HOME\.claude\hooks\bin\claude-wez-launch.vbs"
+# Route the click through the windowless VBS launcher: wscript has no console, so no
+# Windows-Terminal flash (the spike proved pwsh-direct flashes). The VBS runs
+# claude-notify.ps1 -Activate hidden and resolves pwsh from PATH at click time.
+# wscript.exe is always present on Windows.
+$wezCmdWant  = "wscript.exe `"$launcherVbs`" `"%1`""
+$wezCmdHave  = (Get-ItemProperty -Path $wezCmdKey -ErrorAction SilentlyContinue).'(default)'
+if ($wezCmdHave -eq $wezCmdWant) {
+    Write-Status "claude-wez toast-click handler already registered" -Type Success
+} else {
+    Write-Status "Registering claude-wez:// toast-click handler (focus the waiting pane)" -Type Info
+    if (-not $DryRun) {
+        New-Item -Path 'HKCU:\Software\Classes\claude-wez\shell\open\command' -Force | Out-Null
+        Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' '(default)'   'URL:Claude WezTerm Focus'
+        Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' 'URL Protocol' ''
+        Set-ItemProperty $wezCmdKey '(default)' $wezCmdWant
+    } else {
+        Write-Host "  [DRY RUN] Would set $wezCmdKey (default) = $wezCmdWant" -ForegroundColor DarkGray
+    }
+}
+
+# AUMID shortcut: branding + Action Center persistence (severable from the click-fix above).
+# NOTE (spike-pinned, spec Risk #2): confirm New-BTShortcut's exact params under BurntToast
+# 1.1.0 and whether a stub CLSID is needed for persistence before relying on this.
+if (-not $DryRun) {
+    Import-Module BurntToast -ErrorAction SilentlyContinue
+    if (Get-Command New-BTShortcut -ErrorAction SilentlyContinue) {
+        try { New-BTShortcut -AppId 'Claude.Code' -AppName 'Claude Code' -ErrorAction Stop }
+        catch { Write-Status "New-BTShortcut failed (toast branding only; click still works): $_" -Type Warning }
+    }
+} else {
+    Write-Host "  [DRY RUN] Would create 'Claude.Code' AUMID shortcut via New-BTShortcut" -ForegroundColor DarkGray
 }
 
 # --- AI tool secrets + context7 MCP registration ---
