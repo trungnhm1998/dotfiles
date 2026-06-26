@@ -34,7 +34,7 @@ ExitMode(*) {
 Legend(m) {
     switch m {
         case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
-        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  o reload  ·  ⌫ restart  ·  x quit ahk  ·  esc"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  ⌫ restart  ·  x quit ahk  ·  esc"
     }
     return ""
 }
@@ -198,6 +198,10 @@ p:: {
 }
 t:: {
     Komorebic("toggle-tiling")
+    ExitMode()
+}
+f:: {
+    Komorebic("toggle-maximize")
     ExitMode()
 }
 o:: {
