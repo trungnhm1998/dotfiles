@@ -42,6 +42,18 @@ CC_FOCUS_DIR="$(cygpath -w "$TMPF2" 2>/dev/null || echo "$TMPF2")" \
        -Activate 'claude-wez://focus/?pane=' >/dev/null 2>&1
 assert_eq "$(find "$TMPF2" -type f | head -1)" "" "no marker written when URI lacks pane/mux"
 
+# --- Path-traversal URIs are rejected (validation before write); nested dir makes an escape detectable ---
+ROOT3="$(mktemp -d)"
+CC_FOCUS_DIR="$(cygpath -w "$ROOT3/focus" 2>/dev/null || echo "$ROOT3/focus")" \
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
+       -Activate 'claude-wez://focus/?pane=..%5C..%5C..%5Cevil&mux=gui-sock-77' >/dev/null 2>&1
+assert_eq "$(find "$ROOT3" -type f | head -1)" "" "traversal in pane is rejected — nothing written under root"
+ROOT4="$(mktemp -d)"
+CC_FOCUS_DIR="$(cygpath -w "$ROOT4/focus" 2>/dev/null || echo "$ROOT4/focus")" \
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
+       -Activate 'claude-wez://focus/?pane=42&mux=..' >/dev/null 2>&1
+assert_eq "$(find "$ROOT4" -type f | head -1)" "" "traversal in mux ('..') is rejected — nothing written under root"
+
 # --- VBS builds the correct hidden pwsh command with the URI intact (dryrun seam, no pwsh spawn) ---
 if command -v cscript >/dev/null 2>&1; then
   VBS_WIN="$(cygpath -w "$VBS" 2>/dev/null || echo "$VBS")"

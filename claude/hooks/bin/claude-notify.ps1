@@ -23,7 +23,9 @@ if ($Activate) {
         }
     }
     $pane = $kv['pane']; $mux = $kv['mux']
-    if ($pane -and $mux) {
+    # pane is always a numeric $WEZTERM_PANE; mux is a socket basename (gui-sock-<pid>) or
+    # 'default' — neither contains '/', '\', or '.', so this regex rejects path traversal.
+    if ($pane -match '^\d+$' -and $mux -match '^[A-Za-z0-9_-]+$') {
         $dir = Join-Path $focusRoot $mux
         New-Item -ItemType Directory -Force -Path $dir | Out-Null
         [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() | Set-Content -NoNewline -Path (Join-Path $dir $pane)
