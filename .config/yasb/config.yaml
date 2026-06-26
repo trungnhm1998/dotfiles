@@ -28,11 +28,11 @@ bars:
       height: 30
     padding:
       top: 0
-      left: 24
+      left: 0
       bottom: 0
-      right: 24
+      right: 0
     widgets:
-      left: ["workspaces", "active_layout", "taskbar"]
+      left: ["wm_toggle", "workspaces", "active_layout", "taskbar"]
       center: ["clock"]
       right: ["cpu", "memory", "gpu", "traffic", "weather", "media", "volume", "microphone", "wifi", "bluetooth", "systray", "power_menu"]
 
@@ -53,9 +53,9 @@ bars:
       height: 30
     padding:
       top: 0
-      left: 24
+      left: 0
       bottom: 0
-      right: 24
+      right: 0
     widgets:
       left: ["workspaces", "active_layout", "taskbar"]
       center: ["clock"]
@@ -96,6 +96,27 @@ widgets:
         on_left: "toggle_layout_menu"
         on_middle: "next_layout"
         on_right: "prev_layout"
+
+  wm_toggle:
+    type: "yasb.custom.CustomWidget"
+    options:
+      label: "{data}"
+      class_name: "wm-toggle"
+      tooltip: true
+      tooltip_label: "Window manager — click to toggle (off for gaming)"
+      exec_options:
+        # Poll WM state -> bar glyph. Calls the toggle script in -State mode; a bare path avoids
+        # yasb splitting run_cmd on spaces (which mangles an inline if + quotes).
+        # Do NOT set `encoding` here: yasb's string path hardcodes output.decode("utf-8") on the raw
+        # bytes, so setting encoding makes Popen return a str and .decode() throws -> stuck "Loading...".
+        # pwsh already emits UTF-8 on redirected stdout, so the glyph round-trips with no encoding set.
+        run_cmd: "pwsh -NoProfile -File C:\\Users\\mint\\.config\\komorebi\\wm-toggle.ps1 -State"
+        run_interval: 5000          # 5s; widen if the poll ever shows as churn
+        return_format: "string"
+      callbacks:
+        on_left: "exec pwsh -NoProfile -WindowStyle Hidden -File C:\\Users\\mint\\.config\\komorebi\\wm-toggle.ps1"
+        on_middle: "do_nothing"
+        on_right: "do_nothing"
 
   taskbar:
     type: "yasb.taskbar.TaskbarWidget"
