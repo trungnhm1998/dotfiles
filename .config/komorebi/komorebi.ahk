@@ -34,7 +34,7 @@ ExitMode(*) {
 Legend(m) {
     switch m {
         case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
-        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  d drift  ·  ⌫ restart  ·  x quit ahk  ·  esc"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  d drift  ·  ⌫ restart  ·  x gaming off  ·  esc"
     }
     return ""
 }
@@ -299,7 +299,7 @@ d:: {
     OLED_Toggle()       ; flip drift preset + flash the new mode
 }
 Backspace:: {
-    RunWait("komorebic.exe stop", , "Hide")
+    RunWait("komorebic.exe stop --masir", , "Hide")   ; take masir down too, else the start below leaks a 2nd masir
     Sleep(1000)
     ; Restart faithfully: mirror the boot shortcut's flags (config + masir).
     ; (--ahk is not a valid start flag on komorebi 0.1.41; the AHK script runs
@@ -309,8 +309,9 @@ Backspace:: {
     ExitMode()
 }
 x:: {
-    OSD_Hide()      ; clear the badge before the process exits
-    ExitApp()       ; fully QUIT AutoHotkey (process gone) — for anti-cheat games
+    OSD_Hide()      ; clear the badge before the stack goes down
+    RunWait("komorebic.exe stop --ahk --masir", , "Hide")   ; stop komorebi + masir for gaming
+    ExitApp()       ; QUIT AutoHotkey (process gone) — anti-cheat needs AHK terminated (ExitApp is the real kill)
 }
 Enter::ExitMode()
 Escape::ExitMode()
