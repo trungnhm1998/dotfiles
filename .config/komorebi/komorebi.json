@@ -3,8 +3,8 @@
   "app_specific_configuration_path": "$Env:USERPROFILE/.config/komorebi/applications.json",
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
-  "default_workspace_padding": 4,
-  "default_container_padding": 2,
+  "default_workspace_padding": 30,
+  "default_container_padding": 10,
   "mouse_follows_focus": true,
   "border": true,
   "border_width": 4,
@@ -31,7 +31,7 @@
     "2": "Default_Monitor-2&256d833f&0&UID256"
   },
   "bar_configurations": [],
-  "global_work_area_offset": { "left": 0, "top": 30, "right": 0, "bottom": 30 },
+  "global_work_area_offset": { "left": 0, "top": 0, "right": 0, "bottom": 0 },
   "stackbar": {
     "height": 40,
     "mode": "OnStack",
