@@ -329,6 +329,7 @@ if is_windows then
     -- Reconcile module for the Claude tab-badge alert dir (pure logic, unit-tested in
     -- claude/hooks/tests/test-claude-alerts.lua).
     local claude_alerts = require('wezterm_claude_alerts')
+    local claude_focus = require('wezterm_claude_focus')
 
     -- Track the previously-active workspace so Leader+L can jump back (tmux `prefix + L`).
     -- update-status fires ~1x/sec and on switch, so it captures every switch path (relative
@@ -373,6 +374,35 @@ if is_windows then
         end
         ---@diagnostic disable-next-line: inject-field
         wezterm.GLOBAL.claude_alert = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
+
+        -- Focus-on-click: a clicked toast dropped a one-shot marker for one of THIS mux's
+        -- panes (claude-notify.ps1 activate-mode). Find it, switch workspace if needed,
+        -- activate the pane (tab + pane), and raise the OS window — the only reliable
+        -- cross-window raise on Windows (wezterm cli cannot). Side effects run only when a
+        -- request is pending, so ordinary ticks are unaffected.
+        local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), os.getenv('WEZTERM_UNIX_SOCKET'))
+        local fpaths = {}
+        pcall(function() fpaths = wezterm.read_dir(fdir) end)
+        local want = claude_focus.pending(fpaths, os.time(), read_file, os.remove, 60)
+        if #want > 0 then
+            local want_set = {}
+            for _, id in ipairs(want) do want_set[id] = true end
+            for _, gw in ipairs(wezterm.gui.gui_windows()) do
+                local mw = gw:mux_window()
+                for _, tab in ipairs(mw:tabs()) do
+                    for _, p in ipairs(tab:panes()) do
+                        if want_set[tostring(p:pane_id())] then
+                            local target_ws = mw:get_workspace()
+                            if target_ws and target_ws ~= gw:active_workspace() then
+                                pcall(function() wezterm.mux.set_active_workspace(target_ws) end)
+                            end
+                            pcall(function() p:activate() end)   -- tab + pane
+                            pcall(function() gw:focus() end)     -- raise the OS window
+                        end
+                    end
+                end
+            end
+        end
     end)
 
     -- Define leader key table with all leader bindings
