@@ -1,28 +1,103 @@
-/* YASB — minimal Catppuccin Frappe theme. Font: JetBrainsMono Nerd Font.
-   Frappe: base #303446, text #c6d0f5, mauve #ca9ee6 (accent), overlay1 #838ba7. */
+/* YASB — Catppuccin Frappe · floating pills · auto-hide.
+   Font: JetBrainsMono Nerd Font. Transparent bar; each widget is a mantle pill;
+   accent-color the ICON, keep labels soft (#a5adce); state classes bring the accent. */
+
 * {
     font-family: 'JetBrainsMono Nerd Font';
     font-size: 13px;
-    color: #c6d0f5;
+    font-weight: 500;
+    color: #a5adce;                  /* subtext0 — soft default label */
 }
 
-.yasb-bar {
-    background-color: #303446;
-}
+.yasb-bar { background-color: transparent; }   /* no slab — pills float */
 
-/* komorebi workspace buttons */
-.ws-btn {
-    background-color: transparent;
-    color: #838ba7;          /* dim — inactive/empty */
-    border: none;
+/* ── base pill: every widget (komorebi widgets listed explicitly) ── */
+.widget,
+.komorebi-workspaces,
+.komorebi-active-layout { margin: 0 3px; }
+
+.widget .widget-container,
+.komorebi-workspaces .widget-container,
+.komorebi-active-layout .widget-container {
+    background-color: #292c3c;       /* mantle */
+    border-radius: 9px;
     padding: 0 8px;
-    margin: 0 1px;
 }
-.ws-btn.populated {
-    color: #c6d0f5;          /* text — occupied */
+.widget .label { padding: 0 2px; }
+.widget .icon  { padding: 0 4px 0 2px; }
+
+/* ── komorebi workspaces ── */
+.komorebi-workspaces .offline-status { color: #e78284; padding: 0 6px; }
+.komorebi-workspaces .ws-btn {
+    background-color: transparent; color: #838ba7;   /* overlay1 — empty */
+    border: none; padding: 0 6px; margin: 0 1px;
 }
-.ws-btn.active {
-    color: #303446;          /* base on accent */
-    background-color: #ca9ee6;  /* mauve — unified focus accent */
-    border-radius: 4px;
+.komorebi-workspaces .ws-btn.populated { color: #a5adce; }
+.komorebi-workspaces .ws-btn.active {
+    color: #303446; background-color: #ca9ee6;       /* base on mauve */
+    border-radius: 6px;
 }
+
+/* ── komorebi active layout ── */
+.komorebi-active-layout .label { color: #babbf1; font-weight: 600; }   /* lavender */
+
+/* ── taskbar (apps in current workspace) ── */
+.taskbar-widget .widget-container { padding: 0 6px; }
+
+/* ── clock ── */
+.clock-widget .label, .clock-widget .icon { color: #81c8be; }          /* teal */
+
+/* ── media ── */
+.media-widget .icon { color: #f4b8e4; }                                /* pink */
+
+/* ── system stats block: cpu · memory · gpu · traffic flush together ── */
+.cpu-widget, .memory-widget, .gpu-widget, .traffic-widget { margin: 0; }
+.cpu-widget .widget-container,
+.memory-widget .widget-container,
+.gpu-widget .widget-container,
+.traffic-widget .widget-container {
+    border-radius: 0;
+    border-right: 1px solid #3b3f51;      /* hairline separators */
+}
+.cpu-widget { margin-left: 3px; }
+.cpu-widget .widget-container { border-top-left-radius: 9px; border-bottom-left-radius: 9px; }
+.traffic-widget { margin-right: 3px; }
+.traffic-widget .widget-container { border-right: none; border-top-right-radius: 9px; border-bottom-right-radius: 9px; }
+.cpu-widget .icon     { color: #ef9f76; }   /* peach */
+.memory-widget .icon  { color: #e5c890; }   /* yellow */
+.gpu-widget .icon     { color: #ea999c; }   /* maroon */
+.traffic-widget .icon { color: #85c1dc; }   /* sapphire */
+/* threshold pop — class name per CPU/Memory wiki (verify: status-high vs high) */
+.cpu-widget .label.high, .memory-widget .label.high, .gpu-widget .label.high { color: #e78284; }
+
+/* ── weather (condition classes are real YASB classes) ── */
+.weather-widget .icon { color: #e5c890; }                              /* sunny default */
+.weather-widget .icon.rainyDay, .weather-widget .icon.rainyNight { color: #85c1dc; }
+.weather-widget .icon.cloudyDay, .weather-widget .icon.cloudyNight { color: #a5adce; }
+
+/* ── volume ── */
+.volume-widget .icon { color: #a6d189; }    /* green */
+
+/* ── microphone (verify muted class) ── */
+.microphone-widget .icon { color: #a5adce; }
+.microphone-widget .icon.muted { color: #e78284; }   /* red when muted */
+
+/* ── wifi ── */
+.wifi-widget .icon { color: #99d1db; }      /* sky */
+
+/* ── bluetooth ── */
+.bluetooth-widget .icon { color: #8caaee; } /* blue */
+
+/* ── systray ── */
+.systray .widget-container { background-color: #292c3c; border-radius: 9px; }
+
+/* ── power menu ── */
+.power-menu-widget .label { color: #e78284; }   /* red */
+
+/* ── popups / menus: Frappe crust ── */
+.calendar, .calendar .calendar-table, .calendar .calendar-table::item,
+.audio-menu, .komorebi-layout-menu, .power-menu-popup, .wifi-menu, .bluetooth-menu {
+    background-color: #232634; color: #c6d0f5;
+}
+.calendar .calendar-table::item:selected { background-color: #81c8be; color: #232634; }
+.power-menu-popup .button.hover { background-color: #414559; }
