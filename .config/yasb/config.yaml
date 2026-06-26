@@ -1,22 +1,36 @@
-# YASB — minimal status bar (replaces komorebi-bar).
-# Widgets: komorebi workspaces (left) + clock (center). Theming in styles.css.
+# YASB — supercharged Catppuccin-Frappe bar. Theming in styles.css.
 # Docs: https://github.com/amnweb/yasb/wiki/Configuration
 watch_stylesheet: true
 watch_config: true
 debug: false
 
-# Tray-menu komorebi commands. This setup drives komorebi hotkeys via AutoHotkey
-# (.config/komorebi/komorebi.ahk), NOT whkd — so no --whkd here.
+# Tray-menu komorebi commands (hotkeys are driven by AutoHotkey, not whkd).
 komorebi:
   start_command: "komorebic start"
   stop_command: "komorebic stop"
   reload_command: "komorebic reload-configuration"
 
 bars:
-  yasb-bar:
+  primary-bar:
     enabled: true
-    class_name: "yasb-bar"    # explicit CSS class so styles.css `.yasb-bar` matches by intent, not by default
-    screens: ['*']            # one bar on every monitor
+    class_name: "yasb-bar"
+    screens: ['primary']
+    alignment:
+      position: "top"
+      center: false
+    window_flags:
+      always_on_top: false
+      windows_app_bar: false      # floating; lets toggle-maximize go edge-to-edge under the bar
+      hide_on_fullscreen: true    # don't pop over a real-fullscreen app/game
+      auto_hide: true             # hidden until top-edge hover (OLED)
+    dimensions:
+      width: "100%"
+      height: 30
+    padding:
+      top: 0
+      left: 8
+      bottom: 0
+      right: 8
     widgets:
       left: ["workspaces"]
       center: ["clock"]
@@ -26,7 +40,7 @@ widgets:
   workspaces:
     type: "komorebi.workspaces.WorkspaceWidget"
     options:
-      label_offline: "komorebi offline"
+      label_offline: "offline"
       label_workspace_btn: "{name}"
       label_workspace_active_btn: "{name}"
       label_workspace_populated_btn: "{name}"
@@ -36,5 +50,5 @@ widgets:
     type: "yasb.clock.ClockWidget"
     options:
       label: "{%H:%M}"
-      label_alt: "{%a %d %b %H:%M:%S}"
+      label_alt: "{%a %d %b  %H:%M:%S}"
       timezones: []
