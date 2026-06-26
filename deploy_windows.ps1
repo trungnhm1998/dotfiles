@@ -629,7 +629,7 @@ $envVars = @{
     # Windows-only: Claude Code routes through the local proxy on :8080. The synced
     # ~/.claude/settings.json carries no proxy, so machines without this var (e.g. macOS)
     # talk to the API directly.
-    "ANTHROPIC_BASE_URL"   = "http://localhost:8080"
+    # "ANTHROPIC_BASE_URL"   = "http://localhost:8080"
 }
 
 foreach ($var in $envVars.GetEnumerator()) {
