@@ -32,7 +32,32 @@ bars:
       bottom: 0
       right: 8
     widgets:
-      left: ["workspaces"]
+      left: ["workspaces", "taskbar", "active_layout"]
+      center: ["clock"]
+      right: []
+
+  secondary-bar:
+    enabled: true
+    class_name: "yasb-bar"
+    screens: ['VI-01']
+    alignment:
+      position: "top"
+      center: false
+    window_flags:
+      always_on_top: false
+      windows_app_bar: false
+      hide_on_fullscreen: true
+      auto_hide: true
+    dimensions:
+      width: "100%"
+      height: 30
+    padding:
+      top: 0
+      left: 8
+      bottom: 0
+      right: 8
+    widgets:
+      left: ["workspaces", "taskbar", "active_layout"]
       center: ["clock"]
       right: []
 
@@ -45,6 +70,42 @@ widgets:
       label_workspace_active_btn: "{name}"
       label_workspace_populated_btn: "{name}"
       hide_empty_workspaces: true
+
+  active_layout:
+    type: "komorebi.active_layout.ActiveLayoutWidget"
+    options:
+      hide_if_offline: true
+      label: "{icon}"
+      # Text codes are safe defaults; swap any value for a Nerd Font glyph to taste (cosmetic, live-reloads).
+      layouts: ["bsp", "columns", "rows", "grid", "vertical_stack", "horizontal_stack", "ultrawide_vertical_stack", "right_main_vertical_stack"]
+      layout_icons:
+        bsp: "BSP"
+        columns: "COL"
+        rows: "ROW"
+        grid: "GRID"
+        vertical_stack: "VSTK"
+        horizontal_stack: "HSTK"
+        ultrawide_vertical_stack: "UWV"
+        right_main_vertical_stack: "RMV"
+        monocle: "MONO"
+        maximized: "MAX"
+        floating: "FLT"
+        paused: "PAUSE"
+        tiling: "TILE"
+      callbacks:
+        on_left: "toggle_layout_menu"
+        on_middle: "next_layout"
+        on_right: "prev_layout"
+
+  taskbar:
+    type: "yasb.taskbar.TaskbarWidget"
+    options:
+      icon_size: 16
+      show_only_visible: true       # only currently-visible (focused-workspace) windows
+      monitor_exclusive: true       # only this monitor's apps
+      hide_empty: true              # hide the pill when the workspace has no apps
+      animation:
+        enabled: false
 
   clock:
     type: "yasb.clock.ClockWidget"
