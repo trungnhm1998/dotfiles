@@ -86,12 +86,22 @@ ResizeNudge(dir, delta) {
 ;   top never clips) to spread OLED subpixel wear. Anchored to each monitor's
 ;   top-left every tick -> reload/restart-proof. Skips hidden bars (fullscreen
 ;   games). OnExit snaps bars home so quitting never strands them offset.
-;   oled_Rx MUST stay <= the YASB padding.left/right (currently 24) or pills clip.
+;   Three presets cycled by service-mode `d`: static (pinned home) / invisible
+;   (~4px, imperceptible — default) / aggressive (~16px, away-from-keyboard).
+;   Radius is bounded by *perceptibility*, not clipping: yasb padding.left/right
+;   is 30 — ample headroom (pills only clip if a radius exceeds 30).
 ; ============================================================
-oled_mode := "aggressive"   ; "aggressive" (max protection) | "invisible" (imperceptible) — toggle: service mode -> d
-oled_Rx := 16     ; orbit radius X (px) — keep <= yasb padding.left/right (presets in OLED_Toggle too)
-oled_Ry := 16     ; orbit radius Y (px, downward only)
-oled_Tp := 100    ; orbit period (s) for one full loop
+; three drift presets, cycled by service-mode `d`  (static -> invisible -> aggressive -> wrap)
+oled_presets := [
+    {name: "static",     Rx: 0,  Ry: 0,  Tp: 150},   ; pinned home — perfect alignment, no spread
+    {name: "invisible",  Rx: 4,  Ry: 4,  Tp: 150},   ; ~4px, ~0.17 px/s — imperceptible (default)
+    {name: "aggressive", Rx: 16, Ry: 16, Tp: 100},   ; ~16px — max spread, for away-from-keyboard
+]
+oled_idx := 2                                ; default = invisible
+oled_mode := oled_presets[oled_idx].name
+oled_Rx := oled_presets[oled_idx].Rx
+oled_Ry := oled_presets[oled_idx].Ry
+oled_Tp := oled_presets[oled_idx].Tp
 
 SetTimer(OLED_Orbit, 1000)        ; 1 Hz (~1px/tick here); lower to 250 for smoother
 OnExit(OLED_Restore)
@@ -131,19 +141,12 @@ OLED_MonitorAt(px, py) {
     return MonitorGetPrimary()
 }
 
-OLED_Toggle(*) {                      ; cycle drift strength: aggressive <-> invisible
-    global oled_mode, oled_Rx, oled_Ry, oled_Tp
-    if (oled_mode = "aggressive") {
-        oled_mode := "invisible"
-        oled_Rx := 6
-        oled_Ry := 6
-        oled_Tp := 180
-    } else {
-        oled_mode := "aggressive"
-        oled_Rx := 16
-        oled_Ry := 16
-        oled_Tp := 100
-    }
+OLED_Toggle(*) {                             ; cycle: static -> invisible -> aggressive -> ...
+    global oled_presets, oled_idx, oled_mode, oled_Rx, oled_Ry, oled_Tp
+    oled_idx := Mod(oled_idx, oled_presets.Length) + 1
+    p := oled_presets[oled_idx]
+    oled_mode := p.name, oled_Rx := p.Rx, oled_Ry := p.Ry, oled_Tp := p.Tp
+    OLED_PlaceBars(0, 0)                      ; snap home now (instant for `static`; drift resumes next tick)
     OSD_Flash("OLED drift · " oled_mode)
 }
 
