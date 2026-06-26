@@ -44,7 +44,15 @@
 .komorebi-active-layout .label { color: #babbf1; font-weight: 600; }   /* lavender */
 
 /* ── taskbar (apps in current workspace) ── */
-.taskbar-widget .widget-container { padding: 0 6px; }
+.taskbar-widget .widget-container { padding: 0 4px; }
+.taskbar-widget .app-container {
+    padding: 2px 4px;             /* breathing room around each icon */
+    margin: 0 1px;                /* gap between adjacent apps */
+    border-radius: 6px;           /* rhymes with .ws-btn.active radius */
+    background-color: transparent;
+}
+.taskbar-widget .app-container:hover      { background-color: #414559; }   /* surface0 — faint hover */
+.taskbar-widget .app-container.foreground { background-color: #ca9ee6; }   /* mauve — focused app, matches .ws-btn.active */
 
 /* ── clock ── */
 .clock-widget .label, .clock-widget .icon { color: #81c8be; }          /* teal */
