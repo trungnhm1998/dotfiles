@@ -34,7 +34,7 @@ ExitMode(*) {
 Legend(m) {
     switch m {
         case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
-        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  ⌫ restart  ·  x quit ahk  ·  esc"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  d drift  ·  ⌫ restart  ·  x quit ahk  ·  esc"
     }
     return ""
 }
@@ -60,9 +60,91 @@ OSD_Hide(*) {
     }
 }
 
+OSD_Flash(text) {                     ; transient badge (self-hides) — reuses the mode-OSD look
+    global osd
+    OSD_Hide()
+    osd := Gui("-Caption +AlwaysOnTop +ToolWindow +E0x08000000 +E0x20")
+    osd.Title := "KomorebiModeOSD"
+    osd.BackColor := "303446"
+    osd.MarginX := 16
+    osd.MarginY := 10
+    osd.SetFont("s11 cC6D0F5", "JetBrains Mono")
+    osd.Add("Text", , text)
+    osd.Show("NoActivate AutoSize yCenter Center")
+    SetTimer(OSD_Hide, -1200)         ; one-shot auto-hide
+}
+
 ResizeNudge(dir, delta) {
     Komorebic("resize-edge " dir " " delta)
     SetTimer(ExitMode, -2500)         ; each nudge re-arms the idle timer
+}
+
+; ============================================================
+; OLED burn-in guard — orbit the always-on YASB bars
+;   Spec: docs/superpowers/specs/2026-06-26-yasb-oled-burn-in-guard-design.md
+;   Drifts every yasb.exe bar around a small ellipse (down/right only, so the
+;   top never clips) to spread OLED subpixel wear. Anchored to each monitor's
+;   top-left every tick -> reload/restart-proof. Skips hidden bars (fullscreen
+;   games). OnExit snaps bars home so quitting never strands them offset.
+;   oled_Rx MUST stay <= the YASB padding.left/right (currently 24) or pills clip.
+; ============================================================
+oled_mode := "aggressive"   ; "aggressive" (max protection) | "invisible" (imperceptible) — toggle: service mode -> d
+oled_Rx := 16     ; orbit radius X (px) — keep <= yasb padding.left/right (presets in OLED_Toggle too)
+oled_Ry := 16     ; orbit radius Y (px, downward only)
+oled_Tp := 100    ; orbit period (s) for one full loop
+
+SetTimer(OLED_Orbit, 1000)        ; 1 Hz (~1px/tick here); lower to 250 for smoother
+OnExit(OLED_Restore)
+
+OLED_Orbit(*) {
+    global oled_Rx, oled_Ry, oled_Tp
+    static PI := 3.141592653589793
+    ang := 2 * PI * Mod(A_TickCount / 1000, oled_Tp) / oled_Tp
+    dx := Round(oled_Rx * Sin(ang))            ; -Rx .. +Rx  (centered horizontally)
+    dy := Round(oled_Ry * (1 - Cos(ang)) / 2)  ;   0 .. +Ry  (downward only -> no top clip)
+    OLED_PlaceBars(dx, dy)
+}
+
+OLED_Restore(*) {                  ; OnExit handler — leave bars at their true home
+    OLED_PlaceBars(0, 0)
+}
+
+OLED_PlaceBars(dx, dy) {
+    for hwnd in WinGetList("ahk_exe yasb.exe") {
+        if !DllCall("IsWindowVisible", "Ptr", hwnd)   ; hidden (fullscreen) -> skip
+            continue
+        WinGetPos(&x, &y, &w, &h, "ahk_id " hwnd)
+        if (w < 1000 || h > 60)                        ; bars are full-width & ~30px; skip menus/cards/tray
+            continue
+        m := OLED_MonitorAt(x + w // 2, y)             ; monitor under the bar's top-center
+        MonitorGet(m, &mL, &mT)                         ; monitor bounds top-left (windows_app_bar:false -> y = top)
+        WinMove(mL + dx, mT + dy, , , "ahk_id " hwnd)   ; Width/Height omitted -> size unchanged
+    }
+}
+
+OLED_MonitorAt(px, py) {
+    Loop MonitorGetCount() {
+        MonitorGet(A_Index, &L, &T, &R, &B)
+        if (px >= L && px < R && py >= T && py < B)
+            return A_Index
+    }
+    return MonitorGetPrimary()
+}
+
+OLED_Toggle(*) {                      ; cycle drift strength: aggressive <-> invisible
+    global oled_mode, oled_Rx, oled_Ry, oled_Tp
+    if (oled_mode = "aggressive") {
+        oled_mode := "invisible"
+        oled_Rx := 6
+        oled_Ry := 6
+        oled_Tp := 180
+    } else {
+        oled_mode := "aggressive"
+        oled_Rx := 16
+        oled_Ry := 16
+        oled_Tp := 100
+    }
+    OSD_Flash("OLED drift · " oled_mode)
 }
 
 ; --- always-active mode triggers ---
@@ -208,6 +290,10 @@ o:: {
     cfg := EnvGet("KOMOREBI_CONFIG_HOME") "\komorebi.json"
     Komorebic('replace-configuration "' cfg '"')
     ExitMode()
+}
+d:: {
+    ExitMode()          ; clear the service badge first
+    OLED_Toggle()       ; flip drift preset + flash the new mode
 }
 Backspace:: {
     RunWait("komorebic.exe stop", , "Hide")
