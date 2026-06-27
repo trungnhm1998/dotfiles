@@ -91,4 +91,12 @@ yabai -m signal --add event=display_added action="sketchybar --reload && externa
 yabai -m signal --add event=system_woke action="sketchybar --reload && external_bar --reload"
 sketchybar --reload && external_bar --reload
 
+# stackline: refresh the stacking overlay on space/display change — a reliability hedge for
+# stackline's hs.spaces.watcher (it uses deprecated macOS APIs). stackline self-handles all
+# window/focus events via hs.window.filter, so we do NOT wire window_moved/resized here
+# (they machine-gun during drags and would flood Hammerspoon's main thread).
+# Spec: docs/superpowers/specs/2026-06-28-yabai-stackline-stacking-overlay-design.md
+yabai -m signal --add event=space_changed action="hs -c 'if stackline and stackline.manager then stackline.manager:update() end'"
+yabai -m signal --add event=display_changed action="hs -c 'if stackline and stackline.manager then stackline.manager:update() end'"
+
 echo "Yabai configuration loaded.."
