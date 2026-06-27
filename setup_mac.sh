@@ -71,10 +71,14 @@ brew install --cask \
     font-sf-pro \
     font-hack-nerd-font \
     font-jetbrains-mono \
-    font-fira-code
+    font-fira-code \
+    hammerspoon
 
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
-ln -sf $HOME/dotfiles/.config/skhd $HOME/.config/skhd
+# Hammerspoon is the sole hotkey daemon (skhd retired — binary kept, service stopped)
+ln -sf "$HOME/dotfiles/.config/hammerspoon" "$HOME/.hammerspoon"
+skhd --stop-service 2>/dev/null || true
+echo "⚠️  Grant Hammerspoon Accessibility permission: System Settings → Privacy & Security → Accessibility (one-time)."
 ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
 ln -sf $HOME/dotfiles/.config/sketchybar $HOME/.config/sketchybar
 ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use multiple bars
