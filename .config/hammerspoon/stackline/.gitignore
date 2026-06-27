@@ -1,0 +1,10 @@
+tmp-notes.txt
+stackline/sratch.md
+\[nvim-lua\]
+
+lib/figlet.lua
+
+luacov.stats.out
+
+# Watchman
+.watchman-cookie-*
