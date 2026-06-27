@@ -3,6 +3,7 @@ local yabai = require("yabai")
 local keys  = require("keys")
 local modes = require("modes")
 local osd   = require("osd")
+local reload_guard = require("reload_guard")
 
 yabai.init()                 -- resolve the binary path once
 osd.reset()                  -- clear any stranded mode/border/guard-flag from a prior load
@@ -13,9 +14,7 @@ modes.setup({ yabai = yabai, osd = osd, hyper = keys.HYPER })
 -- symlink). Ignore the spec/ test files: they change during `busted` runs and must NOT
 -- reload the live WM — that storm, plus a slow load, was the earlier freeze.
 local function reload(files)
-  for _, f in ipairs(files) do
-    if f:sub(-4) == ".lua" and not f:find("/spec/", 1, true) then hs.reload(); return end
-  end
+  if reload_guard.should_reload(files) then hs.reload() end
 end
 hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reload):start()
 
