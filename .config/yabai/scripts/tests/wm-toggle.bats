@@ -16,3 +16,7 @@ setup() {
   run wm_glyph 0; game="$output"
   [ -n "$work" ] && [ -n "$game" ] && [ "$work" != "$game" ]
 }
+
+@test "script is executable" {
+  [ -x "$SCRIPT" ]
+}

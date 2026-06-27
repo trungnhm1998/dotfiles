@@ -29,7 +29,7 @@ end
 function M.exit(sh)
   sh = sh or default_sh
   sh(("rm -f %q"):format(M.GUARD))
-  sh(("%s"):format(BORDER_SCRIPT))            -- restore zoom/normal color now the flag is gone
+  sh(("%q"):format(BORDER_SCRIPT))            -- restore zoom/normal color now the flag is gone
   sh("sketchybar --set wm_mode drawing=off 2>/dev/null")
 end
 
