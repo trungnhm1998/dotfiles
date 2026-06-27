@@ -58,6 +58,15 @@ config.unix_domains = { { name = "unix" } }
 -- Ctrl+Shift+W and Leader+x keep their own confirm = true.
 config.window_close_confirmation = "NeverPrompt"
 
+-- Stable mux-namespace tag for the Claude badge/focus channels. The hooks (notify-lib.sh /
+-- claude-notify.ps1) namespace their cache dir by basename($WEZTERM_UNIX_SOCKET) AS SEEN IN THE
+-- CLAUDE PANE -- under the persistent 'unix' mux that is always the mux-server socket 'sock'. The
+-- GUI's own os.getenv('WEZTERM_UNIX_SOCKET') is the EPHEMERAL gui-sock (changes per reopen), so the
+-- update-status poller below must use THIS constant to read the same dir the hooks write to.
+-- (Single mux => pane ids are globally unique, so one shared tag is correct.) See
+-- [[WezTerm Multi-Mux Pane IDs on Windows]].
+local MUX_SOCK = "sock"
+
 local ShellTypes = {
     NONE = 0,
     CMD = 1,
@@ -380,11 +389,11 @@ if is_windows then
             wezterm.GLOBAL.current_workspace = current
         end
 
-        -- Claude tab badge: reconcile THIS mux's alert subdir into GLOBAL.claude_alert. The dir
-        -- is namespaced per WezTerm mux (basename of WEZTERM_UNIX_SOCKET) so multiple windows --
-        -- separate muxes with colliding pane-id spaces -- don't prune each other's files over the
-        -- shared dir. Sole writer of that table; prunes this mux's dead panes, clears visited tab.
-        local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), os.getenv('WEZTERM_UNIX_SOCKET'))
+        -- Claude tab badge: reconcile the alert subdir into GLOBAL.claude_alert. Namespaced by the
+        -- stable mux-server socket tag (MUX_SOCK), which MUST match the hooks' pane-side
+        -- basename($WEZTERM_UNIX_SOCKET) -- NOT the GUI's ephemeral gui-sock from os.getenv. Single
+        -- mux => globally-unique pane ids, so this one poller prunes all windows' dead panes safely.
+        local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local paths = {}
         pcall(function() paths = wezterm.read_dir(dir) end)   -- missing dir -> {}
         local live = {}
@@ -414,7 +423,7 @@ if is_windows then
         -- activate the pane (tab + pane), and raise the OS window — the only reliable
         -- cross-window raise on Windows (wezterm cli cannot). Side effects run only when a
         -- request is pending, so ordinary ticks are unaffected.
-        local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), os.getenv('WEZTERM_UNIX_SOCKET'))
+        local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local fpaths = {}
         pcall(function() fpaths = wezterm.read_dir(fdir) end)
         local want = claude_focus.pending(fpaths, os.time(), read_file, os.remove, 60)
