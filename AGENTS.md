@@ -186,6 +186,7 @@ Defined in `.editorconfig` for consistency:
 | YASB Status Bar (Windows) | `.config/yasb/` (→ `~/.config/yasb`) |
 | Yabai Config | `.config/yabai/yabairc` |
 | Hammerspoon (macOS hotkeys + modes + OSD) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
+| stackline (yabai stacking overlay, macOS) | `.config/hammerspoon/stackline/` + `stackline_config.lua` |
 | yabai signal/helper scripts (macOS) | `.config/yabai/scripts/` |
 | Starship Prompt | `.config/starship.toml` |
 | Windows PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |

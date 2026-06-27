@@ -78,6 +78,9 @@ brew install --cask \
 ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 # Hammerspoon is the sole hotkey daemon (skhd retired — binary kept, service stopped)
 ln -sf "$HOME/dotfiles/.config/hammerspoon" "$HOME/.hammerspoon"
+# stackline (yabai stacking overlay) is vendored under .config/hammerspoon/stackline/ and rides
+# this symlink — no extra step. It needs the `hs` IPC CLI for signal-driven refresh; if `which hs`
+# fails, run `hs.ipc.cliInstall("/opt/homebrew")` once in the Hammerspoon console.
 skhd --stop-service 2>/dev/null || true
 echo "⚠️  Grant Hammerspoon Accessibility permission: System Settings → Privacy & Security → Accessibility (one-time)."
 echo "⚠️  MiddleClick (3-finger tap = middle click): launch it + grant Accessibility permission, then enable Start at Login (one-time)."
