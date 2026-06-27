@@ -1,9 +1,10 @@
 #!/bin/bash
+# Restore focus to a remaining window when the focused one is destroyed.
+# yabai/macOS don't auto-focus a sibling on close. Consumer: yabairc window_destroyed signal.
+# yabai v7 query schema uses is-visible / has-focus (NOT the pre-v3 visible / focused).
 
-echo "Focus another window on destroy"
-
-isFocused=$(yabai -m query --windows --window | jq -re ".id")
-echo "$isFocused"
-if [[ -z "$isFocused" ]]; then # -z >> true if it's null
-    $(yabai -m window --focus $(yabai -m query --windows | jq -re ".[] | select((.visible == 1) and .focused != 1).id" | head -n 1))
+focused=$(yabai -m query --windows --window 2>/dev/null | jq -r '.id // empty')
+if [[ -z "$focused" ]]; then
+    target=$(yabai -m query --windows --space | jq -re 'first(.[] | select(."is-visible") | .id)')
+    [[ -n "$target" ]] && yabai -m window --focus "$target"
 fi
