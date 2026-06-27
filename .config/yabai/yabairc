@@ -76,7 +76,7 @@ borders active_color=0xffca9ee6 inactive_color=0xff51576d width=5.0 &
 yabai -m signal --add event=window_focused action="~/.config/jankyborders/maximize-border.sh"
 yabai -m signal --add event=window_resized action="~/.config/jankyborders/maximize-border.sh"
 
-yabai -m signal --add event=window_destroyed action="~/.config/skhd/focus-window-on-destroy.sh"
+yabai -m signal --add event=window_destroyed action="~/.config/yabai/scripts/focus-window-on-destroy.sh"
 
 # Dynamic workspace strip: re-evaluate which spaces the bar shows whenever a
 # window appears or disappears (space/display changes are handled by SketchyBar's
