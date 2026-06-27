@@ -44,11 +44,11 @@ function M.wire()
   hs.hotkey.bind(M.HYPER, "t", function()
     yabai.run("window --toggle float"); yabai.run("window --grid 4:4:1:1:2:2")
   end)
-  -- monocle: reuse the relocated helper (it zooms + repaints the border). Cold path
-  -- → user_env=true so bare `yabai`/`borders` inside the script resolve under
-  -- Hammerspoon's minimal Finder PATH. (Task 9 relocates this script.)
+  -- monocle: reuse the relocated helper (it zooms + repaints the border). yabai.sh =
+  -- fast non-login /bin/sh with explicit PATH (NOT the interactive login shell, which
+  -- blocks HS's main thread). (Task 9 relocates this script.)
   hs.hotkey.bind(M.HYPER, "f", function()
-    hs.execute(os.getenv("HOME") .. "/.config/yabai/scripts/yabai-toggle-zoom.sh", true)
+    yabai.sh(os.getenv("HOME") .. "/.config/yabai/scripts/yabai-toggle-zoom.sh")
   end)
   bind(M.HYPER, "x", "space --mirror y-axis")
   bind(M.HYPER, "y", "space --mirror x-axis")

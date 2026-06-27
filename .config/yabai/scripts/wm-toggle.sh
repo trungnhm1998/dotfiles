@@ -19,9 +19,15 @@ wm_glyph() { [ "$1" = "1" ] && printf '%s' "$GLYPH_WORK" || printf '%s' "$GLYPH_
 
 wm_toggle() {
   local verb; verb="$(wm_decide "$(wm_running)")"
-  # debounce double-clicks/double-taps (mirror the PS mutex) with an atomic
-  # mkdir lock — macOS has no flock(1), and mkdir is atomic on every POSIX fs.
+  # debounce double-clicks/double-taps (mirror the PS mutex) with an atomic mkdir lock
+  # — macOS has no flock(1), and mkdir is atomic on every POSIX fs. Steal a STALE lock
+  # (>3s old: a prior run SIGKILLed before its EXIT trap fired) so it can never wedge.
   local lock="/tmp/wm-toggle.lock"
+  if [ -d "$lock" ]; then
+    local now lockts
+    now=$(date +%s); lockts=$(stat -f %m "$lock" 2>/dev/null || echo "$now")
+    if [ $(( now - lockts )) -ge 3 ]; then rmdir "$lock" 2>/dev/null || true; fi
+  fi
   mkdir "$lock" 2>/dev/null || exit 0
   trap 'rmdir "$lock" 2>/dev/null' EXIT
   yabai "--${verb}-service"

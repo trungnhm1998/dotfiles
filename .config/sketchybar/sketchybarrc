@@ -113,6 +113,14 @@ sketchybar --add item wm_toggle right \
                  update_freq=5 \
            --subscribe wm_toggle mouse.clicked
 
+##### WM mode OSD pill (resize/service) — shown/hidden by Hammerspoon osd.lua #####
+# Hidden by default; osd.lua does `sketchybar --set wm_mode drawing=on label=...` on mode
+# enter and `drawing=off` on exit. Catppuccin Frappe (text c6d0f5 / bg surface1 51576d).
+sketchybar --add item wm_mode right \
+           --set wm_mode drawing=off \
+                 label.color=0xffc6d0f5 label.padding_left=8 label.padding_right=8 \
+                 background.color=0xff51576d background.corner_radius=6 background.height=24
+
 ##### Claude-agent notification chips #####
 # Persistent "who's waiting on me" indicator. cc_notify.sh re-renders on the custom
 # claude_notify_changed event (fired by the notify hook + the tmux pane-focus-in hook)

@@ -43,4 +43,15 @@ function M.run_all(list, exec)
   for _, args in ipairs(list) do M.run(args, exec) end
 end
 
+-- cold-path shell helper: a NON-login /bin/sh with an explicit PATH, for the occasional
+-- shell-outs to borders/sketchybar/jq/helper-scripts. We must NOT use hs.execute(cmd, true)
+-- for these: that spawns `$SHELL -l -i -c` (the user's interactive zsh — ~0.84s, and it
+-- starts tmux) and BLOCKS Hammerspoon's main thread on io.popen:read. That was the
+-- load/reload freeze. /bin/sh -c with PATH preset is ~10ms and sources nothing.
+M.SHPATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+function M.sh(cmd, exec)
+  exec = exec or function(c) return hs.execute(c) end   -- default = non-login /bin/sh -c
+  return exec(("export PATH=%q; %s"):format(M.SHPATH, cmd))
+end
+
 return M

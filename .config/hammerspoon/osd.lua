@@ -1,15 +1,17 @@
 -- osd.lua — mode OSD: sketchybar wm_mode pill + mode-aware borders color via a guard-flag.
 -- The guard-flag makes maximize-border.sh early-exit so resize-signal repaints don't fight us.
 local theme = require("theme")
+local yabai = require("yabai")
 local M = {}
 
 local HOME = os.getenv("HOME") or "~"
 M.GUARD = HOME .. "/.cache/yabai/wm-mode"
 local BORDER_SCRIPT = HOME .. "/.config/jankyborders/maximize-border.sh"
 
--- cold path (mode enter/exit only — never per-nudge): user_env=true so bare
--- `borders`/`sketchybar` + the border script resolve under Hammerspoon's Finder PATH.
-local function default_sh(cmd) return hs.execute(cmd, true) end
+-- cold path (mode enter/exit only). Routed through yabai.sh = a fast NON-login /bin/sh
+-- with an explicit PATH (borders/sketchybar resolve). NOT hs.execute(cmd, true): the
+-- interactive login zsh (~0.84s, starts tmux) blocks HS's main thread — the load freeze.
+local function default_sh(cmd) return yabai.sh(cmd) end
 
 local LEGEND = {
   resize  = "⟨RESIZE⟩ hjkl nudge · ⇧ shrink · esc",

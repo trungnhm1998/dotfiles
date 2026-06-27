@@ -62,16 +62,18 @@ function M.setup(deps)
   function M.service:entered() osd.enter("service"); rearm(self) end
   function M.service:exited() if timer then timer:stop() end; osd.exit() end
   local function act(fn) return function() fn(); M.service:exit() end end
-  -- cold-path shell-outs pass user_env=true so `jq` / bare tools resolve under
-  -- Hammerspoon's minimal Finder PATH (yabai.run stays on the fast absolute-path route).
+  -- cold-path shell-outs go through yabai.sh = a fast NON-login /bin/sh with explicit
+  -- PATH (jq/scripts resolve). NOT hs.execute(_, true): the interactive login shell
+  -- (~0.84s, starts tmux) blocks HS's main thread on io.popen:read. yabai.run is the
+  -- fast absolute-path route; the restart flags are already absolute (no PATH needed).
   M.service:bind({}, "r", act(function() yabai.run("space --balance") end))
-  M.service:bind({}, "p", act(function() hs.execute(M.toggle_layout_cmd(yabai.path), true) end))
-  M.service:bind({}, "t", act(function() hs.execute(M.toggle_layout_cmd(yabai.path), true) end))
+  M.service:bind({}, "p", act(function() yabai.sh(M.toggle_layout_cmd(yabai.path)) end))
+  M.service:bind({}, "t", act(function() yabai.sh(M.toggle_layout_cmd(yabai.path)) end))
   M.service:bind({}, "f", act(function() yabai.run("window --toggle native-fullscreen") end))
   M.service:bind({}, "o", act(function() hs.execute(yabai.path .. " --restart-service"); hs.reload() end))
   M.service:bind({}, "delete", act(function() hs.execute(yabai.path .. " --restart-service") end))
   M.service:bind({}, "x", act(function()
-    hs.execute(os.getenv("HOME") .. "/.config/yabai/scripts/wm-toggle.sh", true)
+    yabai.sh(os.getenv("HOME") .. "/.config/yabai/scripts/wm-toggle.sh")
   end))
   M.service:bind({}, "escape", function() M.service:exit() end)
   M.service:bind({}, "return", function() M.service:exit() end)

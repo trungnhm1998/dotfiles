@@ -46,3 +46,13 @@ describe("yabai.run_all", function()
     assert.are.equal(2, n)
   end)
 end)
+
+describe("yabai.sh", function()
+  it("prefixes an explicit PATH and runs the bare command (non-login shell)", function()
+    local seen
+    yabai.sh("borders active_color=0xff000000", function(c) seen = c; return "", true end)
+    assert.is_truthy(seen:find("export PATH=", 1, true))
+    assert.is_truthy(seen:find("/opt/homebrew/bin", 1, true))
+    assert.is_truthy(seen:find("borders active_color=0xff000000", 1, true))
+  end)
+end)
