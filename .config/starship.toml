@@ -172,7 +172,13 @@ symbol = " "
 [pijul_channel]
 symbol = " "
 
+# Detect the version via the native Windows `py` launcher (~57ms) instead of bare
+# `python`, which on Windows resolves to C:\msys64\ucrt64\bin first — MSYS2 python is
+# ~11x slower and balloons past command_timeout under load, freezing the prompt. `py`
+# is absent on macOS/Linux so starship falls through to python3/python there.
+# ponytail: if an active venv ever shows the wrong version, this `py` is why.
 [python]
+python_binary = ['py', 'python3', 'python']
 symbol = " "
 
 [rlang]
