@@ -48,6 +48,16 @@ config.term = "xterm-256color"
 -- Nightly channel is updated by update-everything.ps1; skip the startup update check.
 config.check_for_updates = false
 
+-- Persistent local multiplexer ([[WezTerm Multiplexer Persistence on Windows]]).
+-- A separate wezterm-mux-server holds the PTYs; the GUI is a client. Closing the GUI
+-- detaches (server + live processes survive); reopening reattaches. Survives GUI close/crash,
+-- NOT an OS reboot. Domain name MUST be 'unix' (NOT 'local' -> collides w/ default domain, #2618).
+config.unix_domains = { { name = "unix" } }
+-- Closing the GUI window = silent DETACH (server + live procs persist). Tames the misleading
+-- "Really kill this window?" prompt (#848). Affects ONLY the windowing close button --
+-- Ctrl+Shift+W and Leader+x keep their own confirm = true.
+config.window_close_confirmation = "NeverPrompt"
+
 local ShellTypes = {
     NONE = 0,
     CMD = 1,
@@ -233,6 +243,15 @@ if is_windows then
             })
         end
     end
+end
+
+-- Auto-attach the GUI to the 'unix' mux on a bare launch (== auto-reattach), so you never run
+-- `wezterm connect unix` by hand. Equivalent to launching `wezterm connect unix`; preferred over
+-- the deprecated per-domain connect_automatically. GATED to non-WSL: in WSL shellType the default
+-- domain is default_wsl_domain (above), and the Windows mux can't host a WSL2 server (AF_UNIX
+-- interop is WSL1-only) -> persist WSL work with tmux inside the distro instead.
+if is_windows and shellType ~= ShellTypes.WSL then
+    config.default_gui_startup_args = { "connect", "unix" }
 end
 
 -- unbind alt enter
@@ -502,6 +521,9 @@ if is_windows then
             },
             -- Pane/Tab management
             { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
+            -- Detach this domain (tmux `prefix d`). Panes + live processes stay alive on the mux
+            -- server; reattach by reopening WezTerm (auto-connect) or `wezterm connect unix`.
+            { key = "d", action = act.DetachDomain("CurrentPaneDomain") },
             { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
             {
                 key = ",",
