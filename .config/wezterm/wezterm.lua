@@ -264,18 +264,32 @@ if is_windows then
         return ok and vars and vars.zellij == "1"
     end
 
+    -- A local pane is "SSH'd out" when its foreground process is an ssh/mosh client. WezTerm
+    -- can't see the REMOTE process, but the local ssh.exe IS the most-recent descendant of the
+    -- pwsh pane, so this detects "I'm in an SSH session" and hands Ctrl+Space to the remote
+    -- tmux instead of grabbing it for WezTerm's leader. Heuristic + has overhead, but only runs
+    -- on a Ctrl+Space press. See https://wezterm.org/config/lua/pane/get_foreground_process_name.html
+    local function is_ssh_pane(pane)
+        local ok, name = pcall(function() return pane:get_foreground_process_name() end)
+        if not ok or not name then return false end
+        name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
+        return name == "ssh.exe" or name == "ssh" or name == "mosh.exe" or name == "mosh"
+            or name == "mosh-client.exe"
+    end
+
     -- Debug overlay / Lua REPL now lives in leader_mode below on `:` (tmux/vim
     -- command-prompt parallel); the old global Ctrl+Shift+L binding is removed.
 
-    -- Conditional Ctrl+Space: WSL pane passes to tmux, others activate leader key table
+    -- Conditional Ctrl+Space: WSL pane or SSH'd-out pane passes to the remote tmux, others
+    -- activate the leader key table.
     table.insert(config.keys, {
         key = " ",
         mods = "CTRL",
         action = wezterm.action_callback(function(window, pane)
             -- if is_wsl_pane(pane) or is_zellij_pane(pane) then
-            if is_wsl_pane(pane) then
-                -- WSL pane -> tmux owns Ctrl+Space. Zellij is stock and ignores Ctrl+Space; we still
-                -- pass it through (not into leader_mode) so WezTerm's leader can't hijack it in Zellij.
+            if is_wsl_pane(pane) or is_ssh_pane(pane) then
+                -- WSL pane / ssh out (e.g. ssh to the Mac) -> the remote tmux owns Ctrl+Space, so
+                -- pass it through (not into leader_mode) instead of letting WezTerm's leader hijack it.
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
             else
                 -- Native pwsh pane: activate wezterm leader key table (tmux emulation).
