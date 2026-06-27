@@ -107,6 +107,12 @@ sketchybar --add item kanata_mode right \
                  script="$PLUGIN_DIR/kanata_mode.sh" \
            --subscribe kanata_mode mouse.clicked
 
+##### yabai WM on/off (gaming) toggle — separate from kanata_mode #####
+sketchybar --add item wm_toggle right \
+           --set wm_toggle script="$PLUGIN_DIR/wm_toggle.sh" \
+                 update_freq=5 \
+           --subscribe wm_toggle mouse.clicked
+
 ##### Claude-agent notification chips #####
 # Persistent "who's waiting on me" indicator. cc_notify.sh re-renders on the custom
 # claude_notify_changed event (fired by the notify hook + the tmux pane-focus-in hook)
