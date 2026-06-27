@@ -76,10 +76,11 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 - Zsh auto-attaches to tmux session (skipped in IDE terminals)
 
 **Windows:** Wezterm-centric workflow (no tmux)
-- Wezterm workspaces replace tmux sessions
+- Wezterm workspaces replace tmux sessions (create/switch: `Leader+w` by name, `Leader+f` fuzzy, `Leader+Shift+S` list, `Leader+(`/`Leader+)` cycle)
+- **Persistence:** a local `wezterm-mux-server` (unix domain `unix`) keeps shells + their live processes alive across closing WezTerm; **reattach by reopening WezTerm** (auto-connects via `default_gui_startup_args`, non-WSL only), or `wezterm connect unix`. `Leader+d` detaches; closing the window detaches silently (`window_close_confirmation='NeverPrompt'`). Does NOT survive a reboot. Zellij stays opt-in via the `zj` wrapper for the gaps (any-terminal/SSH attach, reboot-restore). Requires WezTerm nightly. The Claude badge/focus cache is namespaced by the stable mux socket tag `sock` (see `[[WezTerm Multiplexer Persistence on Windows]]`).
 - Leader key: `Ctrl+Space` (1 second timeout)
 - vim-smart-splits plugin enables Ctrl+hjkl navigation between Wezterm panes and Neovim splits
-- Key bindings: `Leader+v` (hsplit), `Leader+s` (vsplit), `Leader+x` (close pane), `Leader+t` (new tab), `Leader+1-9` (switch tabs)
+- Key bindings: `Leader+v` (hsplit), `Leader+s` (vsplit), `Leader+x` (close pane), `Leader+t` (new tab), `Leader+d` (detach mux), `Leader+1-9` (switch tabs)
 
 ### Window Management
 
