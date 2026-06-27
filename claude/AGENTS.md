@@ -68,4 +68,6 @@ After writing or editing code, check LSP diagnostics and fix errors before proce
 
 ## Compact instructions
 When compacting, always preserve: the list of files modified this session, test/build commands and their latest results, the active ticket/branch/PR, and any unresolved blockers or pending approvals.
-
+# graphify
+- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
