@@ -272,7 +272,8 @@ if is_windows then
         key = " ",
         mods = "CTRL",
         action = wezterm.action_callback(function(window, pane)
-            if is_wsl_pane(pane) or is_zellij_pane(pane) then
+            -- if is_wsl_pane(pane) or is_zellij_pane(pane) then
+            if is_wsl_pane(pane) then
                 -- WSL pane -> tmux owns Ctrl+Space. Zellij is stock and ignores Ctrl+Space; we still
                 -- pass it through (not into leader_mode) so WezTerm's leader can't hijack it in Zellij.
                 window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
