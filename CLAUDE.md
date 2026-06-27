@@ -83,7 +83,7 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
 
 ### Window Management
 
-- **macOS:** Yabai (tiling) + SKHD (hotkeys) + SketchyBar (status bar)
+- **macOS:** Yabai (tiling) + **Hammerspoon** (Hyper/Meh hotkeys + resize/service modes + OSD; skhd retired) + SketchyBar (status bar)
 - **Windows:** Komorebi (tiling) + per-monitor status bars. Start with `komorebic start`. Config requires `KOMOREBI_CONFIG_HOME` env var pointing to `$HOME\.config\komorebi`
 
 ### Editor Stack
@@ -149,7 +149,8 @@ Design spec: `docs/superpowers/specs/2026-06-15-automated-session-memory-protoco
 | Komorebi | `.config/komorebi/komorebi.json` |
 | YASB (Windows status bar) | `.config/yasb/config.yaml` + `.config/yasb/styles.css` |
 | Yabai | `.config/yabai/yabairc` |
-| SKHD | `.config/skhd/skhdrc` |
+| Hammerspoon (macOS hotkeys + modes + OSD) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
+| yabai signal/helper scripts (macOS) | `.config/yabai/scripts/` |
 | Tmux | `tmux/tmux.conf` |
 | Lazygit | `.config/lazygit/config.yml` |
 | Zsh | `zsh/zshrc.sh` (main), `zsh/zshrc_manager.sh` (entry point) |

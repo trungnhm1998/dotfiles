@@ -185,6 +185,8 @@ Defined in `.editorconfig` for consistency:
 | Komorebi Config | `.config/komorebi/` |
 | YASB Status Bar (Windows) | `.config/yasb/` (→ `~/.config/yasb`) |
 | Yabai Config | `.config/yabai/yabairc` |
+| Hammerspoon (macOS hotkeys + modes + OSD) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
+| yabai signal/helper scripts (macOS) | `.config/yabai/scripts/` |
 | Starship Prompt | `.config/starship.toml` |
 | Windows PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | IdeaVim | `.ideavimrc` |
