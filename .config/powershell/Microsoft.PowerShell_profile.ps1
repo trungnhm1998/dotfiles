@@ -142,18 +142,26 @@ function zj {
     try { zellij @args } finally { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") }
 }
 
-# --- SuperDisplay (tablet-as-monitor) toggle ---
-# SuperDisplay is an indirect-display driver: its virtual ADAPTER owns the DISPLAY2
-# lifecycle, NOT the service. Stopping the service leaves the virtual display up, and a
-# stray 2nd display on a virtual GPU stalls WezTerm's GPU present path (DXGI occlusion ->
-# no repaint until you click/right-click; a new window works, the old one stays stuck).
-# So the real lever is the ADAPTER. Both need admin -> these self-elevate (one UAC click);
-# DISPLAY2 (dis)appearing is the confirmation. See vault: WezTerm Repaint Stall ... .
+# --- Tablet-as-monitor toggle (SuperDisplay + SudoMaker) ---
+# Both are indirect-display drivers (IDDs): a virtual ADAPTER owns the virtual display's
+# lifecycle. An ACTIVE virtual display stalls WezTerm's GPU present path (DXGI occlusion ->
+# no repaint until you click/right-click; a new window works, the old one stays stuck) -- even
+# though the IDD monitor is GPU-attached to the RTX (same adapter as the real panel), not a
+# separate virtual GPU. The lever is the ADAPTER: SuperDisplay also has a service to stop;
+# SudoMaker is adapter-only, and a disabled PnP adapter stays disabled across reboots (durable,
+# no StartType dance). Self-elevate (one UAC click); the virtual display (dis)appearing is the
+# confirmation. See vault: WezTerm Repaint Stall from a Virtual Display on Windows.
 function tablet-off {
     Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
-      "Stop-Service SuperDisplay -EA SilentlyContinue; Get-PnpDevice -Class Display -FriendlyName 'SuperDisplay Virtual Adapter' | Disable-PnpDevice -Confirm:`$false"
+      "Stop-Service SuperDisplay -EA SilentlyContinue; Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Disable-PnpDevice -Confirm:`$false -EA SilentlyContinue"
 }
 function tablet-on {
     Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
-      "Get-PnpDevice -Class Display -FriendlyName 'SuperDisplay Virtual Adapter' | Enable-PnpDevice -Confirm:`$false; Start-Service SuperDisplay"
+      "Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Enable-PnpDevice -Confirm:`$false -EA SilentlyContinue; Start-Service SuperDisplay -EA SilentlyContinue"
 }
+
+# Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
+# repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
+# DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
+# see vault: WezTerm Repaint Stall from an Injected Overlay Hook on Windows.
+function wz-probe { pwsh -NoProfile -ExecutionPolicy Bypass -File "$HOME\.config\wezterm\wezterm-freeze-probe.ps1" }
