@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # nf-fa-th (work/tiling) U+F00A · nf-fa-gamepad (game/off) U+F11B — mirrors the Windows pill
-GLYPH_WORK=$''
-GLYPH_GAME=$''
+GLYPH_WORK=$(printf '\357\200\212')   # U+F00A nf-fa-th (work/tiling) — UTF-8 EF 80 8A
+GLYPH_GAME=$(printf '\357\204\233')   # U+F11B nf-fa-gamepad (game/off) — UTF-8 EF 84 9B
 
 wm_running() { pgrep -x yabai >/dev/null 2>&1 && echo 1 || echo 0; }
 
@@ -19,11 +19,13 @@ wm_glyph() { [ "$1" = "1" ] && printf '%s' "$GLYPH_WORK" || printf '%s' "$GLYPH_
 
 wm_toggle() {
   local verb; verb="$(wm_decide "$(wm_running)")"
-  # debounce double-clicks/double-taps (mirror the PS mutex)
-  exec 9>"/tmp/wm-toggle.lock"
-  flock -n 9 || exit 0
+  # debounce double-clicks/double-taps (mirror the PS mutex) with an atomic
+  # mkdir lock — macOS has no flock(1), and mkdir is atomic on every POSIX fs.
+  local lock="/tmp/wm-toggle.lock"
+  mkdir "$lock" 2>/dev/null || exit 0
+  trap 'rmdir "$lock" 2>/dev/null' EXIT
   yabai "--${verb}-service"
-  echo "$(date +%FT%T) -> ${verb}" >> "/tmp/wm-toggle.log"
+  printf '%s -> %s\n' "$(date +%FT%T)" "$verb" >> "/tmp/wm-toggle.log"
 }
 
 # run nothing when sourced by the test harness
