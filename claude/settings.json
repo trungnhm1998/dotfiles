@@ -156,7 +156,7 @@
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:catppuccin-frappe",
+  "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": true,
   "preferredNotifChannel": "auto",
