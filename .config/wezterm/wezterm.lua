@@ -476,13 +476,27 @@ table.insert(config.keys, {
     end),
 })
 
--- Lockout backstop: clear the whole key-table stack from anywhere. Ctrl+Shift+Esc is NOT
--- usable (Windows reserves it for Task Manager), so use Ctrl+Shift+Space.
+-- Force-leader: always activate WezTerm's leader, even in ssh/WSL/tmux panes where Ctrl+Space is
+-- handed to the remote multiplexer. Makes workspace switching (g/f/(/) ...) reachable everywhere.
 table.insert(config.keys, {
     key = " ",
     mods = "CTRL|SHIFT",
+    action = act.ActivateKeyTable({ name = "leader_mode", one_shot = true, prevent_fallback = true }),
+})
+-- Lockout backstop (clear the key-table stack), relocated off Ctrl+Shift+Space (now force-leader).
+table.insert(config.keys, {
+    key = "Backspace",
+    mods = "CTRL|SHIFT",
     action = act.ClearKeyTableStack,
 })
+-- Direct, prefix-free workspace navigation that works from ANY pane (incl. ssh/WSL, where
+-- Ctrl+Space belongs to the remote tmux). Windows-only: the picker/switcher are Windows features.
+if is_windows then
+    table.insert(config.keys, { key = "g", mods = "CTRL|SHIFT", action = remote_picker() })
+    table.insert(config.keys, { key = "f", mods = "CTRL|SHIFT", action = workspace_switcher.switch_workspace() })
+    table.insert(config.keys, { key = "[", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(-1) })
+    table.insert(config.keys, { key = "]", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(1) })
+end
 
 -- Mode-chip for the tabline `mode` component: icon-only LEADER/COPY/SEARCH/RESIZE indicator.
 -- Shared by both platforms' tabline sections below. A mode shown here MUST also have a matching

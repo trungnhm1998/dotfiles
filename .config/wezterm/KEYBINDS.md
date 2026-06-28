@@ -107,7 +107,7 @@ In copy mode: `h`/`j`/`k`/`l` move · `v` start selection · `V` line · `Ctrl+v
 
 ### Cancelling the prefix
 
-There is **no explicit cancel key** (tmux-style). To dismiss the prefix without acting, press any unbound key — it is swallowed. As a hard reset, `Ctrl+Shift+Space` clears the key-table stack from anywhere (lockout backstop).
+There is **no explicit cancel key** (tmux-style). To dismiss the prefix without acting, press any unbound key — it is swallowed. As a hard reset, `Ctrl+Shift+Backspace` clears the key-table stack from anywhere (lockout backstop; `Ctrl+Shift+Space` is now force-leader).
 
 > **Known limitation — modified keys in the leader table.** On Windows WezTerm, a leader-table entry that needs a **modifier** (`Ctrl`/`Shift`) does **not** reliably fire — only plain keys do (see [wezterm #6824](https://github.com/wezterm/wezterm/issues/6824)). This is why resize is `r` (not `Shift+R`) and send-prefix is `Space` (not `Ctrl+Space Ctrl+Space`). Some shifted binds listed above (e.g. `$`, `Shift+L`, `Shift+T`) may be affected; the plain-key binds are the reliable ones.
 
@@ -122,7 +122,11 @@ These keybindings work from anywhere and don't require the leader key:
 | `Alt+Enter` | *Disabled* (default wezterm behavior) |
 | `Ctrl+Alt+U` | *Disabled* (user-defined override) |
 | `Ctrl+Alt+D` | *Disabled* (user-defined override) |
-| `Ctrl+Shift+Space` | Clear the key-table stack (leader/resize/copy lockout backstop) |
+| `Ctrl+Shift+Space` | **Force WezTerm leader** — activates leader mode even in ssh/WSL panes (where `Ctrl+Space` goes to the remote tmux). Then use `g`/`f`/`(`/`)`/etc. |
+| `Ctrl+Shift+G` | **Remote picker** from any pane (incl. ssh/WSL) |
+| `Ctrl+Shift+F` | **Fuzzy workspace switcher** from any pane (replaces WezTerm's default scrollback Search) |
+| `Ctrl+Shift+[` / `Ctrl+Shift+]` | Previous / next workspace from any pane |
+| `Ctrl+Shift+Backspace` | Clear the key-table stack (lockout backstop; moved from `Ctrl+Shift+Space`) |
 
 > **Moved:** the debug overlay used to be on `Ctrl+Shift+L` (written `key = "L", mods = "CTRL"`, which WezTerm reads as Ctrl+**Shift**+L). It now lives in leader mode at `Ctrl+Space` → `:`. `Ctrl+L` is therefore free for the shell's clear-screen and for smart-splits "navigate right".
 
@@ -158,7 +162,8 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 | **Copy/paste** | `Escape` copy mode (vi) · `]` paste · `Space` send-prefix |
 | **Workspaces** | `w` new/named · `$` rename · `(`/`)` prev/next · `Shift+L` last · `f` fuzzy · `Shift+S` list |
 | **Tools** | `:` debug REPL · `Shift+T` launcher |
-| **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize · `Ctrl+Shift+Space` reset |
+| **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize · `Ctrl+Shift+Backspace` reset |
+| **Workspace (global)** | `Ctrl+Shift+Space` force-leader · `Ctrl+Shift+G` picker · `Ctrl+Shift+F` fuzzy · `Ctrl+Shift+[/]` prev/next |
 
 ---
 
@@ -221,7 +226,7 @@ To modify keybindings:
 
 - **Leader timeout**: none — the prefix waits indefinitely for the next key, like tmux's prefix.
 - Pressing any **unmapped** key exits the prefix and is **swallowed** (not sent to the pane).
-- `Escape` now enters **copy mode** (it no longer cancels). To dismiss the prefix, press any unbound key; `Ctrl+Shift+Space` is the hard-reset backstop.
+- `Escape` now enters **copy mode** (it no longer cancels). To dismiss the prefix, press any unbound key; `Ctrl+Shift+Backspace` is the hard-reset backstop (clears the key-table stack; `Ctrl+Shift+Space` is now force-leader).
 
 ---
 
