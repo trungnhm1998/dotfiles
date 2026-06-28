@@ -17,11 +17,11 @@ yabai -m config mouse_action2 resize
 
 # Layout
 yabai -m config layout bsp
-yabai -m config top_padding 12
-yabai -m config bottom_padding 12
-yabai -m config left_padding 12
-yabai -m config right_padding 12
-yabai -m config window_gap 12
+yabai -m config top_padding 20
+yabai -m config bottom_padding 20
+yabai -m config left_padding 20
+yabai -m config right_padding 20
+yabai -m config window_gap 20
 
 # Ignore
 yabai -m rule --add app="^System Settings$" manage=off
@@ -69,7 +69,7 @@ yabai -m signal --add event=display_changed action="yabai -m window --focus \$(y
 # ref https://github.com/koekeishiya/yabai/issues/719#issuecomment-2038328430
 yabai -m signal --add event=space_changed action='yabai -m window --focus $(yabai -m query --windows --space | jq -r '\''[.[]|select(."is-visible")][0].id'\'')'
 
-borders active_color=0xffca9ee6 inactive_color=0xff51576d width=5.0 &
+borders active_color=0xffca9ee6 inactive_color=0xff51576d width=10.0 &
 
 # change borders color when zoom-fullscreen
 
