@@ -478,8 +478,10 @@ table.insert(config.keys, {
 
 -- Force-leader: always activate WezTerm's leader, even in ssh/WSL/tmux panes where Ctrl+Space is
 -- handed to the remote multiplexer. Makes workspace switching (g/f/(/) ...) reachable everywhere.
+-- MUST be `phys:Space` (not " "): WezTerm's default Ctrl+Shift+Space is `phys:Space`->QuickSelect,
+-- and a " " (mapped-char) binding does NOT shadow a phys: default, so QuickSelect would still win.
 table.insert(config.keys, {
-    key = " ",
+    key = "phys:Space",
     mods = "CTRL|SHIFT",
     action = act.ActivateKeyTable({ name = "leader_mode", one_shot = true, prevent_fallback = true }),
 })
@@ -724,11 +726,22 @@ if is_windows then
         local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local paths = {}
         pcall(function() paths = wezterm.read_dir(dir) end)
+        -- Each alert file is named by $WEZTERM_PANE = the mux-SERVER pane id, but p:pane_id() here
+        -- is the GUI-CLIENT id -- a different space under the persistent mux, which silently broke
+        -- the badge. Each pwsh pane publishes its server id as the CLAUDE_SERVER_PANE user var
+        -- (Microsoft.PowerShell_profile.ps1); read it back to match. Fall back to the gui id for
+        -- panes that don't publish (local/non-pwsh, where server id == gui id anyway).
+        local function server_key(p)
+            local uv = p:get_user_vars() or {}
+            return uv['CLAUDE_SERVER_PANE'] or tostring(p:pane_id())
+        end
+        -- live maps server_id -> gui_id: truthy, so it doubles as reconcile's liveness set and as
+        -- the re-key table below. visited holds the active tab's server ids.
         local live = {}
         for _, w in ipairs(wezterm.mux.all_windows()) do
             for _, t in ipairs(w:tabs()) do
                 for _, p in ipairs(t:panes()) do
-                    live[tostring(p:pane_id())] = true
+                    live[server_key(p)] = tostring(p:pane_id())
                 end
             end
         end
@@ -736,15 +749,24 @@ if is_windows then
         local at = window:active_tab()
         if at then
             for _, p in ipairs(at:panes()) do
-                visited[tostring(p:pane_id())] = true
+                visited[server_key(p)] = true
             end
         end
         local function read_file(path)
             local fh = io.open(path, 'r'); if not fh then return nil end
             local s = fh:read('*a'); fh:close(); return s
         end
+        -- reconcile runs in server-id space (matches the alert file names); re-key the surviving
+        -- alerts back to gui pane ids so the tabline badge component (PaneInformation gui ids)
+        -- looks them up unchanged.
+        local by_sid = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
+        local by_gid = {}
+        for sid, kind in pairs(by_sid) do
+            local gid = live[sid]
+            if gid then by_gid[gid] = kind end
+        end
         ---@diagnostic disable-next-line: inject-field
-        wezterm.GLOBAL.claude_alert = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
+        wezterm.GLOBAL.claude_alert = by_gid
 
         local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local fpaths = {}
@@ -833,11 +855,13 @@ if is_windows then
             comp.pane_count,
             { "zoomed", padding = 0 },
         },
-        -- Right side: host badge replaces stock `domain` (ssh-aware); git branch replaces the
-        -- clock (`datetime`); counts + focused process fill the far-left of the right block.
+        -- Right side: stock `domain` + host badge form the location block; git branch replaces the
+        -- clock (`datetime`); counts + focused process fill the far-left. `domain` shows the raw
+        -- WezTerm domain (local / unix mux / WSL:..) -- distinct from host_badge, which labels the
+        -- ssh host (mac/vps) that the local-domain ssh.exe leaves `domain` reading "local".
         tabline_x = { comp.counts, " ", comp.focused_process },
         tabline_y = { comp.git_branch },
-        tabline_z = { comp.host_badge },
+        tabline_z = { "domain", comp.host_badge },
     }
 else
     tabline_sections = {
