@@ -1,18 +1,22 @@
 #!/usr/bin/env zsh
 # Main zsh configuration file
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+typeset -U path PATH  # auto-dedupe PATH entries (idempotent across re-sources)
+[[ -d /opt/nvim-linux-x86_64/bin ]] && export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 # Android SDK platform-tools (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "$HOME/Library/Android/sdk/platform-tools" ]]; then
 	export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
 fi
-export PATH=$HOME/bin:usr/local/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=$HOME/.local/share/umake/bin:$PATH
 export PATH=$PATH:/usr/local/nodejs/bin
 export PATH="$HOME/.local/bin:$PATH"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 export XDG_CONFIG_HOME="$HOME/.config"
-export TERM=xterm-256color
+# Don't set TERM here. The host owns it: WezTerm exports xterm-256color outside tmux,
+# tmux sets tmux-256color inside. Exporting xterm-256color unconditionally re-clobbered
+# the inner tmux shell, breaking italics/undercurl capability detection. COLORTERM still
+# advertises truecolor to apps that sniff it (which is how truecolor survives in tmux).
 export COLORTERM=truecolor
 
 # --- secrets (gitignored; see secrets.env.example) ---
@@ -26,8 +30,8 @@ fi
 
 # nvm
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# nvm.sh + completion are loaded once by the oh-my-zsh `nvm` plugin (plugins+=(nvm) below).
+# Don't source them here too — nvm is the biggest zsh startup cost and this paid it twice.
 
 # --- pyenv ---
 # Skip if pyenv is a Windows executable (WSL2 PATH pollution)
@@ -59,6 +63,28 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# --- claude-squad (cs): make Ctrl+Q detach work ---
+# cs detaches by reading ONE raw Ctrl+Q byte (0x11). Our tmux `extended-keys on`
+# (added for Claude Code's Shift+Enter) rewrites Ctrl+Q into a CSI-u sequence
+# (ESC[27;5;113~), which cs's `buf[0]==17` check can't recognise — so Ctrl+Q never
+# detaches and the session gets killed instead. Flip the server option off for the
+# lifetime of the cs TUI, then restore it. `command tmux` skips the omz tmux-plugin
+# wrapper; `command cs` calls the binary, not this function.
+# ponytail: server-wide + restore-on-exit. If cs is SIGKILLed mid-run, extkeys stays
+#           off — just rerun cs or `tmux set -s extended-keys on`.
+cs() {
+	if [ -n "$TMUX" ]; then
+		command tmux set -s extended-keys off
+		{
+			command cs "$@"
+		} always {
+			command tmux set -s extended-keys on  # restore even on Ctrl+C / error / nonzero exit
+		}
+	else
+		command cs "$@"
+	fi
+}
+
 # --- zsh and oh-my-zsh ---
 
 export ZSH=$HOME/.oh-my-zsh
@@ -85,13 +111,13 @@ plugins+=(
 )
 
 source "$ZSH/oh-my-zsh.sh"
-eval "$(starship init zsh)"
+command -v starship >/dev/null && eval "$(starship init zsh)"
 source "$HOME/dotfiles/zsh/keybindings.sh"
 
 # ---- FZF ----
 # Set up fzf key bindings and fuzzy completion
 [ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
-source <(fzf --zsh)
+command -v fzf >/dev/null && source <(fzf --zsh)
 
 # Catppuccin Frappe theme
 export FZF_DEFAULT_OPTS=" \
@@ -134,20 +160,22 @@ export FZF_ALT_C_OPTS="
 # https://github.com/ajeetdsouza/zoxide/issues/1208 — even though placement here is correct
 # (__zoxide_hook is the sole chpwd hook). The check has nothing useful left to report.
 export _ZO_DOCTOR=0
-eval "$(zoxide init zsh --cmd cd)"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh --cmd cd)"
 
-# --- eza ---
-alias ls="eza --icons"
-alias l="eza --icons"
-alias ll="eza -lg --icons"
-alias la="eza -lag --icons"
-alias lt="eza -lTg --icons"
-alias lt1="eza -lTg --level=1 --icons"
-alias lt2="eza -lTg --level=2 --icons"
-alias lt3="eza -lTg --level=3 --icons"
-alias lta="eza -lTag --icons"
-alias lta1="eza -lTag --level=1 --icons"
-alias lta2="eza -lTag --level=2 --icons"
-alias lta3="eza -lTag --level=3 --icons"
+# --- eza --- (guard so missing eza doesn't shadow/break core ls/ll/la)
+if command -v eza >/dev/null 2>&1; then
+	alias ls="eza --icons"
+	alias l="eza --icons"
+	alias ll="eza -lg --icons"
+	alias la="eza -lag --icons"
+	alias lt="eza -lTg --icons"
+	alias lt1="eza -lTg --level=1 --icons"
+	alias lt2="eza -lTg --level=2 --icons"
+	alias lt3="eza -lTg --level=3 --icons"
+	alias lta="eza -lTag --icons"
+	alias lta1="eza -lTag --level=1 --icons"
+	alias lta2="eza -lTag --level=2 --icons"
+	alias lta3="eza -lTag --level=3 --icons"
+fi
 
 # eval $(thefuck --alias)

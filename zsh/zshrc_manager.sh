@@ -23,8 +23,6 @@ is_ide_terminal() {
 }
 
 if ! is_ide_terminal; then
-	time_out() { perl -e 'alarm shift; exec @ARGV' "$@"; }
-
 	# Run tmux if exists (non-fatal)
 	if command -v tmux >/dev/null; then
 		if [ -z "$TMUX" ]; then
