@@ -90,6 +90,17 @@ function M.adapt_domain(pane) return read(pane, 'get_domain_name', 'domain_name'
 function M.adapt_fg(pane) return read(pane, 'get_foreground_process_name', 'foreground_process_name') end
 function M.adapt_cwd(pane) return read(pane, 'get_current_working_dir', 'current_working_dir') end
 
+-- Pure: derive { name, icon } from a foreground process path. name = basename minus a trailing
+-- .exe; icon = icon_map[name:lower()] or icon_map.default. Returns nil for empty/nil input.
+function M.proc_label(fg_process_name, icon_map)
+  local base = basename(fg_process_name)
+  if base == '' then return nil end
+  local name = base:gsub('%.[Ee][Xx][Ee]$', '')
+  local icon = nil
+  if icon_map then icon = icon_map[name:lower()] or icon_map.default end
+  return { name = name, icon = icon }
+end
+
 M.basename = basename
 
 -- Build tabline.wez inline component functions. `wezterm` is passed in (not required) so the
@@ -102,6 +113,15 @@ function M.components(wezterm, opts)
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
   local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal or '|'
+  local proc_icons = opts.proc_icons or {
+    pwsh = nf.cod_terminal_powershell, powershell = nf.cod_terminal_powershell,
+    cmd = nf.md_console, bash = nf.cod_terminal_bash, zsh = nf.cod_terminal,
+    fish = nf.md_fish, nvim = nf.custom_neovim, vim = nf.custom_vim,
+    node = nf.md_nodejs, python = nf.md_language_python, python3 = nf.md_language_python,
+    git = nf.dev_git, lazygit = nf.cod_github, cargo = nf.dev_rust, go = nf.seti_go,
+    lua = nf.seti_lua, docker = nf.md_docker, ssh = nf.md_ssh, claude = nf.md_robot_outline,
+    default = nf.cod_terminal,
+  }
   local C = {}
 
   local function safe(fn)
@@ -152,6 +172,14 @@ function M.components(wezterm, opts)
   end)
 
   -- TAB components (TabInformation / PaneInformation data) ---------------------
+  C.process = safe(function(tab, pane)
+    local pi = pane or (tab and tab.active_pane)
+    if not pi then return '' end
+    local pl = M.proc_label(M.adapt_fg(pi), proc_icons)
+    if not pl then return '' end
+    return (pl.icon and (pl.icon .. ' ') or '') .. pl.name
+  end)
+
   C.tab_host_icon = safe(function(tab, pane)
     local pi = pane or (tab and tab.active_pane)
     if not pi then return '' end

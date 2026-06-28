@@ -788,7 +788,7 @@ if is_windows then
         tab_active = {
             "index",
             comp.tab_host_icon,
-            "process",
+            comp.process,
             comp.smart_dir,
             comp.pane_count,
             { "zoomed", padding = 0 },
@@ -797,7 +797,7 @@ if is_windows then
             "index",
             comp.tab_host_icon,
             "claude",
-            "process",
+            comp.process,
             comp.smart_dir,
             comp.pane_count,
             { "zoomed", padding = 0 },

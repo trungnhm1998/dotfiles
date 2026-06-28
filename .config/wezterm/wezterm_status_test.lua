@@ -61,4 +61,15 @@ eq(M.adapt_domain(info), 'local', 'adapt_domain field')
 eq(M.adapt_fg(info), 'pwsh.exe', 'adapt_fg field')
 eq(M.adapt_cwd(info).file_path, '/C:/r', 'adapt_cwd field')
 
+-- proc_label: basename (handles backslash) + strip .exe + icon-map lookup
+local imap = { pwsh = 'P', nvim = 'V', default = 'D' }
+local pl = M.proc_label('C:\\Program Files\\PowerShell\\7\\pwsh.exe', imap)
+eq(pl.name, 'pwsh', 'proc win path basename + de-exe'); eq(pl.icon, 'P', 'proc pwsh icon')
+pl = M.proc_label('/usr/bin/nvim', imap)
+eq(pl.name, 'nvim', 'proc posix basename'); eq(pl.icon, 'V', 'proc nvim icon')
+pl = M.proc_label('node', imap)
+eq(pl.name, 'node', 'proc bare name'); eq(pl.icon, 'D', 'proc unknown -> default icon')
+eq(M.proc_label('', imap), nil, 'proc empty -> nil')
+eq(M.proc_label(nil, imap), nil, 'proc nil -> nil')
+
 if fails == 0 then print('wezterm_status_test OK') else print(fails .. ' FAILURES'); os.exit(1) end
