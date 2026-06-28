@@ -144,4 +144,25 @@ do
   eq(comp.pane_count(tab), ' #2', 'tab pane_count: glyph+count, space-led')
 end
 
+-- Tab process falls back to the LIVE MuxPane when the snapshot fg is empty (mux-domain panes),
+-- so nvim/lazygit/node resolve in tabs -- not just plain pwsh. Regression for that exact report.
+do
+  local strict_pane = setmetatable(
+    { domain_name = 'unix', foreground_process_name = '', current_working_dir = { file_path = '/C:/r' } },
+    { __index = function(_, k) error('strict PaneInformation: no field ' .. tostring(k)) end })
+  rawset(strict_pane, 'pane_id', 7) -- present key, so strict __index won't fire on access
+  local tab = { tab_index = 0, active_pane = strict_pane, panes = { 1 } }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf,
+    run_child_process = function() return false, '', '' end,
+    mux = {
+      get_workspace_names = function() return {} end,
+      get_pane = function(_) return { get_foreground_process_name = function() return 'C:\\bin\\nvim.exe' end } end,
+    },
+  }
+  local comp = M.components(stub_wez, { local_icon = 'L' })
+  eq(comp.process(tab), ' I nvim', 'tab process: live MuxPane fallback when snapshot fg is empty')
+end
+
 if fails == 0 then print('wezterm_status_test OK') else print(fails .. ' FAILURES'); os.exit(1) end

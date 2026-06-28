@@ -155,6 +155,16 @@ function M.components(wezterm, opts)
     local p = M.basename(M.adapt_fg(pane)):lower()
     return p:find('^ssh') ~= nil or p:find('^mosh') ~= nil
   end
+  -- Live foreground process via the mux. A TabInformation snapshot leaves foreground_process_name
+  -- EMPTY for mux-domain panes (the persistent `unix` mux), but the live MuxPane still answers --
+  -- so nvim/lazygit/node/etc. resolve in tabs, not just plain pwsh. pcall-guarded throughout.
+  local function live_fg(pane_id)
+    if not (wezterm.mux and pane_id) then return nil end
+    local ok, mp = pcall(wezterm.mux.get_pane, pane_id)
+    if not ok or not mp then return nil end
+    local ok2, n = pcall(function() return mp:get_foreground_process_name() end)
+    return ok2 and n or nil
+  end
 
   -- WINDOW components (real Window/Pane objects) -------------------------------
   C.git_branch = safe(function(window, pane)
@@ -201,7 +211,9 @@ function M.components(wezterm, opts)
   C.process = safe(function(tab, pane)
     local pi = pane or (tab and tab.active_pane)
     if not pi then return '' end
-    local pl = M.proc_display(M.adapt_fg(pi), M.adapt_title(pi), proc_icons)
+    local fg = M.adapt_fg(pi)
+    if not fg or fg == '' then fg = live_fg(pi.pane_id) end   -- mux snapshot has no fg; ask the mux
+    local pl = M.proc_display(fg, M.adapt_title(pi), proc_icons)
     if not pl then return '' end
     -- Leading space: tab sections get no component separators, so each component self-separates.
     return ' ' .. (pl.icon and (pl.icon .. ' ') or '') .. pl.name
