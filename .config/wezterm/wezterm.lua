@@ -491,6 +491,25 @@ table.insert(config.keys, {
     mods = "CTRL|SHIFT",
     action = act.ClearKeyTableStack,
 })
+
+-- TEMP DEBUG (remove after diagnosis): report exactly what the Ctrl+Space detection sees in
+-- THIS pane -- the same calls is_ssh_pane/is_wsl_pane make. Press Ctrl+Shift+I in each pane.
+table.insert(config.keys, {
+    key = "i",
+    mods = "CTRL|SHIFT",
+    action = wezterm.action_callback(function(window, pane)
+        local fg = "(nil)"
+        pcall(function() fg = tostring(pane:get_foreground_process_name()) end)
+        local dom = tostring(pane:get_domain_name())
+        local title = "(nil)"
+        pcall(function() title = tostring(pane:get_title()) end)
+        local msg = string.format(
+            "fg=%s | domain=%s | title=%s | is_windows=%s is_unix=%s",
+            fg, dom, title, tostring(is_windows), tostring(is_unix))
+        wezterm.log_warn("WEZ-DEBUG " .. msg)
+        window:toast_notification("wez-debug", msg, nil, 12000)
+    end),
+})
 -- Direct, prefix-free workspace navigation that works from ANY pane (incl. ssh/WSL, where
 -- Ctrl+Space belongs to the remote tmux). Windows-only: the picker/switcher are Windows features.
 if is_windows then
@@ -846,27 +865,32 @@ if is_windows then
         tabline_a = { { "mode", fmt = mode_chip_fmt } },
         tabline_b = { "workspace" },
         tabline_c = { " " },
+        -- Process lives in ONE place to avoid active-tab/bar duplication: the ACTIVE tab shows
+        -- WHERE you are (dir) while the bar's focused-process shows WHAT runs there; INACTIVE tabs
+        -- show WHAT each one runs (process/title -- Claude activity, lazygit, ...). No dir on
+        -- inactive tabs: it duplicated app titles that embed the cwd ("repo - Lazygit") and is
+        -- usually the same repo anyway. Trailing " " = breathing room between tabs and before (+).
         tab_active = {
             "index",
             comp.tab_host_icon,
-            comp.process,
             comp.smart_dir,
             comp.pane_count,
             { "zoomed", padding = 0 },
+            " ",
         },
         tab_inactive = {
             "index",
             comp.tab_host_icon,
             "claude",
             comp.process,
-            comp.smart_dir,
             comp.pane_count,
             { "zoomed", padding = 0 },
+            " ",
         },
-        -- Right side: counts + focused process on the far-left, host badge on the right. host_badge
-        -- is the single "where am I" label (local / WSL distro / ssh host like mac|vps). Stock
-        -- `domain` was dropped -- for mux panes it only showed the cryptic socket name "unix"; the
-        -- git branch was dropped on request.
+        -- Right side: counts + focused process (the active pane's process/title) on the far-left,
+        -- host badge on the right. host_badge is the single "where am I" label (local / WSL distro /
+        -- ssh host like mac|vps). Stock `domain` dropped (it showed the cryptic mux socket "unix");
+        -- git dropped on request.
         tabline_x = { comp.counts, " ", comp.focused_process },
         tabline_y = {},
         tabline_z = { comp.host_badge },
