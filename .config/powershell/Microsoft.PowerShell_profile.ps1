@@ -68,6 +68,15 @@ function Invoke-Starship-PreCommand {
     $host.ui.Write($prompt)
 }
 
+# Publish this pane's WezTerm SERVER pane id as a user var so wezterm.lua's Claude tab-badge
+# poller can map mux client<->server pane ids. Under the persistent unix mux the GUI is a client
+# and renumbers panes, so $WEZTERM_PANE (server id, used in the alert filename) != the gui id the
+# poller sees -- which silently broke the badge. Same SetUserVar OSC as `zj` below; value is base64.
+if ($env:WEZTERM_PANE) {
+    $paneB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($env:WEZTERM_PANE))
+    [Console]::Write("`e]1337;SetUserVar=CLAUDE_SERVER_PANE=$paneB64`a")
+}
+
 # =============================================================================
 #
 # Utility functions for zoxide.
