@@ -139,7 +139,9 @@ function M.components(wezterm, opts)
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
   local proc_max = opts.proc_max or 24
-  local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal or '|'
+  -- '◫' (U+25EB) resolves to JetBrainsMono NF at exactly one cell; nf.cod_split_horizontal had
+  -- broken advance metrics in this font (rendered as a lightbulb and overlapped the pane count).
+  local pane_glyph = opts.pane_glyph or '◫'
   local proc_icons = opts.proc_icons or {
     pwsh = nf.cod_terminal_powershell, powershell = nf.cod_terminal_powershell,
     cmd = nf.md_console, bash = nf.cod_terminal_bash, zsh = nf.cod_terminal,
