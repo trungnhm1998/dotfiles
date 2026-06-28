@@ -109,15 +109,22 @@ function M.proc_label(fg_process_name, icon_map)
 end
 
 -- Pure: choose a process label to display. Prefer the foreground process name; fall back to the
--- pane title (mux-domain panes on Windows report no fg name, but the title carries it). A
--- descriptive title (contains whitespace -- "repo - Lazygit", a Claude activity) is not a process
--- name, so return nil for those (the tab's dir + claude badge already cover them). { name, icon } | nil.
+-- pane title -- mux-domain panes on Windows report NO fg name (snapshot or live), but the title
+-- carries it: the live animated Claude activity ("⠐ Verify and research..."), "repo - Lazygit", or
+-- a "...\pwsh.exe" path that proc_label basenames down to "pwsh". { name, icon } | nil for empty.
 function M.proc_display(fg_process_name, title, icon_map)
   local src = (fg_process_name and fg_process_name ~= '' and fg_process_name) or title
-  local pl = M.proc_label(src, icon_map)
-  if not pl then return nil end
-  if pl.name:find('%s') then return nil end
-  return pl
+  return M.proc_label(src, icon_map)
+end
+
+-- Pure: truncate to at most `max` UTF-8 codepoints (never cuts a multibyte glyph mid-byte, so the
+-- Claude spinner survives), appending '…' when shortened. Caps tab width as insurance against the
+-- earlier "title bleeds into the next tab" clipping. nil/<=0 max or unmeasurable string -> unchanged.
+function M.truncate(s, max)
+  if not s or not max or max <= 0 then return s end
+  local n = utf8.len(s)
+  if not n or n <= max then return s end
+  return s:sub(1, (utf8.offset(s, max + 1) or 1) - 1) .. '…'
 end
 
 M.basename = basename
@@ -131,6 +138,7 @@ function M.components(wezterm, opts)
   local run = wezterm.run_child_process
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
+  local proc_max = opts.proc_max or 24
   local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal or '|'
   local proc_icons = opts.proc_icons or {
     pwsh = nf.cod_terminal_powershell, powershell = nf.cod_terminal_powershell,
@@ -197,7 +205,7 @@ function M.components(wezterm, opts)
     pane = pane or (window and window:active_pane())
     if not pane then return '' end
     local pl = M.proc_display(M.adapt_fg(pane), M.adapt_title(pane), proc_icons)
-    return pl and pl.name or ''
+    return pl and M.truncate(pl.name, proc_max) or ''
   end)
 
   C.counts = safe(function(window, pane)
@@ -216,7 +224,7 @@ function M.components(wezterm, opts)
     local pl = M.proc_display(fg, M.adapt_title(pi), proc_icons)
     if not pl then return '' end
     -- Leading space: tab sections get no component separators, so each component self-separates.
-    return ' ' .. (pl.icon and (pl.icon .. ' ') or '') .. pl.name
+    return ' ' .. (pl.icon and (pl.icon .. ' ') or '') .. M.truncate(pl.name, proc_max)
   end)
 
   C.tab_host_icon = safe(function(tab, pane)

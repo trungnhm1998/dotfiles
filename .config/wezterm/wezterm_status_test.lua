@@ -90,9 +90,16 @@ eq(M.proc_label(nil, imap), nil, 'proc nil -> nil')
 eq(M.proc_display('C:\\x\\pwsh.exe', nil, imap).name, 'pwsh', 'proc_display uses fg')
 eq(M.proc_display('', 'C:\\Program Files\\PowerShell\\7\\pwsh.exe', imap).name, 'pwsh',
    'proc_display falls back to title when fg empty (mux pane)')
-eq(M.proc_display(nil, 'dotfiles - Lazygit', imap), nil, 'proc_display rejects spaced/descriptive title')
-eq(M.proc_display(nil, '⠐ Verify and research', imap), nil, 'proc_display rejects Claude activity title')
+eq(M.proc_display(nil, 'dotfiles - Lazygit', imap).name, 'dotfiles - Lazygit', 'proc_display shows descriptive title')
+eq(M.proc_display(nil, '⠐ Verify and research', imap).name, '⠐ Verify and research', 'proc_display shows Claude activity title')
 eq(M.proc_display('', '', imap), nil, 'proc_display empty -> nil')
+
+-- truncate: UTF-8 aware (never splits a multibyte spinner), appends … when shortened
+eq(M.truncate('hello', 10), 'hello', 'truncate under limit unchanged')
+eq(M.truncate('hello world', 5), 'hello…', 'truncate ascii + ellipsis')
+eq(M.truncate('⠐ abcdef', 4), '⠐ ab…', 'truncate keeps multibyte spinner whole')
+eq(M.truncate('⠐⠐⠐', 5), '⠐⠐⠐', 'truncate multibyte under limit unchanged')
+eq(M.truncate('whatever', nil), 'whatever', 'truncate nil max -> unchanged')
 
 -- Window components must resolve the active pane from `window` alone (tabline may pass 1 arg).
 do
@@ -163,6 +170,23 @@ do
   }
   local comp = M.components(stub_wez, { local_icon = 'L' })
   eq(comp.process(tab), ' I nvim', 'tab process: live MuxPane fallback when snapshot fg is empty')
+end
+
+-- When neither the snapshot nor the live mux can report fg (Claude/mux panes on Windows), show the
+-- pane TITLE -- the animated Claude activity -- so you can see Claude working on the tab.
+do
+  local pane = setmetatable(
+    { domain_name = 'unix', foreground_process_name = '', title = '⠐ Verify and research', pane_id = 9,
+      current_working_dir = { file_path = '/C:/r' } },
+    { __index = function(_, k) error('strict PaneInformation: no field ' .. tostring(k)) end })
+  local tab = { tab_index = 0, active_pane = pane, panes = { 1 } }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf, run_child_process = function() return false, '', '' end,
+    mux = { get_workspace_names = function() return {} end, get_pane = function(_) return nil end },
+  }
+  local comp = M.components(stub_wez, {})
+  eq(comp.process(tab), ' I ⠐ Verify and research', 'tab process: falls back to the pane title (Claude activity)')
 end
 
 if fails == 0 then print('wezterm_status_test OK') else print(fails .. ' FAILURES'); os.exit(1) end
