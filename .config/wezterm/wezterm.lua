@@ -775,6 +775,23 @@ if is_windows then
     package.loaded['tabline.components.tab.claude'] = require('tabline_claude_badge')
 end
 
+-- Windows-only: command palette (Ctrl+Shift+P) entry for the fuzzy workspace picker --
+-- same action as Leader+f (smart_workspace_switcher: workspaces + zoxide dirs). mac/Linux
+-- uses tmux sessions, not workspaces, so it's gated to match the Leader+f gating above.
+-- NOTE: WezTerm renders only the FIRST augment-command-palette handler (#6211) -- if you add
+-- more entries later, return them all from THIS table; do NOT register a second handler.
+if is_windows then
+    wezterm.on("augment-command-palette", function(window, pane)
+        return {
+            {
+                brief = "Switch workspace (fuzzy)",
+                icon = "md_briefcase_outline",
+                action = workspace_switcher.switch_workspace(),
+            },
+        }
+    end)
+end
+
 -- Tabline sections: Windows shows the full set; mac/Linux a lean complementary set (only what
 -- tmux's bar lacks). datetime/domain/workspace/claude are dropped on unix -- tmux + SketchyBar
 -- own those, so showing them again would just duplicate the tmux status line stacked below.
