@@ -18,6 +18,11 @@ export XDG_CONFIG_HOME="$HOME/.config"
 # the inner tmux shell, breaking italics/undercurl capability detection. COLORTERM still
 # advertises truecolor to apps that sniff it (which is how truecolor survives in tmux).
 export COLORTERM=truecolor
+# Claude Code caps its TUI to 256-color whenever $TMUX is set (regression since 2.1.77), muting
+# Clawd/the "Thinking" spinner even though tmux forwards truecolor fine to every other app. This
+# escape hatch skips that clamp while keeping $TMUX set, so tmux-awareness (notification
+# passthrough) stays intact -- unlike `env -u TMUX claude`. Needs Claude Code >= 2.1.83.
+export CLAUDE_CODE_TMUX_TRUECOLOR=1
 
 # --- secrets (gitignored; see secrets.env.example) ---
 [ -f "$HOME/.config/dotfiles/secrets.env" ] && source "$HOME/.config/dotfiles/secrets.env"
