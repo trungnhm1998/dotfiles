@@ -17,6 +17,12 @@ opt.softtabstop = 4
 opt.tabstop = 4
 opt.expandtab = true
 
+-- Emit a terminal title so the WezTerm tab can identify this pane. WezTerm's mux hides the
+-- foreground process name for mux-domain panes, so the tab falls back to the pane title -- without
+-- this, an nvim tab shows nothing. Renders e.g. "nvim options.lua" (%t = filename tail).
+opt.title = true
+opt.titlestring = "nvim %t"
+
 vim.g.snacks_animate = false
 vim.g.autoformat = false
 
