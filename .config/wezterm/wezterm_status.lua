@@ -48,7 +48,7 @@ function M.git_status(run, now, path, cache, ttl)
   local val = nil
   if pok and ok and stdout then
     local first = stdout:match('^[^\r\n]*') or ''
-    local branch = first:match('^## ([^.\r\n]+)') or first:match('^## (.+)$')
+    local branch = first:match('^## ([^\r\n]+)')
     if branch then
       branch = (branch:gsub('%.%.%..*$', ''):gsub('%s+$', ''))
       local body = stdout:gsub('^[^\r\n]*\r?\n?', '')

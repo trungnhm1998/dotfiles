@@ -18,6 +18,7 @@ eq(M.path_from_url('/home/max/p', nil), '/home/max/p', 'posix path')
 eq(M.path_from_url('/C:/x', 'somehost'), nil, 'remote host nil')
 eq(M.path_from_url('//wsl.localhost/Ubuntu/home', nil), nil, 'unc nil')
 eq(M.path_from_url(nil, nil), nil, 'nil nil')
+eq(M.path_from_url('\\\\server\\share', nil), nil, 'unc backslash nil')
 
 -- host_of
 local h = M.host_of('WSL:Ubuntu-24.04', 'bash', { wsl_icon = 'W' })
@@ -39,6 +40,8 @@ eq(gs2.branch, 'main', 'cache hit')
 local gs3 = M.git_status(function() return true, '## dev\n', '' end, 200, 'C:/repo2', cache, 3)
 eq(gs3.branch, 'dev', 'clean branch'); eq(gs3.dirty, false, 'dirty false')
 eq(M.git_status(function() return false, '', 'fatal' end, 300, 'C:/x', cache, 3), nil, 'non-repo nil')
+eq((M.git_status(function() return true, '## release/2.1...origin/release/2.1\n', '' end, 500, 'C:/repo3', cache, 3)).branch, 'release/2.1', 'dotted branch full')
+eq(M.git_status(function() error('must not run') end, 400, nil, cache, 3), nil, 'nil path nil')
 
 -- git_toplevel
 local tcache = {}
