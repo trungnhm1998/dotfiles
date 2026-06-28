@@ -72,4 +72,29 @@ eq(pl.name, 'node', 'proc bare name'); eq(pl.icon, 'D', 'proc unknown -> default
 eq(M.proc_label('', imap), nil, 'proc empty -> nil')
 eq(M.proc_label(nil, imap), nil, 'proc nil -> nil')
 
+-- Window components must resolve the active pane from `window` alone (tabline may pass 1 arg).
+do
+  local stub_pane = {
+    get_domain_name = function() return 'local' end,
+    get_foreground_process_name = function() return 'C:/x/pwsh.exe' end,
+    get_current_working_dir = function() return { file_path = '/C:/repo', host = nil } end,
+  }
+  local stub_window = {
+    active_pane = function() return stub_pane end,
+    active_workspace = function() return 'main' end,
+    mux_window = function() return { tabs = function() return { 1, 2 } end } end,
+  }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf,
+    run_child_process = function() return true, '## main\n', '' end,
+    mux = { get_workspace_names = function() return { 'main', 'other' } end },
+  }
+  local comp = M.components(stub_wez, { local_icon = 'L', ssh_icon = 'S', wsl_icon = 'W' })
+  eq(comp.host_badge(stub_window), 'L local', 'host_badge resolves pane from window only')
+  eq(comp.focused_process(stub_window), 'pwsh', 'focused_process from window only')
+  assert(comp.counts(stub_window):find('2 ws'), 'counts from window only')
+  assert(comp.git_branch(stub_window):find('main'), 'git_branch resolves pane from window only')
+end
+
 if fails == 0 then print('wezterm_status_test OK') else print(fails .. ' FAILURES'); os.exit(1) end

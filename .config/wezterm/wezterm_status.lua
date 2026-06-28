@@ -139,6 +139,7 @@ function M.components(wezterm, opts)
 
   -- WINDOW components (real Window/Pane objects) -------------------------------
   C.git_branch = safe(function(window, pane)
+    pane = pane or (window and window:active_pane())
     if not pane or is_remote(pane) then return '' end
     local cwd = M.adapt_cwd(pane)
     if not cwd then return '' end
@@ -149,6 +150,7 @@ function M.components(wezterm, opts)
   end)
 
   C.host_badge = safe(function(window, pane)
+    pane = pane or (window and window:active_pane())
     if not pane then return '' end
     local ws = nil
     pcall(function() ws = window:active_workspace() end)
@@ -160,6 +162,7 @@ function M.components(wezterm, opts)
   end)
 
   C.focused_process = safe(function(window, pane)
+    pane = pane or (window and window:active_pane())
     if not pane then return '' end
     return (M.basename(M.adapt_fg(pane)):gsub('%.exe$', ''))
   end)
