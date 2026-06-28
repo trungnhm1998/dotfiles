@@ -42,7 +42,7 @@ Base00 base · Base01 mantle · Base02 surface0 · Base03 surface1 · Base04 sur
 Unified Mauve governs **chrome** (borders, pills, prompt, pickers). Editor **syntax** themes (Neovim, Zed) keep the full Frappe palette by design. Claude Code TUI is `dark-ansi` (inherits WezTerm's Frappe ANSI).
 
 ## Already-Frappe (do not re-theme)
-WezTerm, tmux, Zellij, Neovim, Zed (Windows), yazi (active flavor), bat, fzf, lazygit, komorebi AHK OSD.
+WezTerm, tmux, Zellij, Neovim, Zed (Windows), yazi (active flavor), bat, fzf, lazygit, komorebi AHK OSD, Windows Terminal + Preview (via fragment).
 
 ## Claude statusline (ccstatusline) — known limitation
 Active statusline is `ccstatusline` (node, via `bunx`), config at `~/.config/ccstatusline/settings.json`. In **minimalist (non-powerline) mode** it accepts only **named ANSI colors** (rendered as *generic* truecolor, NOT the terminal palette) — custom Frappe hex (`#ca9ee6` / `ca9ee6`) in a segment's `color` field is **silently ignored** (verified 2026-06-26). So exact Frappe Mauve is **not** achievable via the config file. Left as Max's working named-color config.

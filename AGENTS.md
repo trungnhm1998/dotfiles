@@ -55,6 +55,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 |--------|--------|
 | `.config/nvim` | `$HOME\.config\nvim` |
 | `.config/wezterm` | `$HOME\.config\wezterm` |
+| `.config/windows-terminal/catppuccin-frappe.json` | `$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles\catppuccin-frappe.json` (Catppuccin Frappé color scheme; **both** WT stable + Preview read this edition-agnostic fragments dir, so one file themes both; select it once per app via Settings → Defaults → Color scheme — deploy never touches `settings.json`) |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
 | `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
 | `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
