@@ -1,1 +1,4 @@
-flavors/
+# flavors/ is vendored AND git-tracked: the active theme (catppuccin-frappe, referenced by
+# theme.toml's `dark = "catppuccin-frappe"`) lives here and must stay committed. Don't ignore
+# the dir that holds a committed flavor — it hides the flavor from `git status` and masks any
+# stray/untracked flavors sitting alongside it.

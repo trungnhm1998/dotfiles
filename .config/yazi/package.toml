@@ -13,16 +13,6 @@ use = "AnirudhG07/nbpreview"
 rev = "b504594"
 hash = "b83919985400521dee78e1c352b5d9db"
 
-[[plugin.deps]]
-use = "tasnimAlam/thumbnail"
-rev = "50d24b8"
-hash = "59ab6275308202d17e3b5383d03ce5b4"
-
-[[plugin.deps]]
-use = "yazi-rs/plugins:piper"
-rev = "de33976"
-hash = "76ea4ff62db6ebe62e4653c2de95cbd"
-
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
 rev = "ca61658"

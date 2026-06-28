@@ -6,8 +6,8 @@ This directory contains vendored themes (flavors) and plugins for the Yazi file 
 
 All external dependencies are defined in `package.toml` and installed via:
 ```bash
-ya pack -i  # Install all dependencies
-ya pack -u  # Update all dependencies
+ya pkg install  # Install all dependencies
+ya pkg upgrade  # Update all dependencies
 ```
 
 ## ⚠️ DO NOT MODIFY
@@ -22,7 +22,7 @@ Manual changes to these directories will be lost when packages are updated.
 
 | Flavor | Source | Commit | Description |
 |--------|--------|--------|-------------|
-| catppuccin-frappe | yazi-rs/flavors | fd85060 | Catppuccin Frappe (active theme) |
+| catppuccin-frappe | yazi-rs/flavors | ca61658 | Catppuccin Frappe (active theme) |
 
 **Active Theme**: Catppuccin Frappe (set in `theme.toml`)
 
@@ -30,11 +30,18 @@ Manual changes to these directories will be lost when packages are updated.
 
 | Plugin | Source | Commit | Purpose |
 |--------|--------|--------|---------|
-| git.yazi | yazi-rs/plugins | 4e55902 | Git integration and status display |
-| rich-preview.yazi | AnirudhG07/rich-preview | 573b275 | Rich file previews (PDFs, images, archives) |
-| nbpreview.yazi | AnirudhG07/nbpreview | b504594 | Jupyter notebook preview support |
-| thumbnail.yazi | tasnimAlam/thumbnail | 50d24b8 | Thumbnail generation for images/videos |
-| piper.yazi | yazi-rs/plugins | 4e55902 | Pipe content through external commands |
+| git.yazi | yazi-rs/plugins | de33976 | Git integration and status display |
+| rich-preview.yazi | AnirudhG07/rich-preview | 573b275 | Preview md/csv/rst via `rich-cli` (needs `rich`) |
+| nbpreview.yazi | AnirudhG07/nbpreview | b504594 | Jupyter `.ipynb` preview (needs `nbpreview`) |
+
+### Runtime dependencies (preview CLIs)
+
+The previewers shell out to external tools (wired in `yazi.toml` → `[plugin] prepend_previewers`):
+
+- **rich-preview** → needs `rich-cli`: `brew install rich-cli` (provides the `rich` binary). Previews markdown, CSV, and reStructuredText in the preview pane.
+- **nbpreview** → needs `nbpreview`: `pipx install nbpreview`. Jupyter `.ipynb` preview (optional).
+
+Without the CLI installed, the matching file types preview **blank** instead of as plain text.
 
 ## Managing Dependencies
 
@@ -49,7 +56,7 @@ Manual changes to these directories will be lost when packages are updated.
 
 2. Install:
    ```bash
-   ya pack -i
+   ya pkg install
    ```
 
 3. Configure in `yazi.toml` to use the plugin
@@ -65,7 +72,7 @@ Manual changes to these directories will be lost when packages are updated.
 
 2. Install:
    ```bash
-   ya pack -i
+   ya pkg install
    ```
 
 3. Activate in `theme.toml`:
@@ -77,7 +84,7 @@ Manual changes to these directories will be lost when packages are updated.
 ### Updating All Dependencies
 
 ```bash
-ya pack -u  # Updates to latest commits
+ya pkg upgrade  # Updates to latest commits
 ```
 
 This will modify `package.toml` with new commit hashes.
@@ -115,7 +122,7 @@ Yazi config is symlinked to:
 ### Plugins Not Loading
 - Verify plugin is listed in `package.toml`
 - Check `yazi.toml` for correct plugin configuration
-- Run `ya pack -i` to reinstall
+- Run `ya pkg install` to reinstall
 - Restart Yazi
 
 ### Theme Not Applying
@@ -125,7 +132,7 @@ Yazi config is symlinked to:
 
 ### Update Errors
 - Delete `flavors/` and `plugins/` directories
-- Run `ya pack -i` to fresh install
+- Run `ya pkg install` to fresh install
 - Check for conflicting package.toml entries
 
 ## Official Documentation

@@ -114,6 +114,18 @@ rules = [
     ] },
 ]
 
+[plugin]
+# Previewers (right-hand preview pane). These shell out to external CLIs:
+#   rich-preview -> `rich` (rich-cli): `brew install rich-cli`  — md / csv / rst
+#   nbpreview    -> `nbpreview`:       `pipx install nbpreview` — Jupyter .ipynb (optional)
+# Without the CLI installed, the matching file types preview blank. See EXTERNAL_DEPS.md.
+prepend_previewers = [
+    { name = "*.ipynb", run = "nbpreview" },
+    { name = "*.md", run = "rich-preview" },
+    { name = "*.csv", run = "rich-preview" },
+    { name = "*.rst", run = "rich-preview" },
+]
+
 [[plugin.prepend_fetchers]]
 id  = "git"
 url = "*"
