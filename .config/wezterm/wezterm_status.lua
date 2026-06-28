@@ -95,6 +95,7 @@ end
 function M.adapt_domain(pane) return read(pane, 'get_domain_name', 'domain_name') end
 function M.adapt_fg(pane) return read(pane, 'get_foreground_process_name', 'foreground_process_name') end
 function M.adapt_cwd(pane) return read(pane, 'get_current_working_dir', 'current_working_dir') end
+function M.adapt_title(pane) return read(pane, 'get_title', 'title') end
 
 -- Pure: derive { name, icon } from a foreground process path. name = basename minus a trailing
 -- .exe; icon = icon_map[name:lower()] or icon_map.default. Returns nil for empty/nil input.
@@ -105,6 +106,18 @@ function M.proc_label(fg_process_name, icon_map)
   local icon = nil
   if icon_map then icon = icon_map[name:lower()] or icon_map.default end
   return { name = name, icon = icon }
+end
+
+-- Pure: choose a process label to display. Prefer the foreground process name; fall back to the
+-- pane title (mux-domain panes on Windows report no fg name, but the title carries it). A
+-- descriptive title (contains whitespace -- "repo - Lazygit", a Claude activity) is not a process
+-- name, so return nil for those (the tab's dir + claude badge already cover them). { name, icon } | nil.
+function M.proc_display(fg_process_name, title, icon_map)
+  local src = (fg_process_name and fg_process_name ~= '' and fg_process_name) or title
+  local pl = M.proc_label(src, icon_map)
+  if not pl then return nil end
+  if pl.name:find('%s') then return nil end
+  return pl
 end
 
 M.basename = basename
@@ -166,13 +179,15 @@ function M.components(wezterm, opts)
       local_icon = opts.local_icon, wsl_icon = opts.wsl_icon, ssh_icon = opts.ssh_icon,
       workspace = ws, icon_overrides = opts.icon_overrides,
     })
-    return ' ' .. (h.icon or '') .. ' ' .. (h.label or '') .. ' '
+    local icon = h.icon and (h.icon .. ' ') or ''
+    return ' ' .. icon .. (h.label or '') .. ' '
   end)
 
   C.focused_process = safe(function(window, pane)
     pane = pane or (window and window:active_pane())
     if not pane then return '' end
-    return (M.basename(M.adapt_fg(pane)):gsub('%.exe$', ''))
+    local pl = M.proc_display(M.adapt_fg(pane), M.adapt_title(pane), proc_icons)
+    return pl and pl.name or ''
   end)
 
   C.counts = safe(function(window, pane)
@@ -186,7 +201,7 @@ function M.components(wezterm, opts)
   C.process = safe(function(tab, pane)
     local pi = pane or (tab and tab.active_pane)
     if not pi then return '' end
-    local pl = M.proc_label(M.adapt_fg(pi), proc_icons)
+    local pl = M.proc_display(M.adapt_fg(pi), M.adapt_title(pi), proc_icons)
     if not pl then return '' end
     -- Leading space: tab sections get no component separators, so each component self-separates.
     return ' ' .. (pl.icon and (pl.icon .. ' ') or '') .. pl.name

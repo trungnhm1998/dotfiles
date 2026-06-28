@@ -86,6 +86,14 @@ eq(pl.name, 'node', 'proc bare name'); eq(pl.icon, 'D', 'proc unknown -> default
 eq(M.proc_label('', imap), nil, 'proc empty -> nil')
 eq(M.proc_label(nil, imap), nil, 'proc nil -> nil')
 
+-- proc_display: prefer fg; fall back to title (mux panes report no fg); reject descriptive titles.
+eq(M.proc_display('C:\\x\\pwsh.exe', nil, imap).name, 'pwsh', 'proc_display uses fg')
+eq(M.proc_display('', 'C:\\Program Files\\PowerShell\\7\\pwsh.exe', imap).name, 'pwsh',
+   'proc_display falls back to title when fg empty (mux pane)')
+eq(M.proc_display(nil, 'dotfiles - Lazygit', imap), nil, 'proc_display rejects spaced/descriptive title')
+eq(M.proc_display(nil, '⠐ Verify and research', imap), nil, 'proc_display rejects Claude activity title')
+eq(M.proc_display('', '', imap), nil, 'proc_display empty -> nil')
+
 -- Window components must resolve the active pane from `window` alone (tabline may pass 1 arg).
 do
   local stub_pane = {
@@ -109,6 +117,9 @@ do
   eq(comp.focused_process(stub_window), 'pwsh', 'focused_process from window only')
   assert(comp.counts(stub_window):find('2 ws'), 'counts from window only')
   assert(comp.git_branch(stub_window):find('main'), 'git_branch resolves pane from window only')
+  -- Windows drops the local glyph (nil local_icon): label only, no leading icon / double space.
+  local comp2 = M.components(stub_wez, { ssh_icon = 'S', wsl_icon = 'W' })
+  eq(comp2.host_badge(stub_window), ' local ', 'host_badge nil icon -> label only')
 end
 
 -- Tab components: tabline calls them with a TabInformation (1 arg) whose active_pane is a STRICT

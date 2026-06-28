@@ -818,10 +818,18 @@ end
 -- tmux's bar lacks). datetime/domain/workspace/claude are dropped on unix -- tmux + SketchyBar
 -- own those, so showing them again would just duplicate the tmux status line stacked below.
 
--- Per-platform "local" host glyph so the unix tab icon shows the right OS, not Windows.
+-- Per-platform "local" host glyph. Windows gets NO glyph: nf.md_microsoft_windows renders via the
+-- Segoe color-emoji fallback as a wide glyph that miscounts cell width and clips the tab. Absence
+-- of a host icon == local; WSL/ssh still get their monochrome glyphs as "you're remote" markers.
 local nf = wezterm.nerdfonts
-local local_icon = is_macos and nf.md_apple
-    or (is_windows and nf.md_microsoft_windows or nf.linux_tux)
+local local_icon
+if is_macos then
+    local_icon = nf.md_apple
+elseif is_windows then
+    local_icon = nil
+else
+    local_icon = nf.linux_tux
+end
 local comp = status.components(wezterm, {
     local_icon = local_icon,
     wsl_icon = nf.cod_terminal_linux,
@@ -855,13 +863,13 @@ if is_windows then
             comp.pane_count,
             { "zoomed", padding = 0 },
         },
-        -- Right side: stock `domain` + host badge form the location block; git branch replaces the
-        -- clock (`datetime`); counts + focused process fill the far-left. `domain` shows the raw
-        -- WezTerm domain (local / unix mux / WSL:..) -- distinct from host_badge, which labels the
-        -- ssh host (mac/vps) that the local-domain ssh.exe leaves `domain` reading "local".
+        -- Right side: counts + focused process on the far-left, host badge on the right. host_badge
+        -- is the single "where am I" label (local / WSL distro / ssh host like mac|vps). Stock
+        -- `domain` was dropped -- for mux panes it only showed the cryptic socket name "unix"; the
+        -- git branch was dropped on request.
         tabline_x = { comp.counts, " ", comp.focused_process },
-        tabline_y = { comp.git_branch },
-        tabline_z = { "domain", comp.host_badge },
+        tabline_y = {},
+        tabline_z = { comp.host_badge },
     }
 else
     tabline_sections = {
