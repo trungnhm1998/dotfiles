@@ -20,6 +20,7 @@ local act = wezterm.action
 local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
 local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
     or false
+local is_unix = not is_windows
 
 -- ============================================================================
 -- § 2 · SHARED UI  —  all platforms; add new cross-platform UI here
@@ -345,135 +346,315 @@ if is_windows and shellType ~= ShellTypes.WSL then
 end
 
 -- ============================================================================
--- § 4 · Windows tmux-emulation  —  Windows-only; leader, key tables, tabline, Claude
+-- § 4 · Multiplexer leader (tmux-emulation) — shared core, per-platform extensions
 -- ============================================================================
 
--- Stable mux-namespace tag for the Claude badge/focus channels. The hooks (notify-lib.sh /
--- claude-notify.ps1) namespace their cache dir by basename($WEZTERM_UNIX_SOCKET) AS SEEN IN THE
--- CLAUDE PANE -- under the persistent 'unix' mux that is always the mux-server socket 'sock'. The
--- GUI's own os.getenv('WEZTERM_UNIX_SOCKET') is the EPHEMERAL gui-sock (changes per reopen), so the
--- update-status poller below must use THIS constant to read the same dir the hooks write to.
--- (Single mux => pane ids are globally unique, so one shared tag is correct.) See
--- [[WezTerm Multi-Mux Pane IDs on Windows]].
-local MUX_SOCK = "sock"
+-- A local pane is "SSH'd out" when its foreground process is an ssh/mosh client. WezTerm
+-- can't see the REMOTE process, but the local ssh client IS the foreground of the pane, so
+-- this detects "I'm in an SSH session" and hands Ctrl+Space to the remote tmux instead of
+-- grabbing it for WezTerm's leader. Only runs on a Ctrl+Space press.
+-- See https://wezterm.org/config/lua/pane/get_foreground_process_name.html
+local function is_ssh_pane(pane)
+    local ok, name = pcall(function() return pane:get_foreground_process_name() end)
+    if not ok or not name then return false end
+    name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
+    return name == "ssh.exe" or name == "ssh" or name == "mosh.exe" or name == "mosh"
+        or name == "mosh-client.exe"
+end
 
+-- A pane is "in tmux" when its foreground process is the tmux client. A tmux-attached WezTerm
+-- pane runs the tmux client in its pty (shells live under the tmux *server*, a separate process
+-- tree), so this reads "tmux". Mirrors is_ssh_pane. Used on mac/Linux to hand Ctrl+Space to the
+-- local tmux -- including claude-squad's internal tmux -- instead of grabbing WezTerm's leader.
+local function is_tmux_pane(pane)
+    local ok, name = pcall(function() return pane:get_foreground_process_name() end)
+    if not ok or not name then return false end
+    name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
+    return name == "tmux" or name == "tmux.exe"
+end
+
+-- Helper to check if current pane is in a WSL domain (Windows).
+local function is_wsl_pane(pane)
+    local domain_name = pane:get_domain_name()
+    return domain_name and domain_name:find("WSL") ~= nil
+end
+
+-- Build a SpawnCommand for actions launched from the current pane. On Windows, relaunch pwsh
+-- for local panes; elsewhere inherit the default shell. Deliberately do NOT set `cwd`: a
+-- CurrentPaneDomain command already inherits the active pane's working directory, and WezTerm
+-- converts that URL to a native path correctly. Setting cwd ourselves from
+-- get_current_working_dir().file_path breaks on Windows -- it returns a "/C:/..." path WezTerm
+-- rejects (os error 123), silently falling back to the home directory.
+local function pane_command(pane)
+    local command = { domain = "CurrentPaneDomain" }
+    if is_windows and pane:get_domain_name() == "local" then
+        command.args = { pwsh, "-NoLogo" }
+    end
+    return command
+end
+
+local function split_current_pane(direction)
+    return wezterm.action_callback(function(window, pane)
+        window:perform_action(
+            act.SplitPane({ direction = direction, command = pane_command(pane) }),
+            pane
+        )
+    end)
+end
+
+-- Conditional Ctrl+Space: hand the prefix to whatever multiplexer owns the pane (remote tmux
+-- over ssh, WSL's tmux, or a local tmux incl. claude-squad's), else activate WezTerm's leader.
+-- No timeout: tmux's prefix waits indefinitely. prevent_fallback: an unbound key is swallowed,
+-- not sent to the shell (tmux cancel-and-discard). one_shot: exit after a single command key.
+table.insert(config.keys, {
+    key = " ",
+    mods = "CTRL",
+    action = wezterm.action_callback(function(window, pane)
+        local owned_elsewhere = is_ssh_pane(pane)
+            or (is_windows and is_wsl_pane(pane))
+            or (is_unix and is_tmux_pane(pane))
+        if owned_elsewhere then
+            window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
+        else
+            window:perform_action(
+                act.ActivateKeyTable({ name = "leader_mode", one_shot = true, prevent_fallback = true }),
+                pane
+            )
+        end
+    end),
+})
+
+-- Lockout backstop: clear the whole key-table stack from anywhere. Ctrl+Shift+Esc is NOT
+-- usable (Windows reserves it for Task Manager), so use Ctrl+Shift+Space.
+table.insert(config.keys, {
+    key = " ",
+    mods = "CTRL|SHIFT",
+    action = act.ClearKeyTableStack,
+})
+
+-- Mode-chip for the tabline `mode` component: icon-only LEADER/COPY/SEARCH/RESIZE indicator.
+-- Shared by both platforms' tabline sections below. A mode shown here MUST also have a matching
+-- theme section in set_theme below, or tabline's update-status indexes a nil theme and the whole
+-- bar freezes on its last paint. icons: https://wezterm.org/config/lua/wezterm/nerdfonts.html
+local function mode_chip_fmt(mode, window)
+    local icon_only = true
+    local icon = nil
+    if mode == "LEADER" then
+        icon = wezterm.nerdfonts.md_keyboard_outline
+    elseif mode == "NORMAL" then
+        icon = wezterm.nerdfonts.cod_terminal
+    elseif mode == "COPY" then
+        icon = wezterm.nerdfonts.md_scissors_cutting
+    elseif mode == "SEARCH" then
+        icon = wezterm.nerdfonts.oct_search
+    elseif mode == "RESIZE" then
+        icon = wezterm.nerdfonts.md_arrow_all
+    end
+    if icon_only and icon == nil then
+        return mode
+    end
+    return string.format(
+        "%s%s",
+        icon and icon .. (icon_only and "" or " ") or "",
+        icon_only and "" or mode
+    )
+end
+
+-- Shared key tables: leader_mode nav base + resize_mode. Windows-only leader extras (launcher,
+-- workspaces, detach) are appended afterward under `if is_windows`.
+config.key_tables = {
+    leader_mode = {
+        -- tmux: prefix Escape -> copy mode. Cancel-leader is intentionally gone: press any
+        -- unbound key (swallowed) to exit, or use the Ctrl+Shift+Space backstop.
+        { key = "Escape", action = act.ActivateCopyMode },
+        -- tmux: send-prefix. Sends the literal Ctrl+Space (NUL) to the app.
+        { key = " ", action = act.SendKey({ key = " ", mods = "CTRL" }) },
+        -- tmux: prefix ] -> paste.
+        { key = "]", action = act.PasteFrom("Clipboard") },
+        -- tmux: prefix hjkl -> select pane.
+        { key = "h", action = act.ActivatePaneDirection("Left") },
+        { key = "j", action = act.ActivatePaneDirection("Down") },
+        { key = "k", action = act.ActivatePaneDirection("Up") },
+        { key = "l", action = act.ActivatePaneDirection("Right") },
+        -- Split horizontal (side-by-side); tmux `v` / `prefix |`.
+        { key = "|", mods = "SHIFT", action = split_current_pane("Right") },
+        { key = "v", action = split_current_pane("Right") },
+        -- Split vertical (stacked); tmux `s` / `prefix -`.
+        { key = "-", mods = "SHIFT", action = split_current_pane("Down") },
+        { key = "s", action = split_current_pane("Down") },
+        -- Pane/Tab management
+        { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
+        { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
+        {
+            key = ",",
+            action = act.PromptInputLine({
+                description = "Enter new name for tab",
+                action = wezterm.action_callback(function(window, pane, line)
+                    if line then
+                        window:active_tab():set_title(line)
+                    end
+                end),
+            }),
+        },
+        {
+            key = "t",
+            action = wezterm.action_callback(function(window, pane)
+                window:perform_action(act.SpawnCommandInNewTab(pane_command(pane)), pane)
+            end),
+        },
+        { key = "p", action = act.ActivateTabRelative(-1) },
+        { key = "n", action = act.ActivateTabRelative(1) },
+        -- Zoom pane toggle (tmux prefix + z)
+        { key = "z", action = act.TogglePaneZoomState },
+        -- Debug overlay / Lua REPL (tmux `prefix :` parallel)
+        { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
+        -- tmux-style sticky resize (parallels `bind -r ... resize-pane`). Plain `r`; arrows/hjkl
+        -- repeat without re-pressing prefix; Esc/q exit. Gated on pane count: a single-pane tab
+        -- has nothing to resize, so `r` is a no-op there. A MODIFIED entry key can NOT be used:
+        -- modifiers don't match inside a custom key table on Windows WezTerm (WezTerm #6824).
+        {
+            key = "r",
+            action = wezterm.action_callback(function(window, pane)
+                local tab = window:active_tab()
+                if tab and #tab:panes() > 1 then
+                    window:perform_action(
+                        act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
+                        pane
+                    )
+                end
+            end),
+        },
+    },
+    -- Sticky resize: one_shot=false keeps it active across repeats; Esc/q exit.
+    resize_mode = {
+        { key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
+        { key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
+        { key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
+        { key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
+        { key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 1 }) },
+        { key = "DownArrow", action = act.AdjustPaneSize({ "Down", 1 }) },
+        { key = "UpArrow", action = act.AdjustPaneSize({ "Up", 1 }) },
+        { key = "RightArrow", action = act.AdjustPaneSize({ "Right", 1 }) },
+        { key = "Escape", action = act.PopKeyTable },
+        { key = "q", action = act.PopKeyTable },
+    },
+}
+
+-- Tab switching keys 1-9 (shared).
+for i = 1, 9 do
+    table.insert(config.key_tables.leader_mode, {
+        key = tostring(i),
+        action = act.ActivateTab(i - 1),
+    })
+end
+
+-- tmux copy-mode-vi parity. WezTerm's default copy_mode is already vi-style; the only gap is
+-- Enter: tmux's `copy-mode-vi Enter copy-selection-and-cancel`. Start from defaults, drop the
+-- bare-Enter binding, add copy-and-close. wezterm.gui is nil GUI-less (mux server), where
+-- default_key_tables() throws -- guard it.
+if wezterm.gui then
+    local copy_mode = wezterm.gui.default_key_tables().copy_mode
+    local copy_mode_keys = {}
+    for _, m in ipairs(copy_mode) do
+        if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
+            table.insert(copy_mode_keys, m)
+        end
+    end
+    table.insert(copy_mode_keys, {
+        key = "Enter",
+        mods = "NONE",
+        action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
+    })
+    config.key_tables.copy_mode = copy_mode_keys
+end
+
+-- Windows-only leader extras: launcher (pwsh/WSL menu), workspace switching, detach domain.
+-- mac/Linux stays fallback-core (tmux sessions / claude-squad own session management).
 if is_windows then
-    -- Helper to check if current pane is in a WSL domain
-    local function is_wsl_pane(pane)
-        local domain_name = pane:get_domain_name()
-        return domain_name and domain_name:find("WSL") ~= nil
-    end
-
-    -- A pane is "Zellij-driven" when the zj wrapper set the user var (see PowerShell profile).
-    local function is_zellij_pane(pane)
-        local ok, vars = pcall(function() return pane:get_user_vars() end)
-        return ok and vars and vars.zellij == "1"
-    end
-
-    -- A local pane is "SSH'd out" when its foreground process is an ssh/mosh client. WezTerm
-    -- can't see the REMOTE process, but the local ssh.exe IS the most-recent descendant of the
-    -- pwsh pane, so this detects "I'm in an SSH session" and hands Ctrl+Space to the remote
-    -- tmux instead of grabbing it for WezTerm's leader. Heuristic + has overhead, but only runs
-    -- on a Ctrl+Space press. See https://wezterm.org/config/lua/pane/get_foreground_process_name.html
-    local function is_ssh_pane(pane)
-        local ok, name = pcall(function() return pane:get_foreground_process_name() end)
-        if not ok or not name then return false end
-        name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
-        return name == "ssh.exe" or name == "ssh" or name == "mosh.exe" or name == "mosh"
-            or name == "mosh-client.exe"
-    end
-
-    -- Debug overlay / Lua REPL now lives in leader_mode below on `:` (tmux/vim
-    -- command-prompt parallel); the old global Ctrl+Shift+L binding is removed.
-
-    -- Conditional Ctrl+Space: WSL pane or SSH'd-out pane passes to the remote tmux, others
-    -- activate the leader key table.
-    table.insert(config.keys, {
-        key = " ",
-        mods = "CTRL",
+    local leader = config.key_tables.leader_mode
+    -- Launcher
+    table.insert(leader, { key = "T", mods = "SHIFT", action = act.ShowLauncher })
+    -- Switch to new or existing workspace
+    table.insert(leader, {
+        key = "w",
+        action = act.PromptInputLine({
+            description = wezterm.format({
+                { Attribute = { Underline = "Double" } },
+                { Foreground = { AnsiColor = "Fuchsia" } },
+                { Text = "Enter name for new workspace." },
+            }),
+            action = wezterm.action_callback(function(window, pane, line)
+                if line then
+                    window:perform_action(act.SwitchToWorkspace({ name = line }), pane)
+                end
+            end),
+        }),
+    })
+    -- Fuzzy workspace launcher (built-in)
+    table.insert(leader, { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) })
+    -- Fuzzy switcher (smart_workspace_switcher): workspaces + zoxide dirs
+    table.insert(leader, { key = "f", action = workspace_switcher.switch_workspace() })
+    -- Fast cycle: ( prev workspace, ) next workspace, L last-used
+    table.insert(leader, { key = "(", mods = "SHIFT", action = act.SwitchWorkspaceRelative(-1) })
+    table.insert(leader, { key = ")", mods = "SHIFT", action = act.SwitchWorkspaceRelative(1) })
+    table.insert(leader, {
+        key = "L",
+        mods = "SHIFT",
         action = wezterm.action_callback(function(window, pane)
-            -- if is_wsl_pane(pane) or is_zellij_pane(pane) then
-            if is_wsl_pane(pane) or is_ssh_pane(pane) then
-                -- WSL pane / ssh out (e.g. ssh to the Mac) -> the remote tmux owns Ctrl+Space, so
-                -- pass it through (not into leader_mode) instead of letting WezTerm's leader hijack it.
-                window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
-            else
-                -- Native pwsh pane: activate wezterm leader key table (tmux emulation).
-                -- No timeout: tmux's prefix waits indefinitely for the next key.
-                -- prevent_fallback: an unbound key is swallowed, not sent to the shell
-                -- (tmux cancel-and-discard). one_shot: exit after a single command key,
-                -- which also means the prevent_fallback lock-out risk can't apply here.
-                window:perform_action(
-                    act.ActivateKeyTable({
-                        name = "leader_mode",
-                        one_shot = true,
-                        prevent_fallback = true,
-                    }),
-                    pane
-                )
+            local prev = wezterm.GLOBAL.previous_workspace
+            if not prev then
+                return
+            end
+            for _, name in ipairs(wezterm.mux.get_workspace_names()) do
+                if name == prev then
+                    window:perform_action(act.SwitchToWorkspace({ name = prev }), pane)
+                    return
+                end
             end
         end),
     })
-
-    -- Lockout backstop: clear the whole key-table stack from anywhere. Ctrl+Shift+Esc is
-    -- NOT usable (Windows reserves it for Task Manager), so use Ctrl+Shift+Space.
-    table.insert(config.keys, {
-        key = " ",
-        mods = "CTRL|SHIFT",
-        action = act.ClearKeyTableStack,
+    -- Rename the active workspace (tmux `prefix + $`)
+    table.insert(leader, {
+        key = "$",
+        mods = "SHIFT",
+        action = act.PromptInputLine({
+            description = "Rename workspace to:",
+            action = wezterm.action_callback(function(_, _, line)
+                if line and line ~= "" then
+                    wezterm.mux.rename_workspace(wezterm.mux.get_active_workspace(), line)
+                end
+            end),
+        }),
     })
+    -- Detach this domain (tmux `prefix d`); panes + procs stay on the mux server.
+    table.insert(leader, { key = "d", action = act.DetachDomain("CurrentPaneDomain") })
+end
 
-    -- Build a SpawnCommand for actions launched from the current pane: keep the
-    -- same domain and relaunch pwsh for local panes. Deliberately do NOT set `cwd`:
-    -- a CurrentPaneDomain command already inherits the active pane's working
-    -- directory, and WezTerm converts that URL to a native path correctly. Setting
-    -- cwd ourselves from get_current_working_dir().file_path breaks on Windows --
-    -- it returns a "/C:/..." path WezTerm rejects (os error 123), silently falling
-    -- back to the home directory.
-    local function pane_command(pane)
-        local command = { domain = "CurrentPaneDomain" }
-        if pane:get_domain_name() == "local" then
-            command.args = { pwsh, "-NoLogo" }
-        end
-        return command
-    end
-
-    local function split_current_pane(direction)
-        return wezterm.action_callback(function(window, pane)
-            window:perform_action(
-                act.SplitPane({ direction = direction, command = pane_command(pane) }),
-                pane
-            )
-        end)
-    end
-
-    -- Reconcile module for the Claude tab-badge alert dir (pure logic, unit-tested in
-    -- claude/hooks/tests/test-claude-alerts.lua).
+-- Windows-only: Claude tab-badge + toast-focus, namespaced by the stable mux-server socket tag.
+-- mac/Linux uses SketchyBar + the tmux bell instead, so none of this runs there.
+if is_windows then
+    -- Stable mux-namespace tag for the Claude badge/focus channels. The hooks namespace their
+    -- cache dir by basename($WEZTERM_UNIX_SOCKET) under the persistent 'unix' mux (socket 'sock');
+    -- the GUI's own WEZTERM_UNIX_SOCKET is the ephemeral gui-sock, so this poller must use THIS
+    -- constant to read the same dir the hooks write to. See [[WezTerm Multi-Mux Pane IDs on Windows]].
+    local MUX_SOCK = "sock"
     local claude_alerts = require('wezterm_claude_alerts')
     local claude_focus = require('wezterm_claude_focus')
 
-    -- Track the previously-active workspace so Leader+L can jump back (tmux `prefix + L`).
-    -- update-status fires ~1x/sec and on switch, so it captures every switch path (relative
-    -- cycle, w-prompt, launcher, fuzzy switcher) without wrapping them. Multiple update-status
-    -- handlers all run, so this is additive alongside tabline's own.
+    -- Track previous workspace (Leader+L), reconcile the Claude badge dir, and consume toast
+    -- focus-on-click requests. update-status fires ~1x/sec and on switch.
     wezterm.on("update-status", function(window)
         local current = window:active_workspace()
         if wezterm.GLOBAL.current_workspace ~= current then
-            -- GLOBAL is purpose-built to hold arbitrary cross-reload state; LuaLS types it
-            -- as opaque userdata, so silence its inject-field nag on these two writes.
             ---@diagnostic disable-next-line: inject-field
             wezterm.GLOBAL.previous_workspace = wezterm.GLOBAL.current_workspace
             ---@diagnostic disable-next-line: inject-field
             wezterm.GLOBAL.current_workspace = current
         end
 
-        -- Claude tab badge: reconcile the alert subdir into GLOBAL.claude_alert. Namespaced by the
-        -- stable mux-server socket tag (MUX_SOCK), which MUST match the hooks' pane-side
-        -- basename($WEZTERM_UNIX_SOCKET) -- NOT the GUI's ephemeral gui-sock from os.getenv. Single
-        -- mux => globally-unique pane ids, so this one poller prunes all windows' dead panes safely.
         local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local paths = {}
-        pcall(function() paths = wezterm.read_dir(dir) end)   -- missing dir -> {}
+        pcall(function() paths = wezterm.read_dir(dir) end)
         local live = {}
         for _, w in ipairs(wezterm.mux.all_windows()) do
             for _, t in ipairs(w:tabs()) do
@@ -496,11 +677,6 @@ if is_windows then
         ---@diagnostic disable-next-line: inject-field
         wezterm.GLOBAL.claude_alert = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
 
-        -- Focus-on-click: a clicked toast dropped a one-shot marker for one of THIS mux's
-        -- panes (claude-notify.ps1 activate-mode). Find it, switch workspace if needed,
-        -- activate the pane (tab + pane), and raise the OS window — the only reliable
-        -- cross-window raise on Windows (wezterm cli cannot). Side effects run only when a
-        -- request is pending, so ordinary ticks are unaffected.
         local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
         local fpaths = {}
         pcall(function() fpaths = wezterm.read_dir(fdir) end)
@@ -517,8 +693,8 @@ if is_windows then
                             if target_ws and target_ws ~= gw:active_workspace() then
                                 pcall(function() wezterm.mux.set_active_workspace(target_ws) end)
                             end
-                            pcall(function() p:activate() end)   -- tab + pane
-                            pcall(function() gw:focus() end)     -- raise the OS window
+                            pcall(function() p:activate() end)
+                            pcall(function() gw:focus() end)
                         end
                     end
                 end
@@ -526,310 +702,102 @@ if is_windows then
         end
     end)
 
-    -- Define leader key table with all leader bindings
-    config.key_tables = {
-        leader_mode = {
-            -- tmux: prefix Escape -> copy mode (your `bind Escape copy-mode`; `[` is unbound).
-            -- Cancel-leader is intentionally gone: press any unbound key (swallowed) to exit,
-            -- or use the Ctrl+Shift+Space backstop.
-            { key = "Escape", action = act.ActivateCopyMode },
-            -- tmux: send-prefix. Ideally this would be Ctrl+Space Ctrl+Space, but a MODIFIED
-            -- key can't match inside a custom key table on Windows WezTerm (see WezTerm #6824),
-            -- so the literal Ctrl+Space (NUL) is sent via prefix then plain Space instead.
-            { key = " ", action = act.SendKey({ key = " ", mods = "CTRL" }) },
-            -- tmux: prefix ] -> paste (your `bind ] paste-buffer`).
-            { key = "]", action = act.PasteFrom("Clipboard") },
-            -- tmux: prefix hjkl -> select pane (your `bind hjkl select-pane`).
-            { key = "h", action = act.ActivatePaneDirection("Left") },
-            { key = "j", action = act.ActivatePaneDirection("Down") },
-            { key = "k", action = act.ActivatePaneDirection("Up") },
-            { key = "l", action = act.ActivatePaneDirection("Right") },
-            -- Launcher
-            { key = "T", mods = "SHIFT", action = act.ShowLauncher },
-            -- Split horizontal
-            { key = "|", mods = "SHIFT", action = split_current_pane("Right") },
-            { key = "v", action = split_current_pane("Right") },
-            -- Split vertical
-            { key = "-", mods = "SHIFT", action = split_current_pane("Down") },
-            { key = "s", action = split_current_pane("Down") },
-            -- Switch to new or existing workspace
-            {
-                key = "w",
-                action = act.PromptInputLine({
-                    description = wezterm.format({
-                        { Attribute = { Underline = "Double" } },
-                        { Foreground = { AnsiColor = "Fuchsia" } },
-                        { Text = "Enter name for new workspace." },
-                    }),
-                    action = wezterm.action_callback(function(window, pane, line)
-                        if line then
-                            window:perform_action(act.SwitchToWorkspace({ name = line }), pane)
-                        end
-                    end),
-                }),
-            },
-            -- Fuzzy workspace launcher (built-in): type to filter existing workspaces
-            { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
-            -- Fuzzy switcher (smart_workspace_switcher): existing workspaces + zoxide dirs in one keypress
-            { key = "f", action = workspace_switcher.switch_workspace() },
-            -- Fast cycle (tmux-style): ( prev workspace, ) next workspace, L last-used (toggle)
-            { key = "(", mods = "SHIFT", action = act.SwitchWorkspaceRelative(-1) },
-            { key = ")", mods = "SHIFT", action = act.SwitchWorkspaceRelative(1) },
-            {
-                key = "L",
-                mods = "SHIFT",
-                action = wezterm.action_callback(function(window, pane)
-                    local prev = wezterm.GLOBAL.previous_workspace
-                    if not prev then
-                        return
-                    end
-                    -- A renamed/closed workspace leaves `prev` stale; switching to a name the
-                    -- mux no longer knows would silently spawn an empty workspace. Guard it.
-                    for _, name in ipairs(wezterm.mux.get_workspace_names()) do
-                        if name == prev then
-                            window:perform_action(act.SwitchToWorkspace({ name = prev }), pane)
-                            return
-                        end
-                    end
-                end),
-            },
-            -- Rename the active workspace (tmux `prefix + $`)
-            {
-                key = "$",
-                mods = "SHIFT",
-                action = act.PromptInputLine({
-                    description = "Rename workspace to:",
-                    action = wezterm.action_callback(function(_, _, line)
-                        if line and line ~= "" then
-                            wezterm.mux.rename_workspace(wezterm.mux.get_active_workspace(), line)
-                        end
-                    end),
-                }),
-            },
-            -- Pane/Tab management
-            { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
-            -- Detach this domain (tmux `prefix d`). Panes + live processes stay alive on the mux
-            -- server; reattach by reopening WezTerm (auto-connect) or `wezterm connect unix`.
-            { key = "d", action = act.DetachDomain("CurrentPaneDomain") },
-            { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
-            {
-                key = ",",
-                action = act.PromptInputLine({
-                    description = "Enter new name for tab",
-                    action = wezterm.action_callback(function(window, pane, line)
-                        if line then
-                            window:active_tab():set_title(line)
-                        end
-                    end),
-                }),
-            },
-            -- Tab navigation
-            {
-                key = "t",
-                action = wezterm.action_callback(function(window, pane)
-                    window:perform_action(act.SpawnCommandInNewTab(pane_command(pane)), pane)
-                end),
-            },
-            { key = "p", action = act.ActivateTabRelative(-1) },
-            { key = "n", action = act.ActivateTabRelative(1) },
-            -- Zoom pane toggle (mimics tmux prefix + z)
-            { key = "z", action = act.TogglePaneZoomState },
-            -- Debug overlay / Lua REPL (tmux `prefix :` + vim `:` command-prompt parallel)
-            { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
-            -- tmux-style sticky resize (parallels `bind -r ... resize-pane`). Entered with
-            -- plain `r`: arrows/hjkl repeat without re-pressing prefix; Esc/q exit. The
-            -- prefix-r reload bind was dropped — WezTerm auto-reloads on save, so it was
-            -- redundant. A MODIFIED entry key (Shift+R, Ctrl+r) can NOT be used: modifiers
-            -- don't match inside a custom key table on Windows WezTerm (WezTerm #6824).
-            -- Gated on pane count: a single-pane tab has nothing to resize, so `r` is a
-            -- no-op there (tmux resize-pane behaves the same) and we don't enter the mode.
-            -- leader_mode is one_shot, so the no-op path simply exits the prefix.
-            {
-                key = "r",
-                action = wezterm.action_callback(function(window, pane)
-                    local tab = window:active_tab()
-                    if tab and #tab:panes() > 1 then
-                        window:perform_action(
-                            act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
-                            pane
-                        )
-                    end
-                end),
-            },
-        },
-        -- Sticky resize: one_shot=false keeps it active across repeats; Esc/q exit.
-        resize_mode = {
-            { key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
-            { key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
-            { key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
-            { key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
-            { key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 1 }) },
-            { key = "DownArrow", action = act.AdjustPaneSize({ "Down", 1 }) },
-            { key = "UpArrow", action = act.AdjustPaneSize({ "Up", 1 }) },
-            { key = "RightArrow", action = act.AdjustPaneSize({ "Right", 1 }) },
-            { key = "Escape", action = act.PopKeyTable },
-            { key = "q", action = act.PopKeyTable },
-        },
-    }
-
-    -- Tab switching keys 1-9
-    for i = 1, 9 do
-        table.insert(config.key_tables.leader_mode, {
-            key = tostring(i),
-            action = act.ActivateTab(i - 1),
-        })
-    end
-
-    -- tmux copy-mode-vi parity. WezTerm's default copy_mode is already vi-style (hjkl,
-    -- v/V/Ctrl+v select, y -> ClipboardAndPrimarySelection then exit, / search, g/G,
-    -- Ctrl+u/Ctrl+d, q/Esc exit) — which matches the user's `mode-keys vi` + tmux-yank. The
-    -- only gap is Enter: tmux's `copy-mode-vi Enter send -X copy-selection-and-cancel`. Start
-    -- from the defaults, drop any existing bare-Enter binding, then add copy-and-close.
-    -- wezterm.gui is nil when the config is evaluated GUI-less (e.g. the mux server), where
-    -- default_key_tables() would throw and abort the whole config. Guard it; copy mode still
-    -- works from WezTerm's built-in defaults there, just without the Enter copy-and-exit tweak.
-    if wezterm.gui then
-        local copy_mode = wezterm.gui.default_key_tables().copy_mode
-        local copy_mode_keys = {}
-        for _, m in ipairs(copy_mode) do
-            if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
-                table.insert(copy_mode_keys, m)
-            end
-        end
-        table.insert(copy_mode_keys, {
-            key = "Enter",
-            mods = "NONE",
-            action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
-        })
-        config.key_tables.copy_mode = copy_mode_keys
-    end
-
-    -- Register our custom tab component under the name tabline.wez will require()
-    -- for it. require() checks package.loaded first, so this avoids depending on
-    -- nested path resolution into the plugin's namespace.
+    -- Register the Claude badge tab component under the name tabline.wez require()s.
     package.loaded['tabline.components.tab.claude'] = require('tabline_claude_badge')
+end
 
-    tabline.setup({
-        options = {
-            icons_enabled = true,
-            theme = "Catppuccin Frappe",
-            tabs_enabled = true,
-            section_separators = {
-                left = "",
-                right = "",
-            },
-            component_separators = {
-                left = "",
-                right = "",
-            },
-            tab_separators = {
-                left = "",
-                right = "",
-            },
+-- Tabline sections: Windows shows the full set; mac/Linux a lean complementary set (only what
+-- tmux's bar lacks). datetime/domain/workspace/claude are dropped on unix -- tmux + SketchyBar
+-- own those, so showing them again would just duplicate the tmux status line stacked below.
+local tabline_sections
+if is_windows then
+    tabline_sections = {
+        tabline_a = { { "mode", fmt = mode_chip_fmt } },
+        tabline_b = { "workspace" },
+        tabline_c = { " " },
+        tab_active = {
+            "index",
+            { "parent", padding = 0 },
+            "/",
+            { "cwd", padding = { left = 0, right = 1 } },
+            { "zoomed", padding = 0 },
+        },
+        tab_inactive = {
+            "index",
+            "claude",
+            { "tab", padding = { left = 0, right = 1 } },
+        },
+        tabline_x = {},
+        tabline_y = { "datetime" },
+        tabline_z = { "domain" },
+    }
+else
+    tabline_sections = {
+        tabline_a = { { "mode", fmt = mode_chip_fmt } },
+        tabline_b = {},
+        tabline_c = { " " },
+        tab_active = {
+            "index",
+            { "parent", padding = 0 },
+            "/",
+            { "cwd", padding = { left = 0, right = 1 } },
+            { "zoomed", padding = 0 },
+        },
+        tab_inactive = {
+            "index",
+            { "tab", padding = { left = 0, right = 1 } },
+        },
+        tabline_x = {},
+        tabline_y = {},
+        tabline_z = {},
+    }
+end
+
+tabline.setup({
+    options = {
+        icons_enabled = true,
+        theme = "Catppuccin Frappe",
+        tabs_enabled = true,
+        section_separators = {
+            left = "",
             right = "",
         },
-        sections = {
-            tabline_a = {
-                {
-                    "mode",
-                    --- format call back
-                    --- I'm going for "icon mode" eg. " LEADER"
-                    --- if we want icon only then it would be "icon"
-                    --- but if the keys table doesn't have to mode
-                    --- fallback to "mode" event if you has icon for it
-                    --- icon at https://wezterm.org/config/lua/wezterm/nerdfonts.html
-                    --- or https://www.nerdfonts.com/cheat-sheet
-                    ---@param mode any
-                    ---@param window Window
-                    ---@return string
-                    fmt = function(mode, window)
-                        local icon_only = true
-                        local icon = nil
-
-                        if mode == "LEADER" then
-                            icon = wezterm.nerdfonts.md_keyboard_outline
-                        elseif mode == "NORMAL" then
-                            icon = wezterm.nerdfonts.cod_terminal
-                        elseif mode == "COPY" then
-                            icon = wezterm.nerdfonts.md_scissors_cutting
-                        elseif mode == "SEARCH" then
-                            icon = wezterm.nerdfonts.oct_search
-                        elseif mode == "RESIZE" then
-                            -- Sticky resize mode (leader -> r). Four-way arrows = adjust
-                            -- a pane edge in any of h/j/k/l directions. NOTE: a mode shown
-                            -- here MUST also have a matching theme section in set_theme
-                            -- below, or tabline's update-status indexes a nil theme and
-                            -- the whole bar freezes on its last paint (see resize_mode there).
-                            icon = wezterm.nerdfonts.md_arrow_all
-                        end
-
-                        -- fallback
-                        if icon_only and icon == nil then
-                            return mode
-                        end
-
-                        -- adding space to icon then mode if support mode
-                        return string.format(
-                            "%s%s",
-                            icon and icon .. (icon_only and "" or " ") or "",
-                            icon_only and "" or mode
-                        )
-                    end,
-                },
-            },
-            tabline_b = { "workspace" },
-            tabline_c = { " " },
-            tab_active = {
-                "index",
-                { "parent", padding = 0 },
-                "/",
-                { "cwd", padding = { left = 0, right = 1 } },
-                { "zoomed", padding = 0 },
-            },
-            tab_inactive = {
-                "index",
-                "claude", -- Claude bell badge: precise alert, else unseen-output fallback;
-                          -- also runs clear-on-visit for the active tab (see note above)
-                { "tab", padding = { left = 0, right = 1 } },
-            },
-            -- tabline_x = { "ram", "cpu" },
-            tabline_x = {},
-            tabline_y = { "datetime" },
-            tabline_z = { "domain" },
+        component_separators = {
+            left = "",
+            right = "",
         },
-        extensions = {
-            "resurrect",
-            "smart_workspace_switcher",
-            "quick_domains",
+        tab_separators = {
+            left = "",
+            right = "",
         },
-    })
+        right = "",
+    },
+    sections = tabline_sections,
+    extensions = is_windows and { "resurrect", "smart_workspace_switcher", "quick_domains" } or {},
+})
 
-    local colors = tabline.get_theme().colors
-    local surface = colors.cursor and colors.cursor.bg or colors.ansi[1]
-    local background = colors.tab_bar and colors.tab_bar.inactive_tab and colors.tab_bar.inactive_tab.bg_color
-        or colors.background
-    -- tabline's default theme only ships normal_mode / copy_mode / search_mode (see the
-    -- plugin's config.lua get_colors). Every custom key_table whose name ends in `_mode`
-    -- is surfaced by the mode component, and component.lua indexes config.theme[<mode>]
-    -- WITHOUT a nil guard — so a mode lacking a section here throws inside update-status
-    -- and freezes the whole status bar on its previous paint. leader_mode and resize_mode
-    -- below are REQUIRED for that reason, not just cosmetics.
-    tabline.set_theme({
-        -- Leader prefix: catppuccin frappe pink (ansi[6] #f4b8e4).
-        leader_mode = {
-            a = { fg = background, bg = colors.ansi[6] },
-            b = { fg = colors.ansi[6], bg = surface },
-            c = { fg = colors.foreground, bg = background },
-        },
-        -- Sticky resize: catppuccin frappe teal (ansi[7] #81c8be) — distinct from the
-        -- pink leader so the LEADER -> RESIZE transition is unmistakable in the bar.
-        resize_mode = {
-            a = { fg = background, bg = colors.ansi[7] },
-            b = { fg = colors.ansi[7], bg = surface },
-            c = { fg = colors.foreground, bg = background },
-        },
-    })
-end
+local colors = tabline.get_theme().colors
+local surface = colors.cursor and colors.cursor.bg or colors.ansi[1]
+local background = colors.tab_bar and colors.tab_bar.inactive_tab and colors.tab_bar.inactive_tab.bg_color
+    or colors.background
+-- Every custom key_table whose name ends in `_mode` is surfaced by the mode component, and
+-- component.lua indexes config.theme[<mode>] WITHOUT a nil guard -- so a mode lacking a section
+-- here throws inside update-status and freezes the bar. leader_mode + resize_mode are REQUIRED
+-- on BOTH platforms for that reason.
+tabline.set_theme({
+    -- Leader prefix: catppuccin frappe pink (ansi[6]).
+    leader_mode = {
+        a = { fg = background, bg = colors.ansi[6] },
+        b = { fg = colors.ansi[6], bg = surface },
+        c = { fg = colors.foreground, bg = background },
+    },
+    -- Sticky resize: catppuccin frappe teal (ansi[7]).
+    resize_mode = {
+        a = { fg = background, bg = colors.ansi[7] },
+        b = { fg = colors.ansi[7], bg = surface },
+        c = { fg = colors.foreground, bg = background },
+    },
+})
 
 -- ============================================================================
 -- § 5 · Finalize
