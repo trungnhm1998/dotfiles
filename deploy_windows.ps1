@@ -128,6 +128,12 @@ $symlinks = @(
         Description = "Starship prompt"
     }
     @{
+        Source      = "$dotfilesRoot\.config\ccstatusline\settings.json"
+        Target      = "$HOME\.config\ccstatusline\settings.json"
+        IsDirectory = $false
+        Description = "ccstatusline statusline config"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\powershell\Microsoft.PowerShell_profile.ps1"
         Target      = "$([Environment]::GetFolderPath('MyDocuments'))\PowerShell\Microsoft.PowerShell_profile.ps1"
         IsDirectory = $false

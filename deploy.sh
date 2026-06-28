@@ -373,6 +373,8 @@ ln -sf "$HOME/dotfiles/.config/powershell" "$HOME/.config/powershell"
 ln -sf "$HOME/dotfiles/.config/wezterm" "$HOME/.config/wezterm"
 ln -sf "$HOME/dotfiles/.config/bat/config" "$HOME/.config/bat/config"
 ln -sf "$HOME/dotfiles/.config/lazygit" "$HOME/.config/lazygit"
+mkdir -p "$HOME/.config/ccstatusline"
+ln -sf "$HOME/dotfiles/.config/ccstatusline/settings.json" "$HOME/.config/ccstatusline/settings.json"
 ln -sf "$HOME/dotfiles/zed/settings.unix.json" "$HOME/.config/zed/settings.json"
 ln -sf "$HOME/dotfiles/zed/keymap.json" "$HOME/.config/zed/keymap.json"
 
