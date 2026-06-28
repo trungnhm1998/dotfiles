@@ -1,203 +1,158 @@
 # AGENTS.md
 
-Guidelines for agentic coding tools working in this dotfiles repository.
+Guidance for agentic coding tools (Claude Code, Codex, Cursor, opencode, …) working in this repository. `CLAUDE.md` is a one-line `@AGENTS.md` import of this file, so every agent reads the same source.
+
+This is a personal dotfiles repository managing configurations for a complete development environment across macOS, Linux, and Windows. It emphasizes terminal-based tools, modal (vim) editing, and tiling window managers.
 
 ## Repository Overview
 
-This is a personal dotfiles repository managing terminal-based configurations across macOS, Linux, and Windows. It includes:
-- **Editors**: Neovim (LazyVim), IdeaVim
-- **Terminals**: Wezterm, Tmux (macOS/Linux)
-- **Window Managers**: Yabai (macOS), Komorebi (Windows)
-- **Shell**: Zsh with custom configurations
-- **Utilities**: Yazi (file manager), Lazygit, Starship (prompt), Zoxide (cd replacement)
+Terminal-centric configs, one repo, three OSes. Core stack:
 
-## Build, Lint & Test Commands
+- **Editors**: Neovim (LazyVim), IdeaVim, Zed
+- **Terminals**: Wezterm; Tmux (macOS/Linux only)
+- **Window managers**: Yabai + Hammerspoon (macOS), Komorebi (Windows)
+- **Shell**: Zsh (custom `zshrc_manager.sh` entry point + `zshrc.sh`)
+- **Utilities**: Yazi (files), Lazygit, Starship (prompt), Zoxide (`cd`)
 
-This repository has **no traditional build/test system** - it is a configuration repository. Focus on:
+There is **no build/test system** — it's a configuration repo. "Validation" means syntax-checking scripts and verifying symlinks/configs load.
 
-### Deployment/Installation Testing
-```bash
-# Linux/macOS: Test deployment script
-./deploy.sh --help          # Show options
-bash -n deploy.sh           # Syntax check (no execution)
+## Setup & Validation
 
-# macOS specific
-./setup_mac.sh --help
+**Deploy (installs packages, creates symlinks, sets env vars):**
 
-# Windows PowerShell (requires Admin)
-.\deploy_windows.ps1 -DryRun  # Preview without executing
-.\deploy_windows.ps1 -SkipPackages  # Skip package installation
-```
-
-### Code Validation
-
-**Lua (Neovim config):**
-```bash
-# No explicit linter configured. Rely on:
-# - LazyVim's builtin LSP (pyright, tsserver, lua_ls)
-# - EditorConfig standards (see .editorconfig)
-# - stylua directives in code (see plugins/example.lua)
-```
-
-**Shell Scripts:**
-```bash
-# Syntax check bash/sh scripts
-bash -n script.sh
-# Use ShellCheck (installed via Mason in Neovim)
-shellcheck script.sh
-```
-
-**PowerShell:**
 ```powershell
-# Syntax check
-Get-Content script.ps1 | Test-ScriptFileInfo
+# Windows — run as Administrator in PowerShell 7+
+.\deploy_windows.ps1                 # full: packages, symlinks, env vars
+.\deploy_windows.ps1 -SkipPackages   # symlinks only
+.\deploy_windows.ps1 -DryRun         # preview, no changes
 ```
 
-### Manual Testing Areas
-- After modifying deployment scripts, test the actual symlink creation
-- After modifying Neovim config, verify `:Lazy sync` and `:checkhealth` pass
-- After modifying shell configs, source them and verify no errors
-- Test cross-platform symlink targets match CLAUDE.md architecture
-
-## Code Style Guidelines
-
-### Lua (Neovim & Wezterm Config)
-
-**Formatting & Indentation:**
-- Indent: 4 spaces (see `.editorconfig`)
-- Max line length: 120 characters
-- End files with newline
-- Use stylua-compatible formatting
-
-**Imports/Requires:**
-```lua
--- Module requires at top of file
-local opt = vim.opt
-local utils = require("config.utils")
-
--- Plugin specs use inline requires in opts functions
-opts = function(_, opts)
-  require("some.module").setup()
-  return opts
-end
-```
-
-**Naming Conventions:**
-- Variables: `snake_case` (e.g., `opt`, `opts`, `ensure_installed`)
-- Functions: `snake_case` (e.g., `setup_keymaps()`)
-- Local vars: Prefix with `local` (Lua idiom)
-- Config tables: Use clear names (`opts`, `config`, `settings`)
-
-**Types & Annotations:**
-- Use LuaLS annotations for clarity (example: `---@param opts cmp.ConfigSchema`)
-- Include type hints in complex functions
-- LazyVim plugin specs use OOP-style tables
-
-**Error Handling:**
-- Lua configurations are declarative (minimal error handling needed)
-- For runtime errors, use `pcall()` in critical paths
-- Log issues via print() or vim.notify() in Neovim configs
-
-**File Organization:**
-```
-.config/nvim/
-├── init.lua          # Bootstrap (minimal, just requires config.lazy)
-├── lua/config/       # Core config (options, keymaps, autocmds)
-└── lua/plugins/      # Plugin specs (one file per plugin group)
-```
-
-### Shell Scripts (Bash/Zsh)
-
-**Formatting & Style:**
-- Shebang: `#!/bin/bash` or `#!/bin/zsh`
-- Indent: 2 spaces (convention for shell)
-- Quote all variable expansions: `"$var"` not `$var`
-- Use functions for reusable code
-
-**Functions:**
 ```bash
-prompt_install() {
-  echo -n "$1 is not installed. Would you like to install it? (y/n) " >&2
-  # Logic here
-}
-
-check_for_software() {
-  echo "Checking to see if $1 is installed"
-  if ! [ -x "$(command -v $1)" ]; then
-    prompt_install "$1"
-  fi
-}
+./setup_mac.sh    # macOS: Homebrew packages, symlinks, services
+./deploy.sh       # Linux/macOS universal: deps, oh-my-zsh, symlinks
 ```
 
-**Error Handling:**
-- Check command availability: `[ -x "$(command -v prog)" ]`
-- Test file existence: `[ -f "$file" ]`
-- Use `set -e` for fail-fast if script should stop on error
+Deploy scripts are **idempotent** — safe to re-run; they back up existing configs and support `-DryRun` where available. Never hardcode absolute paths; use `$HOME`, `$XDG_CONFIG_HOME`, `$env:APPDATA`.
 
-### PowerShell Scripts
+**Validate changes:**
 
-**Formatting:**
-- Indent: 2 spaces
-- Use comment-based help (see `deploy_windows.ps1` header)
-- Parameters use `[switch]` or typed parameters: `[string]$var`
+```bash
+bash -n script.sh && shellcheck script.sh    # shell scripts
+nvim -c ':Lazy sync' -c ':checkhealth'        # Neovim plugins + health
+```
 
-**Parameters & Defaults:**
 ```powershell
-param(
-    [switch]$SkipPackages,
-    [switch]$DryRun,
-    [string]$ConfigPath = $PSScriptRoot
-)
+Get-Command -Syntax .\deploy_windows.ps1      # PowerShell syntax
 ```
 
-**Error Handling:**
-- Use `try/catch` blocks for command failures
-- Verify Admin privileges: `#Requires -RunAsAdministrator` or manual check
-- Return appropriate exit codes
+After editing: test the actual symlink creation, source shell configs to confirm no errors, and verify symlink targets still match the tables below.
 
-### Configuration Files (JSON, TOML)
+## Architecture
 
-**JSON (e.g., `.luarc.json`, `komorebi.json`):**
-- 2 spaces indentation
-- Quote keys: `"key": value`
-- Include trailing commas for arrays/objects (JSON5 style if supported)
+### Windows Symlink Mappings
 
-**TOML (e.g., `starship.toml`):**
-- Follow TOML spec strictly
-- Section headers in `[brackets]`
-- Comment complex settings
+| Source | Target |
+|--------|--------|
+| `.config/nvim` | `$HOME\.config\nvim` |
+| `.config/wezterm` | `$HOME\.config\wezterm` |
+| `.config/komorebi` | `$HOME\.config\komorebi` |
+| `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
+| `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
+| `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
+| `.config/lazygit` | `$env:APPDATA\lazygit` |
+| `.config/starship.toml` | `$HOME\.config\starship.toml` |
+| `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` |
+| `.ideavimrc` | `$HOME\.ideavimrc` |
+| `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
+| `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
+| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md` |
+| `claude/` (settings.json, agents, commands, hooks, skills, themes, statusline*) | `$HOME\.claude\…` |
+| `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
-### EditorConfig Rules
+**Environment Variables (set by deploy script):** `XDG_CONFIG_HOME` → `$HOME\.config`; `KOMOREBI_CONFIG_HOME` → `$HOME\.config\komorebi`.
 
-Defined in `.editorconfig` for consistency:
-- Lua files: 4 spaces, 120 char max line length, LF line endings
-- All files: Insert final newline, LF endings
-- Configure IDE/editor to respect `.editorconfig`
+### Platform-Specific Workflows
 
-## Key File Locations
+**macOS/Linux:** Tmux-centric workflow
 
-| Purpose | Path |
-|---------|------|
-| Neovim Config | `.config/nvim/` |
-| Wezterm Config | `.config/wezterm/wezterm.lua` |
-| Shell Config | `zsh/zshrc.sh`, `zsh/zshrc_manager.sh` |
-| Tmux Config | `tmux/tmux.conf` |
-| Komorebi Config | `.config/komorebi/` |
-| YASB Status Bar (Windows) | `.config/yasb/` (→ `~/.config/yasb`) |
-| Yabai Config | `.config/yabai/yabairc` |
-| Hammerspoon (macOS hotkeys + modes + OSD) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
-| stackline (yabai stacking overlay, macOS) | `.config/hammerspoon/stackline/` + `stackline_config.lua` |
-| yabai signal/helper scripts (macOS) | `.config/yabai/scripts/` |
-| Starship Prompt | `.config/starship.toml` |
-| Windows PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
-| IdeaVim | `.ideavimrc` |
-| Kanata (keyboard remap, macOS) | `.config/kanata/kanata.kbd` |
-| Claude Code Config | `claude/` (→ `~/.claude/`) |
-| Claude skills per-item linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
-| opencode Config | `.config/opencode/opencode.jsonc` |
-| Secrets template | `secrets.env.example` (real values in `~/.config/dotfiles/secrets.env`, gitignored) |
+- Tmux for terminal multiplexing with TPM plugin manager
+- vim-tmux-navigator for Ctrl+hjkl navigation across tmux panes and vim splits
+- Zsh auto-attaches to tmux session (skipped in IDE terminals)
 
-### Session Memory Hooks & Commands
+**Windows:** Wezterm-centric workflow (no tmux)
+
+- Wezterm workspaces replace tmux sessions (create/switch: `Leader+w` by name, `Leader+f` fuzzy, `Leader+Shift+S` list, `Leader+(`/`Leader+)` cycle)
+- **Persistence:** a local `wezterm-mux-server` (unix domain `unix`) keeps shells + their live processes alive across closing WezTerm; **reattach by reopening WezTerm** (auto-connects via `default_gui_startup_args`, non-WSL only), or `wezterm connect unix`. `Leader+d` detaches; closing the window detaches silently (`window_close_confirmation='NeverPrompt'`). Does NOT survive a reboot. Zellij stays opt-in via the `zj` wrapper for the gaps (any-terminal/SSH attach, reboot-restore). Requires WezTerm nightly. The Claude badge/focus cache is namespaced by the stable mux socket tag `sock` (see `[[WezTerm Multiplexer Persistence on Windows]]`).
+- Leader key: `Ctrl+Space` (1 second timeout)
+- vim-smart-splits plugin enables Ctrl+hjkl navigation between Wezterm panes and Neovim splits
+- Key bindings: `Leader+v` (hsplit), `Leader+s` (vsplit), `Leader+x` (close pane), `Leader+t` (new tab), `Leader+d` (detach mux), `Leader+1-9` (switch tabs)
+
+### Window Management
+
+- **macOS:** Yabai (tiling) + **Hammerspoon** (Hyper/Meh hotkeys + resize/service modes + OSD + **stackline** stacking overlay — floating per-window pills with app icons, Frappe Mauve focus; skhd retired) + SketchyBar (status bar)
+- **Windows:** Komorebi (tiling) + per-monitor status bars. Start with `komorebic start`. Config requires `KOMOREBI_CONFIG_HOME` env var pointing to `$HOME\.config\komorebi`
+
+### Editor Stack
+
+- **Neovim:** LazyVim framework with Lazy.nvim plugin manager. `.config/nvim/init.lua` bootstraps LazyVim; plugins in `.config/nvim/lua/plugins/` (one file per plugin group); run `:Lazy sync` after install.
+- **Wezterm:** Primary terminal, Lua config at `.config/wezterm/wezterm.lua`
+- **Claude Code skills:** `~/.claude/skills` is a **real directory**, not a whole-dir symlink. Repo skills under `claude/skills/` are linked in **per-item** by `scripts/lib/link-skills.sh` (called from `scripts/sync-ai-configs.sh`; Windows does the same in `deploy_windows.ps1`). This leaves room to install public skills with `npx skills add -g <github-repo>` — they land in `~/.claude/skills/<name>` outside the dotfiles repo. Edit your own skills in `claude/skills/`; they're live via the symlink. A public skill that shares a repo skill's name wins (the repo skill is skipped).
+
+### Shell Configuration
+
+Zsh loads via `zshrc_manager.sh` which:
+
+1. Detects IDE terminals (IntelliJ, VSCode, Cursor) and skips tmux attachment
+2. Sources `zshrc.sh` for aliases, plugins, and environment setup
+3. Auto-attaches to tmux session outside IDEs (macOS/Linux only)
+
+Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la/lt` (eza variants).
+
+### Cross-Tool Integration
+
+- **Navigation:** Ctrl+hjkl works across tmux/wezterm panes and vim splits
+- **Theme:** Catppuccin Frappe used consistently (wezterm, tmux, yazi, komorebi)
+- **Font:** JetBrains Mono Nerd Font
+- **Notifications (Windows):** clicking a Claude Code desktop toast focuses the exact WezTerm window/workspace/tab/pane that fired it. The `claude-wez://` URL-protocol handler drops a one-shot focus-request file (`~/.cache/claude-notify/wezterm-focus/<mux>/<pane>`, UTC-epoch body, 60s TTL) that `wezterm.lua` consumes on its next status tick and raises natively — `wezterm cli` cannot focus across windows on Windows, so the GUI Lua API is the only reliable path. `deploy_windows.ps1` installs the `BurntToast` module and registers the handler as `wscript.exe → claude/hooks/bin/claude-wez-launch.vbs` (windowless, so clicking never flashes Windows Terminal). Distinct from the tab-badge alert channel (`wezterm-alerts/`).
+
+| Toast-click focus file | Purpose |
+|------------------------|---------|
+| `claude/hooks/bin/claude-notify.ps1` | Toast emit + `-Activate` URI handler (writes the focus-request file). URI guard: pane `^\d+$`, mux `^[A-Za-z0-9_-]+$` (blocks path traversal). |
+| `claude/hooks/bin/claude-wez-launch.vbs` | Windowless launcher (`wscript` → hidden pwsh; avoids a terminal flash) |
+| `.config/wezterm/wezterm_claude_focus.lua` | Pure focus module (`dir`/`mux_tag`/`pending` helpers, unit-tested) |
+| `.config/wezterm/wezterm.lua` | Focus consumption (status-tick poll → `set_active_workspace`/`activate`/`focus`) |
+
+## Session Memory Protocol (automated close-session capture)
+
+Keeps the Obsidian `05.Wiki` and per-project continuity notes current with minimal prompting. A deterministic per-session **ledger** (`~/.claude/.session-ledger/<id>.json`, maintained by `claude/hooks/session-ledger.sh` on `PostToolUse`) counts work signals (files written/edited, git commits, PRs). When uncaptured work crosses a threshold, the `Stop` hook (`claude/hooks/session-capture-stop.sh`) injects an escalating nudge to run `/close`.
+
+**`/close`** (the `close-session` skill) distils the session into two channels:
+
+- **Durable knowledge → `05.Wiki/`** — git-committed as an audit trail of agent-authored files.
+- **Continuity → `<project>/.planning/continuity.md`** — changes, decisions made, decisions pending, next steps; surfaced at the next `SessionStart` by `claude/hooks/continuity-readback.sh`.
+
+It then resets the ledger via `claude/hooks/ledger-mark-captured.sh`.
+
+**Activation (first time, per machine):**
+
+1. Deploy so the hooks/skill/command symlink into `~/.claude`: `.\deploy_windows.ps1 -SkipPackages` (Windows, admin) or `./deploy.sh` (macOS/Linux).
+2. Put the vault under local git (audit trail): `bash scripts/init-vault-git.sh`. Only `.gitignore` is committed initially; existing notes stay untracked — the history is intentionally a precise audit of agent-written files, not a vault snapshot.
+3. Verify: edit a few files / commit in any project, then run `/close` — it should write + commit to `05.Wiki` and create/refresh `<project>/.planning/continuity.md`.
+
+Disable anytime with `WIKI_AUTO=0`. Run the hook tests with `bash claude/hooks/tests/run-tests.sh`.
+
+**Toggles (environment variables):**
+
+| Var | Default | Status | Effect |
+|-----|---------|--------|--------|
+| `WIKI_AUTO` | `1` | active | Master kill-switch for the whole protocol. |
+| `WIKI_THRESHOLD_FILES` | `3` | active | Files-touched delta that counts as "meaningful". |
+| `WIKI_THRESHOLD_COMMITS` | `1` | active | Commits delta that counts as "meaningful". |
+| `WIKI_AUTORUN` | `0` | Phase 2 | Force a `Stop`-block capture after ignored nudges. |
+| `WIKI_FALLBACK` | `1` | Phase 2 | Next-`SessionStart` reconciliation of walk-away sessions. |
+| `WIKI_FALLBACK_HEADLESS` | `0` | Phase 3 | Experimental background `claude -p` capture. |
+
+**Hooks & commands** (all under `claude/`, symlinked into `~/.claude/` at deploy — active immediately, no separate install):
 
 | Purpose | Path |
 |---------|------|
@@ -210,51 +165,53 @@ Defined in `.editorconfig` for consistency:
 | `close-session` skill (distils session → Wiki + continuity) | `claude/skills/close-session/SKILL.md` |
 | One-time vault git init | `scripts/init-vault-git.sh` |
 
-All of the above live under `claude/` which symlinks into `~/.claude/` at deploy (`deploy_windows.ps1` / `deploy.sh`), so they are active immediately after deployment — no separate install step. See `## Session Memory Protocol` in `CLAUDE.md` for the full design and toggle reference.
+Design spec: `docs/superpowers/specs/2026-06-15-automated-session-memory-protocol-design.md`. Implementation plan: `docs/superpowers/plans/2026-06-15-automated-session-memory-protocol.md`. Phase 1 (shipped) = ledger + `Stop` nudge + `/close` + continuity read-back + `git init`; `PreCompact` force, fallback reconcile, and headless capture are Phase 2/3.
 
-### Claude Code Toast-Click Focus (Windows)
+## Code Style
 
-Clicking a Claude Code desktop toast focuses the WezTerm pane that fired it, via a `claude-wez://` protocol handler → one-shot focus-request file → `wezterm.lua` native raise. See the **Notifications (Windows)** note under `## Architecture` → `### Cross-Tool Integration` in `CLAUDE.md` for the full mechanism.
+`.editorconfig` is authoritative (insert final newline, LF line endings everywhere). Key rules:
 
-| Purpose | Path |
-|---------|------|
-| Toast emit + `-Activate` URI handler (writes the focus-request file) | `claude/hooks/bin/claude-notify.ps1` |
-| Windowless launcher (`wscript` → hidden pwsh; avoids a terminal flash) | `claude/hooks/bin/claude-wez-launch.vbs` |
-| Pure focus module (`dir`/`mux_tag`/`pending` helpers, unit-tested) | `.config/wezterm/wezterm_claude_focus.lua` |
-| Focus consumption (status-tick poll → `set_active_workspace`/`activate`/`focus`) | `.config/wezterm/wezterm.lua` |
+- **Lua** (Neovim/Wezterm): 4-space indent, ≤120 cols, `snake_case`, stylua-compatible. LuaLS annotations (`---@param`) on complex functions; `pcall()` in critical paths. Layout: `init.lua` bootstraps, `lua/config/` core (options/keymaps/autocmds), `lua/plugins/` one file per plugin group.
+- **Shell** (bash/zsh): 2-space indent, quote every expansion (`"$var"`), guard with `[ -x "$(command -v prog)" ]` / `[ -f "$file" ]`, `set -e` for fail-fast.
+- **PowerShell**: 2-space indent, comment-based help header, typed/`[switch]` params, `try/catch`, `#Requires -RunAsAdministrator` (or manual check) where needed.
+- **JSON/TOML**: 2-space indent; follow the TOML spec strictly.
 
-Registered + `BurntToast` installed by `deploy_windows.ps1`. Channel: `~/.cache/claude-notify/wezterm-focus/<mux>/<pane>` (UTC-epoch, 60s TTL, deleted on read). URI guard in `claude-notify.ps1`: pane `^\d+$`, mux `^[A-Za-z0-9_-]+$` (blocks path traversal).
+No `.cursorrules` or `.github/copilot-instructions.md` exist — this file is the single guide.
 
 ## Important Patterns
 
-**Platform Detection (Lua):**
+**Platform detection (Lua):**
+
 ```lua
-if vim.fn.has("win32") == 1 then
-  -- Windows-specific code
-elseif vim.fn.has("mac") == 1 then
-  -- macOS-specific code
-else
-  -- Linux
+if vim.fn.has("win32") == 1 then       -- Windows
+elseif vim.fn.has("mac") == 1 then     -- macOS
+else                                    -- Linux
 end
 ```
 
-**Symlink Targets:**
-- Review CLAUDE.md for exact Windows/macOS/Linux symlink mappings
-- Never hardcode absolute paths; use environment variables (`$HOME`, `$XDG_CONFIG_HOME`)
+**VSCode keymaps (OCP):** configuration-driven editor-variant detection (Cursor, Antigravity, VSCode) with automatic fallback to VSCode defaults. When adding commands or variants, follow `docs/VSCODE_KEYMAPS_OCP_REFACTORING.md`.
 
-**Deployment Idempotency:**
-- Scripts should safely run multiple times
-- Backup existing configs before overwriting
-- Use `-DryRun` flag when available to preview changes
+## Key Paths
 
-## Architecture & Design Patterns
-
-**VSCode Keymaps OCP Architecture:**
-- See `docs/VSCODE_KEYMAPS_OCP_REFACTORING.md` for detailed documentation on the Open-Closed Principle implementation
-- Configuration-driven editor variant detection (Cursor, Antigravity, VSCode)
-- Automatic fallback mechanism to VSCode defaults
-- When adding new commands or editor variants, follow the patterns documented in the refactoring guide
-
-## No Cursor/Copilot Rules
-
-No `.cursorrules` or `.github/copilot-instructions.md` files exist in this repository. Follow the guidelines in this file and CLAUDE.md.
+| Tool / purpose | Path |
+|----------------|------|
+| Neovim | `.config/nvim/` (`init.lua` bootstraps LazyVim; plugins in `lua/plugins/`) |
+| Wezterm | `.config/wezterm/wezterm.lua` |
+| Tmux (macOS/Linux) | `tmux/tmux.conf` |
+| Zsh | `zsh/zshrc.sh` (main) + `zsh/zshrc_manager.sh` (entry point) |
+| Starship | `.config/starship.toml` |
+| Yazi / Lazygit | `.config/yazi/`, `.config/lazygit/config.yml` |
+| Komorebi (Windows) | `.config/komorebi/komorebi.json` |
+| YASB (Windows status bar) | `.config/yasb/config.yaml` + `styles.css` (reload: `yasbc reload`) |
+| Yabai (macOS) | `.config/yabai/yabairc`; signal/helper scripts `.config/yabai/scripts/` |
+| Hammerspoon (macOS) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
+| stackline (macOS) | `.config/hammerspoon/stackline/` (vendored `poddarh` fork) + `stackline_config.lua` (Frappe overrides); notes `docs/superpowers/stackline-fork-notes.md` |
+| Kanata (macOS) | `.config/kanata/kanata.kbd` (+ `dev.kanata.kanata.plist`) |
+| Zed | `zed/settings.unix.json` (mac/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
+| IdeaVim | `.ideavimrc` |
+| PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
+| Claude Code | `claude/` → `~/.claude/` |
+| Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
+| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md` (Cursor: `scripts/copy-agents-rules.sh`) |
+| opencode | `.config/opencode/opencode.jsonc` |
+| Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |

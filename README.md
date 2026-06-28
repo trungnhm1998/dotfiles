@@ -131,7 +131,7 @@ Current skills: `game-feel`, `game-marketing`, `gamedev-art`, `gamedev-audio`, `
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed comparison of deployment scripts
 - **[STRUCTURE.md](STRUCTURE.md)** - Explanation of repository organization
-- **[CLAUDE.md](CLAUDE.md)** - Complete architecture documentation for AI assistants
+- **[AGENTS.md](AGENTS.md)** - Complete architecture documentation for AI assistants (`CLAUDE.md` is a one-line `@AGENTS.md` import of it)
 - **[docs/CROSS_PLATFORM_CLAUDE_CONFIG.md](docs/CROSS_PLATFORM_CLAUDE_CONFIG.md)** - How the shared Claude Code config (vault path, hooks, agent-flow) stays portable across macOS/Windows
 
 ## Common Aliases
