@@ -12,7 +12,7 @@ mkdir -p "$home/.claude"
 dst="$home/.claude/skills"
 ln -s "$repo" "$dst"                       # legacy whole-dir symlink
 
-out=$(link_skills "$repo" "$dst"); rc=$?
+link_skills "$repo" "$dst" >/dev/null; rc=$?
 assert_exit "$rc" "0" "link_skills exits 0"
 
 # 1. Migration: dst is now a real directory, not a symlink
@@ -46,5 +46,12 @@ test ! -L "$dst/gamma"; assert_exit "$?" "0" "colliding name not converted to re
 link_skills "$repo" "$dst"; assert_exit "$?" "0" "idempotent re-run exits 0"
 test -L "$dst/alpha" && [ "$(readlink "$dst/alpha")" = "$repo/alpha" ]
 assert_exit "$?" "0" "alpha still correctly linked after re-run"
+
+# 7. Dangling symlink in dst counts as free and is recreated
+ln -s "/nonexistent/path" "$dst/dangling-skill"
+mkdir -p "$repo/dangling-skill"; echo "real" > "$repo/dangling-skill/SKILL.md"
+link_skills "$repo" "$dst" >/dev/null
+test -L "$dst/dangling-skill" && [ "$(readlink "$dst/dangling-skill")" = "$repo/dangling-skill" ]
+assert_exit "$?" "0" "dangling symlink replaced with correct repo link"
 
 finish
