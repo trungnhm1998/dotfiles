@@ -91,4 +91,98 @@ function M.adapt_fg(pane) return read(pane, 'get_foreground_process_name', 'fore
 function M.adapt_cwd(pane) return read(pane, 'get_current_working_dir', 'current_working_dir') end
 
 M.basename = basename
+
+-- Build tabline.wez inline component functions. `wezterm` is passed in (not required) so the
+-- pure cores above stay loadable under plain lua. Every fn is pcall-wrapped -> '' on error,
+-- so a single throw can never freeze the tab bar (a known WezTerm failure mode).
+function M.components(wezterm, opts)
+  opts = opts or {}
+  local nf = wezterm.nerdfonts
+  local run = wezterm.run_child_process
+  local branch_cache, top_cache = {}, {}
+  local dirty_mark = opts.dirty_mark or '●'
+  local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal
+  local C = {}
+
+  local function safe(fn)
+    return function(a, b)
+      local ok, res = pcall(fn, a, b)
+      return (ok and res) or ''
+    end
+  end
+  local function is_remote(pane)
+    local dn = M.adapt_domain(pane) or ''
+    if dn:find('WSL') then return true end
+    local p = M.basename(M.adapt_fg(pane)):lower()
+    return p:find('^ssh') ~= nil or p:find('^mosh') ~= nil
+  end
+
+  -- WINDOW components (real Window/Pane objects) -------------------------------
+  C.git_branch = safe(function(window, pane)
+    if not pane or is_remote(pane) then return '' end
+    local cwd = M.adapt_cwd(pane)
+    if not cwd then return '' end
+    local path = M.path_from_url(cwd.file_path, cwd.host)
+    local gs = M.git_status(run, os.time(), path, branch_cache, opts.git_ttl or 3)
+    if not gs then return '' end
+    return nf.dev_git .. ' ' .. gs.branch .. (gs.dirty and (' ' .. dirty_mark) or '')
+  end)
+
+  C.host_badge = safe(function(window, pane)
+    if not pane then return '' end
+    local ws = nil
+    pcall(function() ws = window:active_workspace() end)
+    local h = M.host_of(M.adapt_domain(pane), M.adapt_fg(pane), {
+      local_icon = opts.local_icon, wsl_icon = opts.wsl_icon, ssh_icon = opts.ssh_icon,
+      workspace = ws, icon_overrides = opts.icon_overrides,
+    })
+    return (h.icon or '') .. ' ' .. (h.label or '')
+  end)
+
+  C.focused_process = safe(function(window, pane)
+    if not pane then return '' end
+    return (M.basename(M.adapt_fg(pane)):gsub('%.exe$', ''))
+  end)
+
+  C.counts = safe(function(window, pane)
+    local ws = #wezterm.mux.get_workspace_names()
+    local tabs = 0
+    pcall(function() tabs = #window:mux_window():tabs() end)
+    return string.format('%d ws · %d tabs', ws, tabs)
+  end)
+
+  -- TAB components (TabInformation / PaneInformation data) ---------------------
+  C.tab_host_icon = safe(function(tab, pane)
+    local pi = pane or (tab and tab.active_pane)
+    if not pi then return '' end
+    local h = M.host_of(M.adapt_domain(pi), M.adapt_fg(pi), {
+      local_icon = opts.local_icon, wsl_icon = opts.wsl_icon, ssh_icon = opts.ssh_icon,
+    })
+    return h.icon or ''
+  end)
+
+  C.smart_dir = safe(function(tab, pane)
+    local pi = pane or (tab and tab.active_pane)
+    if not pi then return '' end
+    local cwd = M.adapt_cwd(pi)
+    if not cwd then return '' end
+    local path = M.path_from_url(cwd.file_path, cwd.host)
+    if not path then
+      if cwd.host and cwd.host ~= '' then return cwd.host end
+      return M.basename(cwd.file_path)
+    end
+    local repo = M.git_toplevel(run, os.time(), path, top_cache, opts.top_ttl or 30)
+    return repo or M.basename(path)
+  end)
+
+  C.pane_count = safe(function(tab, pane)
+    if not tab or not tab.panes then return '' end
+    local n = #tab.panes
+    if n <= 1 then return '' end
+    return pane_glyph .. n
+  end)
+
+  return C
+end
+
 return M
