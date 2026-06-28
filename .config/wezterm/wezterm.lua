@@ -1,3 +1,7 @@
+-- ============================================================================
+-- § 1 · Plugins & platform detection
+-- ============================================================================
+
 --- @type Wezterm
 local wezterm = require("wezterm")
 
@@ -17,18 +21,17 @@ local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
 local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin")
     or false
 
+-- ============================================================================
+-- § 2 · SHARED UI  —  all platforms; add new cross-platform UI here
+-- ============================================================================
+
+-- rendering
+
 -- Repaint cap: match the 240 Hz monitor (144 on a 240 Hz panel judders; WT paints at refresh).
 -- animation_fps only drives cursor-blink/visual-bell easing — 60 is smooth and saves idle GPU.
 config.max_fps = 240
 config.animation_fps = 60
-local launch_menu = {}
 
-config.color_scheme = "Catppuccin Frappe"
-config.window_decorations = "RESIZE"
-config.use_fancy_tab_bar = false
-config.hide_tab_bar_if_only_one_tab = true
-config.tab_and_split_indices_are_zero_based = false
-config.set_environment_variables = {}
 -- WebGpu (modern GPU path) handles synchronized output / frame coalescing better than
 -- the legacy OpenGL path, which is a known TUI-flicker offender. If WebGpu misbehaves on
 -- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
@@ -42,11 +45,101 @@ config.front_end = "WebGpu"
 -- scan (measured: startup 0.6 s -> 6+ s). If WebGpu misbehaves again, fall back to "OpenGL"
 -- (benched equal to Windows Terminal on this machine).
 config.webgpu_power_preference = "HighPerformance"
-config.notification_handling = "AlwaysShow"
+
+-- appearance
+
+config.color_scheme = "Catppuccin Frappe"
+config.window_decorations = "RESIZE"
+config.inactive_pane_hsb = {
+    brightness = 0.6,
+}
+
+-- tab bar
+
+config.use_fancy_tab_bar = false
+config.hide_tab_bar_if_only_one_tab = true
+config.tab_and_split_indices_are_zero_based = false
 config.tab_max_width = 100
+-- Bottom tab bar on every platform (Windows + macOS/Linux native tabs).
+config.tab_bar_at_bottom = true
+
+-- terminal
+
 config.term = "xterm-256color"
+config.notification_handling = "AlwaysShow"
 -- Nightly channel is updated by update-everything.ps1; skip the startup update check.
 config.check_for_updates = false
+
+-- input (cross-platform keybinds; § 4 extends config.keys on Windows)
+
+-- unbind alt enter
+config.keys = {
+    { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
+    -- Shift+Enter -> newline. WezTerm sends a bare CR for Shift+Enter by default
+    -- (indistinguishable from Enter, so apps just submit). Re-emit Alt+Enter (ESC+CR),
+    -- which Claude Code / readline-style multiline inputs treat as "insert newline" --
+    -- the same sequence Option+Enter already produces once its default fullscreen bind
+    -- is disabled above. SendKey goes straight to the pane (no keybinding recursion).
+    { key = "Enter", mods = "SHIFT", action = wezterm.action.SendKey({ key = "Enter", mods = "ALT" }) },
+    { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
+    { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
+    -- emoji??
+    { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
+    { key = "n", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
+}
+
+-- fonts
+
+-- makes emoji look different from Windows Terminal (Segoe), and (b) JetBrainsMono
+-- Nerd Font ships MONOCHROME glyphs for many emoji-presentation codepoints
+-- (✅ ✨ ℹ ⏺ …) that shadow the color fallback. Listing the platform color-emoji
+-- font with assume_emoji_presentation routes those codepoints to color and matches
+-- Windows Terminal. Verify with: wezterm ls-fonts --text "✅✨ℹ️⏺🎉"
+-- See wiki: [[Claude Code TUI Rendering on Windows]].
+local font_fallback = {
+    "JetBrainsMono Nerd Font",
+    "JetBrains Mono",
+}
+if is_windows then
+    table.insert(font_fallback, { family = "Segoe UI Emoji", assume_emoji_presentation = true })
+elseif is_macos then
+    table.insert(font_fallback, { family = "Apple Color Emoji", assume_emoji_presentation = true })
+end
+local font = wezterm.font_with_fallback(font_fallback)
+local macbookFontSize = 13
+local windowsFontSize = 10
+config.font = font
+config.font_size = is_macos and macbookFontSize or windowsFontSize
+
+--ref: https://wezfurlong.org/wezterm/config/lua/config/freetype_pcf_long_family_names.html#why-doesnt-wezterm-use-the-distro-freetype-or-match-its-configuration
+config.freetype_load_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
+config.freetype_render_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
+
+-- nav
+
+-- vim smart splits
+vim_smart_splits.apply_to_config(config, {
+    -- directional keys to use in order of: left, down, up, right
+    -- separate direction keys for move vs. resize
+    direction_keys = {
+        move = { "h", "j", "k", "l" },
+        resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
+    },
+    -- modifier keys to combine with direction_keys
+    modifiers = {
+        move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
+        resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
+    },
+    -- log level to use: info, warn, error ("info" logs on every Ctrl+hjkl navigation)
+    log_level = "warn",
+})
+
+-- ============================================================================
+-- § 3 · Multiplexer & shells  —  mostly Windows; mac/unix run real tmux
+-- ============================================================================
+
+local launch_menu = {}
+config.set_environment_variables = {}
 
 -- Persistent local multiplexer ([[WezTerm Multiplexer Persistence on Windows]]).
 -- A separate wezterm-mux-server holds the PTYs; the GUI is a client. Closing the GUI
@@ -58,15 +151,6 @@ config.unix_domains = { { name = "unix" } }
 -- Ctrl+Shift+W and Leader+x keep their own confirm = true.
 config.window_close_confirmation = "NeverPrompt"
 
--- Stable mux-namespace tag for the Claude badge/focus channels. The hooks (notify-lib.sh /
--- claude-notify.ps1) namespace their cache dir by basename($WEZTERM_UNIX_SOCKET) AS SEEN IN THE
--- CLAUDE PANE -- under the persistent 'unix' mux that is always the mux-server socket 'sock'. The
--- GUI's own os.getenv('WEZTERM_UNIX_SOCKET') is the EPHEMERAL gui-sock (changes per reopen), so the
--- update-status poller below must use THIS constant to read the same dir the hooks write to.
--- (Single mux => pane ids are globally unique, so one shared tag is correct.) See
--- [[WezTerm Multi-Mux Pane IDs on Windows]].
-local MUX_SOCK = "sock"
-
 local ShellTypes = {
     NONE = 0,
     CMD = 1,
@@ -74,7 +158,6 @@ local ShellTypes = {
     PowerShell = 3,
     WSL = 4,
 }
-
 local shellType = ShellTypes.PowerShell
 
 -- WSL Configuration: Set your default distro here
@@ -208,8 +291,6 @@ if is_windows then
         domain = { DomainName = "local" },
     })
 
-    -- because my tmux on macos have bottom tab bar
-    config.tab_bar_at_bottom = true
     if shellType == ShellTypes.CMD then
         -- Use OSC 7 as per the above example
         config.set_environment_variables["prompt"] =
@@ -263,21 +344,18 @@ if is_windows and shellType ~= ShellTypes.WSL then
     config.default_gui_startup_args = { "connect", "unix" }
 end
 
--- unbind alt enter
-config.keys = {
-    { key = "Enter", mods = "ALT", action = wezterm.action.DisableDefaultAssignment },
-    -- Shift+Enter -> newline. WezTerm sends a bare CR for Shift+Enter by default
-    -- (indistinguishable from Enter, so apps just submit). Re-emit Alt+Enter (ESC+CR),
-    -- which Claude Code / readline-style multiline inputs treat as "insert newline" --
-    -- the same sequence Option+Enter already produces once its default fullscreen bind
-    -- is disabled above. SendKey goes straight to the pane (no keybinding recursion).
-    { key = "Enter", mods = "SHIFT", action = wezterm.action.SendKey({ key = "Enter", mods = "ALT" }) },
-    { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
-    { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
-    -- emoji??
-    { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
-    { key = "n", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
-}
+-- ============================================================================
+-- § 4 · Windows tmux-emulation  —  Windows-only; leader, key tables, tabline, Claude
+-- ============================================================================
+
+-- Stable mux-namespace tag for the Claude badge/focus channels. The hooks (notify-lib.sh /
+-- claude-notify.ps1) namespace their cache dir by basename($WEZTERM_UNIX_SOCKET) AS SEEN IN THE
+-- CLAUDE PANE -- under the persistent 'unix' mux that is always the mux-server socket 'sock'. The
+-- GUI's own os.getenv('WEZTERM_UNIX_SOCKET') is the EPHEMERAL gui-sock (changes per reopen), so the
+-- update-status poller below must use THIS constant to read the same dir the hooks write to.
+-- (Single mux => pane ids are globally unique, so one shared tag is correct.) See
+-- [[WezTerm Multi-Mux Pane IDs on Windows]].
+local MUX_SOCK = "sock"
 
 if is_windows then
     -- Helper to check if current pane is in a WSL domain
@@ -753,52 +831,9 @@ if is_windows then
     })
 end
 
--- vim smart splits
-vim_smart_splits.apply_to_config(config, {
-    -- directional keys to use in order of: left, down, up, right
-    -- separate direction keys for move vs. resize
-    direction_keys = {
-        move = { "h", "j", "k", "l" },
-        resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
-    },
-    -- modifier keys to combine with direction_keys
-    modifiers = {
-        move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
-        resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
-    },
-    -- log level to use: info, warn, error ("info" logs on every Ctrl+hjkl navigation)
-    log_level = "warn",
-})
-
--- Emoji fallback: WezTerm auto-appends its bundled Noto Color Emoji, but (a) that
--- makes emoji look different from Windows Terminal (Segoe), and (b) JetBrainsMono
--- Nerd Font ships MONOCHROME glyphs for many emoji-presentation codepoints
--- (✅ ✨ ℹ ⏺ …) that shadow the color fallback. Listing the platform color-emoji
--- font with assume_emoji_presentation routes those codepoints to color and matches
--- Windows Terminal. Verify with: wezterm ls-fonts --text "✅✨ℹ️⏺🎉"
--- See wiki: [[Claude Code TUI Rendering on Windows]].
-local font_fallback = {
-    "JetBrainsMono Nerd Font",
-    "JetBrains Mono",
-}
-if is_windows then
-    table.insert(font_fallback, { family = "Segoe UI Emoji", assume_emoji_presentation = true })
-elseif is_macos then
-    table.insert(font_fallback, { family = "Apple Color Emoji", assume_emoji_presentation = true })
-end
-local font = wezterm.font_with_fallback(font_fallback)
-local macbookFontSize = 13
-local windowsFontSize = 10
-config.font = font
-config.font_size = is_macos and macbookFontSize or windowsFontSize
-
---ref: https://wezfurlong.org/wezterm/config/lua/config/freetype_pcf_long_family_names.html#why-doesnt-wezterm-use-the-distro-freetype-or-match-its-configuration
-config.freetype_load_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
-config.freetype_render_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
-
-config.inactive_pane_hsb = {
-    brightness = 0.6,
-}
+-- ============================================================================
+-- § 5 · Finalize
+-- ============================================================================
 
 config.launch_menu = launch_menu
 return config
