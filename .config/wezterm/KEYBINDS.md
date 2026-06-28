@@ -31,6 +31,11 @@ Once you press another (bound) key, the `[leader]` indicator disappears. There i
 
 The left section colors itself per mode, using the Catppuccin Frappe palette: **leader** = pink (`󱏐`), **resize** = teal (`󰁁`), **copy** = yellow (`󰩫`), **search** = green, **normal** = blue. Each custom `*_mode` key table must define a matching theme section in `wezterm.lua` (`tabline.set_theme`), otherwise tabline errors while rendering that mode and the bar freezes on its previous paint.
 
+### Status bar info (Windows)
+
+- **Right side:** git branch + `●` dirty (focused local repo only) · host badge (local / WSL:distro / ssh host, ssh-aware) · `N ws · N tabs` · focused process. The clock was removed.
+- **Tabs:** `index · host-icon · process · repo-or-dir · ◫panes` plus the Claude badge and zoom marker. Host icon: Windows = local, `` = WSL, `` = ssh (the precise Mac/VPS icon shows in the right-side host badge).
+
 ---
 
 ## Leader Key Bindings (PowerShell/CMD/Cmder)

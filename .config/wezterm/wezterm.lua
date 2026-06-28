@@ -764,6 +764,21 @@ end
 -- Tabline sections: Windows shows the full set; mac/Linux a lean complementary set (only what
 -- tmux's bar lacks). datetime/domain/workspace/claude are dropped on unix -- tmux + SketchyBar
 -- own those, so showing them again would just duplicate the tmux status line stacked below.
+
+-- Per-platform "local" host glyph so the unix tab icon shows the right OS, not Windows.
+local nf = wezterm.nerdfonts
+local local_icon = is_macos and nf.md_apple
+    or (is_windows and nf.md_microsoft_windows or nf.linux_tux)
+local comp = status.components(wezterm, {
+    local_icon = local_icon,
+    wsl_icon = nf.cod_terminal_linux,
+    ssh_icon = nf.md_ssh,
+    -- Give a chosen ssh workspace a precise bar icon (keyed by workspace name = host label):
+    icon_overrides = { mac = nf.md_apple },
+    git_ttl = 3,
+    top_ttl = 30,
+})
+
 local tabline_sections
 if is_windows then
     tabline_sections = {
@@ -772,19 +787,26 @@ if is_windows then
         tabline_c = { " " },
         tab_active = {
             "index",
-            { "parent", padding = 0 },
-            "/",
-            { "cwd", padding = { left = 0, right = 1 } },
+            comp.tab_host_icon,
+            "process",
+            comp.smart_dir,
+            comp.pane_count,
             { "zoomed", padding = 0 },
         },
         tab_inactive = {
             "index",
+            comp.tab_host_icon,
             "claude",
-            { "tab", padding = { left = 0, right = 1 } },
+            "process",
+            comp.smart_dir,
+            comp.pane_count,
+            { "zoomed", padding = 0 },
         },
-        tabline_x = {},
-        tabline_y = { "datetime" },
-        tabline_z = { "domain" },
+        -- Right side: host badge replaces stock `domain` (ssh-aware); git branch replaces the
+        -- clock (`datetime`); counts + focused process fill the far-left of the right block.
+        tabline_x = { comp.counts, " ", comp.focused_process },
+        tabline_y = { comp.git_branch },
+        tabline_z = { comp.host_badge },
     }
 else
     tabline_sections = {
@@ -793,6 +815,7 @@ else
         tabline_c = { " " },
         tab_active = {
             "index",
+            comp.tab_host_icon,
             { "parent", padding = 0 },
             "/",
             { "cwd", padding = { left = 0, right = 1 } },
@@ -800,6 +823,7 @@ else
         },
         tab_inactive = {
             "index",
+            comp.tab_host_icon,
             { "tab", padding = { left = 0, right = 1 } },
         },
         tabline_x = {},
