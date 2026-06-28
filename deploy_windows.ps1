@@ -157,6 +157,12 @@ $symlinks = @(
         IsDirectory = $false
         Description = "Zed editor keybindings"
     }
+    @{
+        Source      = "$dotfilesRoot\.config\windows-terminal\catppuccin-frappe.json"
+        Target      = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles\catppuccin-frappe.json"
+        IsDirectory = $false
+        Description = "Windows Terminal Catppuccin Frappe color scheme (stable + Preview)"
+    }
 
     # --- Global agent instructions: one canonical file (claude\AGENTS.md) ---
     # Single source of truth shared by Claude Code, Codex, and opencode. Claude Code
