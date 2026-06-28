@@ -12,6 +12,8 @@ local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabl
 -- Requires zoxide on PATH (present: scoop shim). This also makes the "smart_workspace_switcher"
 -- tabline extension below live instead of dormant.
 local workspace_switcher = wezterm.plugin.require("https://github.com/MLFlexer/smart_workspace_switcher.wezterm")
+local remotes = require("wezterm_remotes")
+local status = require("wezterm_status")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -356,6 +358,45 @@ if is_windows and shellType ~= ShellTypes.WSL then
     config.default_gui_startup_args = { "connect", "unix" }
 end
 
+-- Manual remote targets not worth an ~/.ssh/config entry. A bare VPS needs `-t '<host>' tmux`
+-- so Ctrl+Space lands in a remote tmux; the Mac auto-attaches tmux via its zsh, so a plain
+-- { args = { "ssh", "mac" } } (from ~/.ssh/config) is enough there. Edit this list to taste.
+local REMOTE_EXTRAS = {
+  -- { label = "vps", kind = "vps", spawn = { args = { "ssh", "-t", "vps", "tmux new -A -s main" } } },
+}
+
+-- Leader+g: fuzzy-pick a remote (WSL distro / ~/.ssh/config host / extra) and land in a
+-- workspace named for it. enumerate_ssh_hosts runs at press time, so new hosts appear without
+-- a reload. SwitchToWorkspace spawns the remote as the workspace's FIRST tab (no leftover pwsh
+-- tab) and just switches if the workspace already exists (no duplicate).
+local function remote_picker()
+  return wezterm.action_callback(function(window, pane)
+    local ssh_hosts = {}
+    pcall(function() ssh_hosts = wezterm.enumerate_ssh_hosts() end)
+    local targets = remotes.build_targets(ssh_hosts, get_wsl_distros(), REMOTE_EXTRAS)
+    local choices, map = {}, {}
+    for _, t in ipairs(targets) do
+      choices[#choices + 1] = { id = t.id, label = t.label }
+      map[t.id] = t
+    end
+    window:perform_action(
+      act.InputSelector({
+        title = "  Remote",
+        fuzzy = true,
+        choices = choices,
+        action = wezterm.action_callback(function(w, p, id, _label)
+          if not id then return end
+          local t = map[id]
+          if t then
+            w:perform_action(act.SwitchToWorkspace({ name = t.label, spawn = t.spawn }), p)
+          end
+        end),
+      }),
+      pane
+    )
+  end)
+end
+
 -- ============================================================================
 -- § 4 · Multiplexer leader (tmux-emulation) — shared core, per-platform extensions
 -- ============================================================================
@@ -639,6 +680,9 @@ if is_windows then
     })
     -- Detach this domain (tmux `prefix d`); panes + procs stay on the mux server.
     table.insert(leader, { key = "d", action = act.DetachDomain("CurrentPaneDomain") })
+    -- Remote picker (WSL / ssh hosts / extras) -> workspace. Plain key (modified keys in leader
+    -- tables are unreliable on Windows WezTerm, #6824).
+    table.insert(leader, { key = "g", action = remote_picker() })
 end
 
 -- Windows-only: Claude tab-badge + toast-focus, namespaced by the stable mux-server socket tag.

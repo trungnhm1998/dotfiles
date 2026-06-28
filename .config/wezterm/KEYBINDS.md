@@ -72,6 +72,7 @@ Workspaces are WezTerm's equivalent of tmux sessions. These bindings deliberatel
 | `Ctrl+Space` → `(` (Shift+9) | Previous workspace | `prefix (` |
 | `Ctrl+Space` → `Shift+L` | Toggle to the **last-used** workspace | `prefix L` |
 | `Ctrl+Space` → `f` | **Fuzzy switcher** — existing workspaces + `zoxide` dirs | — |
+| `Ctrl+Space` → `g` | **Remote picker** — fuzzy list of WSL distros + `~/.ssh/config` hosts + extras; lands in a workspace named for the host (remote tmux owns `Ctrl+Space` there) | — |
 | `Ctrl+Space` → `Shift+S` | Workspace list launcher (**type to filter**) | `prefix s` |
 
 > `f` uses the [`smart_workspace_switcher`](https://github.com/MLFlexer/smart_workspace_switcher.wezterm) plugin (needs `zoxide` on PATH). Picking a zoxide directory spawns/switches to a workspace rooted there — like `tmux-sessionizer`. `Shift+L` remembers your previous workspace via `wezterm.GLOBAL` and is guarded so a renamed/closed workspace won't spawn an empty phantom.
