@@ -79,12 +79,18 @@ end
 -- (data) to tab fns. These adapters read either shape so the same logic serves both.
 local function read(pane, method, field)
   if not pane then return nil end
-  local m = pane[method]
-  if type(m) == 'function' then
+  -- A real Pane object exposes `method` as a function. A PaneInformation (tab data) has no such
+  -- key AND is strict -- indexing an unknown key RAISES -- so probe the method under pcall, then
+  -- fall through to the data `field`. Without the pcall, every tab component throws here and
+  -- silently blanks (only the tab index renders).
+  local okm, m = pcall(function() return pane[method] end)
+  if okm and type(m) == 'function' then
     local ok, v = pcall(m, pane)
     if ok then return v end
   end
-  return pane[field]
+  local okf, v = pcall(function() return pane[field] end)
+  if okf then return v end
+  return nil
 end
 function M.adapt_domain(pane) return read(pane, 'get_domain_name', 'domain_name') end
 function M.adapt_fg(pane) return read(pane, 'get_foreground_process_name', 'foreground_process_name') end
@@ -146,7 +152,9 @@ function M.components(wezterm, opts)
     local path = M.path_from_url(cwd.file_path, cwd.host)
     local gs = M.git_status(run, os.time(), path, branch_cache, opts.git_ttl or 3)
     if not gs then return '' end
-    return nf.dev_git .. ' ' .. gs.branch .. (gs.dirty and (' ' .. dirty_mark) or '')
+    -- Lead/trail spaces: tabline gives function components no padding, so without these the text
+    -- butts against the powerline section separators. Empty returns above stay empty (no stray gap).
+    return ' ' .. nf.dev_git .. ' ' .. gs.branch .. (gs.dirty and (' ' .. dirty_mark) or '') .. ' '
   end)
 
   C.host_badge = safe(function(window, pane)
@@ -158,7 +166,7 @@ function M.components(wezterm, opts)
       local_icon = opts.local_icon, wsl_icon = opts.wsl_icon, ssh_icon = opts.ssh_icon,
       workspace = ws, icon_overrides = opts.icon_overrides,
     })
-    return (h.icon or '') .. ' ' .. (h.label or '')
+    return ' ' .. (h.icon or '') .. ' ' .. (h.label or '') .. ' '
   end)
 
   C.focused_process = safe(function(window, pane)
@@ -180,7 +188,8 @@ function M.components(wezterm, opts)
     if not pi then return '' end
     local pl = M.proc_label(M.adapt_fg(pi), proc_icons)
     if not pl then return '' end
-    return (pl.icon and (pl.icon .. ' ') or '') .. pl.name
+    -- Leading space: tab sections get no component separators, so each component self-separates.
+    return ' ' .. (pl.icon and (pl.icon .. ' ') or '') .. pl.name
   end)
 
   C.tab_host_icon = safe(function(tab, pane)
@@ -189,7 +198,7 @@ function M.components(wezterm, opts)
     local h = M.host_of(M.adapt_domain(pi), M.adapt_fg(pi), {
       local_icon = opts.local_icon, wsl_icon = opts.wsl_icon, ssh_icon = opts.ssh_icon,
     })
-    return h.icon or ''
+    return h.icon and (' ' .. h.icon) or ''
   end)
 
   C.smart_dir = safe(function(tab, pane)
@@ -198,20 +207,23 @@ function M.components(wezterm, opts)
     local cwd = M.adapt_cwd(pi)
     if not cwd then return '' end
     local path = M.path_from_url(cwd.file_path, cwd.host)
-    if not path then
-      if cwd.host and cwd.host ~= '' then return cwd.host end
-      return M.basename(cwd.file_path)
+    local dir
+    if not path then                          -- remote/UNC/WSL: show the host, else the leaf dir
+      dir = (cwd.host and cwd.host ~= '' and cwd.host) or M.basename(cwd.file_path)
+    elseif is_remote(pi) then                 -- ssh/wsl by content: leaf dir (no local git probe)
+      dir = M.basename(path)
+    else                                      -- local: repo name when in a git tree, else leaf dir
+      dir = M.git_toplevel(run, os.time(), path, top_cache, opts.top_ttl or 30) or M.basename(path)
     end
-    if is_remote(pi) then return M.basename(path) end
-    local repo = M.git_toplevel(run, os.time(), path, top_cache, opts.top_ttl or 30)
-    return repo or M.basename(path)
+    if not dir or dir == '' then return '' end
+    return ' ' .. dir                         -- leading space: tab components self-separate
   end)
 
   C.pane_count = safe(function(tab, pane)
     if not tab or not tab.panes then return '' end
     local n = #tab.panes
     if n <= 1 then return '' end
-    return pane_glyph .. n
+    return ' ' .. pane_glyph .. n
   end)
 
   return C

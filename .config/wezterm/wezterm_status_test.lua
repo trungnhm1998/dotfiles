@@ -61,6 +61,20 @@ eq(M.adapt_domain(info), 'local', 'adapt_domain field')
 eq(M.adapt_fg(info), 'pwsh.exe', 'adapt_fg field')
 eq(M.adapt_cwd(info).file_path, '/C:/r', 'adapt_cwd field')
 
+-- Real PaneInformation (tab data) is STRICT: indexing a Pane *method* name on it raises, unlike
+-- the permissive plain-table stubs above. read() must probe the method under pcall and fall
+-- through to the data field, or every tab component throws and silently blanks (only the tab
+-- index renders). Regression for that exact GUI bug.
+do
+  local strict = setmetatable(
+    { domain_name = 'WSL:Ubuntu', foreground_process_name = 'C:\\x\\pwsh.exe',
+      current_working_dir = { file_path = '/C:/r' } },
+    { __index = function(_, k) error('strict PaneInformation: no field ' .. tostring(k)) end })
+  eq(M.adapt_domain(strict), 'WSL:Ubuntu', 'adapt_domain strict-info via field')
+  eq(M.adapt_fg(strict), 'C:\\x\\pwsh.exe', 'adapt_fg strict-info via field')
+  eq(M.adapt_cwd(strict).file_path, '/C:/r', 'adapt_cwd strict-info via field')
+end
+
 -- proc_label: basename (handles backslash) + strip .exe + icon-map lookup
 local imap = { pwsh = 'P', nvim = 'V', default = 'D' }
 local pl = M.proc_label('C:\\Program Files\\PowerShell\\7\\pwsh.exe', imap)
@@ -91,10 +105,32 @@ do
     mux = { get_workspace_names = function() return { 'main', 'other' } end },
   }
   local comp = M.components(stub_wez, { local_icon = 'L', ssh_icon = 'S', wsl_icon = 'W' })
-  eq(comp.host_badge(stub_window), 'L local', 'host_badge resolves pane from window only')
+  eq(comp.host_badge(stub_window), ' L local ', 'host_badge resolves pane from window only (padded)')
   eq(comp.focused_process(stub_window), 'pwsh', 'focused_process from window only')
   assert(comp.counts(stub_window):find('2 ws'), 'counts from window only')
   assert(comp.git_branch(stub_window):find('main'), 'git_branch resolves pane from window only')
+end
+
+-- Tab components: tabline calls them with a TabInformation (1 arg) whose active_pane is a STRICT
+-- PaneInformation. They must resolve via tab.active_pane, read fields through the pcall-guarded
+-- adapter, and self-separate with a leading space. Regression for "tab only shows the index".
+do
+  local strict_pane = setmetatable(
+    { domain_name = 'local', foreground_process_name = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe',
+      current_working_dir = { file_path = '/C:/Users/max/dotfiles', host = nil } },
+    { __index = function(_, k) error('strict PaneInformation: no field ' .. tostring(k)) end })
+  local tab = { tab_index = 0, active_pane = strict_pane, panes = { 1, 2 } }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf,
+    run_child_process = function() return false, '', '' end, -- not a git repo -> basename fallback
+    mux = { get_workspace_names = function() return {} end },
+  }
+  local comp = M.components(stub_wez, { local_icon = 'L', ssh_icon = 'S', wsl_icon = 'W', pane_glyph = '#' })
+  eq(comp.process(tab), ' I pwsh', 'tab process: icon + de-exe basename, space-led')
+  eq(comp.tab_host_icon(tab), ' L', 'tab host icon: local glyph, space-led')
+  eq(comp.smart_dir(tab), ' dotfiles', 'tab smart_dir: leaf/repo basename, space-led')
+  eq(comp.pane_count(tab), ' #2', 'tab pane_count: glyph+count, space-led')
 end
 
 if fails == 0 then print('wezterm_status_test OK') else print(fails .. ' FAILURES'); os.exit(1) end
