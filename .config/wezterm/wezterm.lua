@@ -14,6 +14,7 @@ local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabl
 local workspace_switcher = wezterm.plugin.require("https://github.com/MLFlexer/smart_workspace_switcher.wezterm")
 local remotes = require("wezterm_remotes")
 local status = require("wezterm_status")
+local mux_detect = require("wezterm_mux_detect")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -401,35 +402,10 @@ end
 -- § 4 · Multiplexer leader (tmux-emulation) — shared core, per-platform extensions
 -- ============================================================================
 
--- A local pane is "SSH'd out" when its foreground process is an ssh/mosh client. WezTerm
--- can't see the REMOTE process, but the local ssh client IS the foreground of the pane, so
--- this detects "I'm in an SSH session" and hands Ctrl+Space to the remote tmux instead of
--- grabbing it for WezTerm's leader. Only runs on a Ctrl+Space press.
--- See https://wezterm.org/config/lua/pane/get_foreground_process_name.html
-local function is_ssh_pane(pane)
-    local ok, name = pcall(function() return pane:get_foreground_process_name() end)
-    if not ok or not name then return false end
-    name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
-    return name == "ssh.exe" or name == "ssh" or name == "mosh.exe" or name == "mosh"
-        or name == "mosh-client.exe" or name == "mosh-client"
-end
-
--- A pane is "in tmux" when its foreground process is the tmux client. A tmux-attached WezTerm
--- pane runs the tmux client in its pty (shells live under the tmux *server*, a separate process
--- tree), so this reads "tmux". Mirrors is_ssh_pane. Used on mac/Linux to hand Ctrl+Space to the
--- local tmux -- including claude-squad's internal tmux -- instead of grabbing WezTerm's leader.
-local function is_tmux_pane(pane)
-    local ok, name = pcall(function() return pane:get_foreground_process_name() end)
-    if not ok or not name then return false end
-    name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
-    return name == "tmux" or name == "tmux.exe"
-end
-
--- Helper to check if current pane is in a WSL domain (Windows).
-local function is_wsl_pane(pane)
-    local domain_name = pane:get_domain_name()
-    return domain_name and domain_name:find("WSL") ~= nil
-end
+-- Multiplexer-ownership detection (is_ssh_pane / is_wsl_pane / is_tmux_pane) now lives in the pure,
+-- unit-tested `mux_detect` module required above. It was moved out of this file when the persistent
+-- `unix` mux domain started returning nil from get_foreground_process_name() for EVERY pane -- see
+-- that module's header for the three-signal fallback (user var `mux_prog` / fg name / pane title).
 
 -- Build a SpawnCommand for actions launched from the current pane. On Windows, relaunch pwsh
 -- for local panes; elsewhere inherit the default shell. Deliberately do NOT set `cwd`: a
@@ -462,9 +438,9 @@ table.insert(config.keys, {
     key = " ",
     mods = "CTRL",
     action = wezterm.action_callback(function(window, pane)
-        local owned_elsewhere = is_ssh_pane(pane)
-            or (is_windows and is_wsl_pane(pane))
-            or (is_unix and is_tmux_pane(pane))
+        local owned_elsewhere = mux_detect.is_ssh_pane(pane)
+            or (is_windows and mux_detect.is_wsl_pane(pane))
+            or (is_unix and mux_detect.is_tmux_pane(pane))
         if owned_elsewhere then
             window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)
         else
@@ -492,24 +468,6 @@ table.insert(config.keys, {
     action = act.ClearKeyTableStack,
 })
 
--- TEMP DEBUG (remove after diagnosis): report exactly what the Ctrl+Space detection sees in
--- THIS pane -- the same calls is_ssh_pane/is_wsl_pane make. Press Ctrl+Shift+I in each pane.
-table.insert(config.keys, {
-    key = "i",
-    mods = "CTRL|SHIFT",
-    action = wezterm.action_callback(function(window, pane)
-        local fg = "(nil)"
-        pcall(function() fg = tostring(pane:get_foreground_process_name()) end)
-        local dom = tostring(pane:get_domain_name())
-        local title = "(nil)"
-        pcall(function() title = tostring(pane:get_title()) end)
-        local msg = string.format(
-            "fg=%s | domain=%s | title=%s | is_windows=%s is_unix=%s",
-            fg, dom, title, tostring(is_windows), tostring(is_unix))
-        wezterm.log_warn("WEZ-DEBUG " .. msg)
-        window:toast_notification("wez-debug", msg, nil, 12000)
-    end),
-})
 -- Direct, prefix-free workspace navigation that works from ANY pane (incl. ssh/WSL, where
 -- Ctrl+Space belongs to the remote tmux). Windows-only: the picker/switcher are Windows features.
 if is_windows then
@@ -874,7 +832,6 @@ if is_windows then
             "index",
             comp.tab_host_icon,
             comp.smart_dir,
-            comp.pane_count,
             { "zoomed", padding = 0 },
             " ",
         },

@@ -151,6 +151,25 @@ function zj {
     try { zellij @args } finally { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") }
 }
 
+# --- ssh / wsl -> WezTerm mux passthrough ---
+# Tell wezterm.lua which multiplexer owns Ctrl+Space when we shell out to ssh/wsl from a pwsh pane.
+# The persistent `unix` mux hides child processes from pane:get_foreground_process_name() (it
+# returns nil), so wezterm can't see that ssh/wsl is running -- we announce it via a user var, the
+# same OSC 1337 SetUserVar mechanism as `zj` above. Cleared on exit (finally) so the pane returns
+# to WezTerm's own leader. Read by mux_detect.pane_prog() in wezterm_mux_detect.lua.
+function Set-WezVar([string]$Name, [string]$Value) {
+    $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Value))
+    [Console]::Write("`e]1337;SetUserVar=$Name=$b64`a")
+}
+function ssh {
+    Set-WezVar 'mux_prog' 'ssh'
+    try { ssh.exe @args } finally { Set-WezVar 'mux_prog' '' }
+}
+function wsl {
+    Set-WezVar 'mux_prog' 'wsl'
+    try { wsl.exe @args } finally { Set-WezVar 'mux_prog' '' }
+}
+
 # --- Tablet-as-monitor toggle (SuperDisplay + SudoMaker) ---
 # Both are indirect-display drivers (IDDs): a virtual ADAPTER owns the virtual display's
 # lifecycle. An ACTIVE virtual display stalls WezTerm's GPU present path (DXGI occlusion ->
