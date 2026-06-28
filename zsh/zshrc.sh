@@ -38,26 +38,6 @@ export NVM_DIR="$HOME/.nvm"
 # nvm.sh + completion are loaded once by the oh-my-zsh `nvm` plugin (plugins+=(nvm) below).
 # Don't source them here too — nvm is the biggest zsh startup cost and this paid it twice.
 
-# --- pyenv ---
-# Skip if pyenv is a Windows executable (WSL2 PATH pollution)
-if command -v pyenv >/dev/null 2>&1; then
-    pyenv_path=$(command -v pyenv)
-    # Skip if pyenv is in /mnt/c (Windows drive in WSL)
-    if [[ "$pyenv_path" != /mnt/c* ]]; then
-        export PYENV_ROOT="$HOME/.pyenv"
-        export PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init --path)"
-    fi
-fi
-
-# --- ruby env ---
-# export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-# export PATH=$HOME/.gem/ruby/2.6.0/bin:$PATH
-# if which rbenv >/dev/null; then eval "$(rbenv init -)"; fi
-
-# export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
-# export PATH="$PATH:$GEM_HOME/bin"
-
 # --- yazi cd to directory after exit ---
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
