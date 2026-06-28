@@ -101,7 +101,7 @@ function M.components(wezterm, opts)
   local run = wezterm.run_child_process
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
-  local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal
+  local pane_glyph = opts.pane_glyph or nf.cod_split_horizontal or '|'
   local C = {}
 
   local function safe(fn)
@@ -171,6 +171,7 @@ function M.components(wezterm, opts)
       if cwd.host and cwd.host ~= '' then return cwd.host end
       return M.basename(cwd.file_path)
     end
+    if is_remote(pi) then return M.basename(path) end
     local repo = M.git_toplevel(run, os.time(), path, top_cache, opts.top_ttl or 30)
     return repo or M.basename(path)
   end)
