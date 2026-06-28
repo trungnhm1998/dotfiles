@@ -28,9 +28,11 @@ local is_unix = not is_windows
 
 -- rendering
 
--- Repaint cap: match the 240 Hz monitor (144 on a 240 Hz panel judders; WT paints at refresh).
+-- Repaint cap: match the 240 Hz Windows panel (144 on a 240 Hz panel judders; WT paints at refresh).
+-- On the MacBook, cap at 120 — 240 fps on a 60/120 Hz laptop panel just burns GPU/battery under
+-- bursty TUI output (Claude streaming, builds) for zero visible gain. Drop to 60 if not ProMotion.
 -- animation_fps only drives cursor-blink/visual-bell easing — 60 is smooth and saves idle GPU.
-config.max_fps = 240
+config.max_fps = is_macos and 120 or 240
 config.animation_fps = 60
 
 -- WebGpu (modern GPU path) handles synchronized output / frame coalescing better than
@@ -45,7 +47,11 @@ config.front_end = "WebGpu"
 -- eval runs many times at startup/reload and each enumerate pays a full multi-backend GPU
 -- scan (measured: startup 0.6 s -> 6+ s). If WebGpu misbehaves again, fall back to "OpenGL"
 -- (benched equal to Windows Terminal on this machine).
-config.webgpu_power_preference = "HighPerformance"
+-- Desktop-only: forces the RTX over the Intel iGPU. No-op on Apple Silicon (single GPU), but on
+-- an Intel MacBook it would force the discrete GPU (battery drain + switch flicker) — gate to Windows.
+if is_windows then
+    config.webgpu_power_preference = "HighPerformance"
+end
 
 -- appearance
 
@@ -118,22 +124,27 @@ config.freetype_render_target = "Normal" ---@type 'Normal'|'Light'|'Mono'|'Horiz
 
 -- nav
 
--- vim smart splits
-vim_smart_splits.apply_to_config(config, {
-    -- directional keys to use in order of: left, down, up, right
-    -- separate direction keys for move vs. resize
-    direction_keys = {
-        move = { "h", "j", "k", "l" },
-        resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
-    },
-    -- modifier keys to combine with direction_keys
-    modifiers = {
-        move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
-        resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
-    },
-    -- log level to use: info, warn, error ("info" logs on every Ctrl+hjkl navigation)
-    log_level = "warn",
-})
+-- vim smart splits — Windows only. On mac/Linux, tmux owns Ctrl+hjkl (vim-tmux-navigator).
+-- smart-splits' nvim detection reads the IS_NVIM user-var, which doesn't cross the tmux
+-- boundary, so with ≥2 WezTerm panes it would wrongly grab Ctrl+hjkl from tmux/nvim instead
+-- of letting it fall through. Leaving it unbound on mac lets tmux/vim-tmux-navigator handle it.
+if is_windows then
+    vim_smart_splits.apply_to_config(config, {
+        -- directional keys to use in order of: left, down, up, right
+        -- separate direction keys for move vs. resize
+        direction_keys = {
+            move = { "h", "j", "k", "l" },
+            resize = { "LeftArrow", "DownArrow", "UpArrow", "RightArrow" },
+        },
+        -- modifier keys to combine with direction_keys
+        modifiers = {
+            move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
+            resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
+        },
+        -- log level to use: info, warn, error ("info" logs on every Ctrl+hjkl navigation)
+        log_level = "warn",
+    })
+end
 
 -- ============================================================================
 -- § 3 · Multiplexer & shells  —  mostly Windows; mac/unix run real tmux
@@ -359,7 +370,7 @@ local function is_ssh_pane(pane)
     if not ok or not name then return false end
     name = (name:gsub("\\", "/"):match("[^/]+$") or name):lower() -- basename
     return name == "ssh.exe" or name == "ssh" or name == "mosh.exe" or name == "mosh"
-        or name == "mosh-client.exe"
+        or name == "mosh-client.exe" or name == "mosh-client"
 end
 
 -- A pane is "in tmux" when its foreground process is the tmux client. A tmux-attached WezTerm
