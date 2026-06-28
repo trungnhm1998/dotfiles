@@ -94,6 +94,7 @@ powershell -Command "Get-Command -Syntax .\deploy_windows.ps1"
   - Plugins defined in `.config/nvim/lua/plugins/`
   - After install, run `:Lazy sync` to install plugins
 - **Wezterm:** Primary terminal with Lua config at `.config/wezterm/wezterm.lua`
+- **Claude Code skills:** `~/.claude/skills` is a **real directory**, not a whole-dir symlink. Repo skills under `claude/skills/` are linked in **per-item** by `scripts/lib/link-skills.sh` (called from `scripts/sync-ai-configs.sh`; Windows does the same in `deploy_windows.ps1`). This leaves room to install public skills from the internet with `npx skills add -g <github-repo>` — they land in `~/.claude/skills/<name>` outside the dotfiles repo. Edit your own skills in `claude/skills/`; they're live via the symlink. A public skill that shares a repo skill's name wins (the repo skill is skipped).
 
 ### Shell Configuration
 

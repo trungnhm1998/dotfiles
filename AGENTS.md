@@ -193,6 +193,7 @@ Defined in `.editorconfig` for consistency:
 | IdeaVim | `.ideavimrc` |
 | Kanata (keyboard remap, macOS) | `.config/kanata/kanata.kbd` |
 | Claude Code Config | `claude/` (→ `~/.claude/`) |
+| Claude skills per-item linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
 | opencode Config | `.config/opencode/opencode.jsonc` |
 | Secrets template | `secrets.env.example` (real values in `~/.config/dotfiles/secrets.env`, gitignored) |
 
