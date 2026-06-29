@@ -102,6 +102,12 @@ $symlinks = @(
         Description = "Zellij multiplexer (Windows)"
     }
     @{
+        Source      = "$dotfilesRoot\.config\psmux"
+        Target      = "$HOME\.config\psmux"
+        IsDirectory = $true
+        Description = "psmux (native-Windows tmux)"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\yazi"
         Target      = "$env:APPDATA\yazi\config"
         IsDirectory = $true

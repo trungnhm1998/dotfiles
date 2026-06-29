@@ -59,6 +59,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.config/komorebi` | `$HOME\.config\komorebi` |
 | `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
 | `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
+| `.config/psmux` | `$HOME\.config\psmux` (psmux — native-Windows tmux; reads tmux-syntax config but **not** TPM plugins. Launch via `tmux`/`psmux`/`pmux` from the pwsh profile, which sets the `mux_prog=psmux` user var so `wezterm.lua` hands over `Ctrl+Space`. Manual launch only — no auto-attach.) |
 | `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
 | `.config/lazygit` | `$env:APPDATA\lazygit` |
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
@@ -87,6 +88,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 - Leader key: `Ctrl+Space` (1 second timeout)
 - vim-smart-splits plugin enables Ctrl+hjkl navigation between Wezterm panes and Neovim splits
 - Key bindings: `Leader+v` (hsplit), `Leader+s` (vsplit), `Leader+x` (close pane), `Leader+t` (new tab), `Leader+d` (detach mux), `Leader+1-9` (switch tabs)
+- **psmux** (native-Windows tmux) is a **manual-launch** mux for Claude Code agent-team panes — type `tmux`/`psmux`/`pmux` (pwsh wrappers) to start it. It reads `.config/psmux/psmux.conf` (portable tmux keybindings; TPM plugins unsupported), and its `Ctrl+Space` prefix is handed over by `wezterm.lua` via the `mux_prog=psmux` user var (same yield as Zellij/ssh/wsl). No auto-attach; distinct from the WezTerm-mux default lane and opt-in Zellij.
 
 ### Window Management
 
