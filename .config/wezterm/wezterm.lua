@@ -439,7 +439,7 @@ table.insert(config.keys, {
     mods = "CTRL",
     action = wezterm.action_callback(function(window, pane)
         local owned_elsewhere = mux_detect.is_ssh_pane(pane)
-            or (is_windows and mux_detect.is_wsl_pane(pane))
+            or (is_windows and (mux_detect.is_wsl_pane(pane) or mux_detect.is_psmux_pane(pane)))
             or (is_unix and mux_detect.is_tmux_pane(pane))
         if owned_elsewhere then
             window:perform_action(act.SendKey({ key = " ", mods = "CTRL" }), pane)

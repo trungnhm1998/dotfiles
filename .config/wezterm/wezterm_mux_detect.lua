@@ -49,6 +49,14 @@ function M.is_tmux_pane(pane)
   return M.pane_prog(pane) == "tmux"
 end
 
+-- psmux (native-Windows tmux) owns Ctrl+Space when psmux/pmux/tmux was launched inside a pwsh pane
+-- (mux_prog user var set by the Invoke-Psmux wrapper). Like ssh/wsl, the persistent unix mux hides
+-- the process name, so the user var is the reliable signal; fg-name/title cover non-mux panes.
+function M.is_psmux_pane(pane)
+  local p = M.pane_prog(pane)
+  return p == "psmux" or p == "pmux"
+end
+
 -- WSL "owns" Ctrl+Space when the pane lives in a WSL multiplexer domain (picker-spawned), or when
 -- `wsl` was typed inside a pwsh pane (mux_prog user var). The domain check is first and independent
 -- of the prog signals -- it is the one that already worked before this fix.

@@ -63,4 +63,12 @@ local boom = {
 ok(not D.is_ssh_pane(boom), "boom ssh false, no crash")
 ok(not D.is_wsl_pane(boom), "boom wsl false, no crash")
 
+-- F: psmux launched in a pwsh pane -- like ssh/wsl, the unix mux hides the process name, so the
+-- mux_prog user var (set by the Invoke-Psmux wrapper) is the signal. The tmux/pmux aliases all set
+-- mux_prog=psmux, so detection keys on psmux/pmux only.
+ok(D.is_psmux_pane(pane({ fg = nil, title = "pwsh.exe", domain = "unix", uv = { mux_prog = "psmux" } })), "F psmux via user var")
+ok(D.is_psmux_pane(pane({ fg = "pmux", title = "pmux" })), "psmux via fg name (pmux alias)")
+ok(not D.is_psmux_pane(pane({ fg = nil, title = "pwsh.exe", uv = { mux_prog = "" } })), "empty uv not psmux")
+ok(not D.is_psmux_pane(a), "plain pwsh not psmux")
+
 if fails == 0 then print("wezterm_mux_detect_test OK") else print(fails .. " FAILURES"); os.exit(1) end
