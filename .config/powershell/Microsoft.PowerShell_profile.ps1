@@ -4,7 +4,19 @@ $env:VISUAL = "nvim"
 
 # https://github.com/janikvonrotz/awesome-powershell
 Import-Module posh-git # Install-Module posh-git -Scope CurrentUser -Force
-Import-Module Terminal-Icons # Install-Module -Name Terminal-Icons -Repository PSGallery
+# Terminal-Icons rewrites its theme cache (%APPDATA%\powershell\Community\Terminal-Icons\*.xml) on
+# every import via non-atomic Export-Clixml -Force. Concurrent pwsh launches (psmux / Zellij / Claude
+# agent-team panes) can read a file mid-rewrite -> corrupt CliXml -> the module's UNGUARDED load-time
+# Import-CliXml throws and the whole import aborts with a wall of red. The on-disk file self-heals once
+# the writing shell finishes, so one retry usually wins; degrade quietly if the race is still open.
+# ponytail: retry-once, not a write-lock -- a heavy concurrent storm can still skip icons this session.
+# Install-Module -Name Terminal-Icons -Repository PSGallery
+try {
+    Import-Module Terminal-Icons -ErrorAction Stop
+} catch {
+    try { Import-Module Terminal-Icons -ErrorAction Stop }
+    catch { Write-Verbose "Terminal-Icons skipped (concurrent-launch race): $($_.Exception.Message)" }
+}
 Import-Module PSReadLine # Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
 Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
