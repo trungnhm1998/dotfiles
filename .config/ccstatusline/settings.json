@@ -5,11 +5,13 @@
       {
         "id": "1",
         "type": "model",
-        "color": "cyan"
+        "color": "brightYellow",
+        "bold": true
       },
       {
         "id": "500b24c1-e35c-4a8a-9a9b-fabe4002f991",
-        "type": "thinking-effort"
+        "type": "thinking-effort",
+        "color": "brightRed"
       },
       {
         "id": "7cf19507-eb9f-460d-8035-c60ecdbb6237",
@@ -17,7 +19,8 @@
         "rawValue": false,
         "metadata": {
           "display": "slider"
-        }
+        },
+        "color": "brightCyan"
       }
     ],
     [
@@ -44,7 +47,17 @@
         "metadata": {
           "display": "slider",
           "cursor": "true"
-        }
+        },
+        "merge": true
+      },
+      {
+        "id": "7f1e3ccd-2a25-48f6-8e7c-03fd4ad7a8dd",
+        "type": "reset-timer",
+        "metadata": {
+          "display": "time",
+          "compact": "true"
+        },
+        "rawValue": false
       },
       {
         "id": "7b3a7915-bb3d-427f-91e5-c0c199b6788a",
@@ -52,21 +65,15 @@
         "metadata": {
           "display": "slider",
           "cursor": "true"
-        }
-      },
-      {
-        "id": "7f1e3ccd-2a25-48f6-8e7c-03fd4ad7a8dd",
-        "type": "reset-timer",
-        "metadata": {
-          "display": "time",
-          "absolute": "false"
-        }
+        },
+        "merge": true
       },
       {
         "id": "f180089f-7d01-4ca0-8295-43a59d84eca6",
         "type": "weekly-reset-timer",
         "metadata": {
-          "display": "time"
+          "display": "time",
+          "compact": "true"
         }
       }
     ],
