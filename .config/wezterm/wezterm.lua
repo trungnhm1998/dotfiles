@@ -848,7 +848,7 @@ if is_windows then
         -- host badge on the right. host_badge is the single "where am I" label (local / WSL distro /
         -- ssh host like mac|vps). Stock `domain` dropped (it showed the cryptic mux socket "unix");
         -- git dropped on request.
-        tabline_x = { comp.counts, " ", comp.focused_process },
+        tabline_x = { comp.counts, " ", comp.focused_process, " " },
         tabline_y = {},
         tabline_z = { comp.host_badge },
     }
