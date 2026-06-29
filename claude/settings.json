@@ -9,6 +9,7 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
+  "model": "opus[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -150,7 +151,7 @@
       }
     }
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "max",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
