@@ -170,6 +170,16 @@ function wsl {
     try { wsl.exe @args } finally { Set-WezVar 'mux_prog' '' }
 }
 
+# --- psmux (native-Windows tmux): flag the pane so wezterm.lua yields Ctrl+Space ---
+# Same OSC-1337 user-var dance as zj/ssh/wsl above. Manual launch only -- no auto-attach.
+function Invoke-Psmux {
+    Set-WezVar 'mux_prog' 'psmux'
+    try { psmux.exe @args } finally { Set-WezVar 'mux_prog' '' }
+}
+Set-Alias psmux Invoke-Psmux
+Set-Alias tmux  Invoke-Psmux   # muscle memory: `tmux` launches psmux + flags the pane
+Set-Alias pmux  Invoke-Psmux
+
 # --- Tablet-as-monitor toggle (SuperDisplay + SudoMaker) ---
 # Both are indirect-display drivers (IDDs): a virtual ADAPTER owns the virtual display's
 # lifecycle. An ACTIVE virtual display stalls WezTerm's GPU present path (DXGI occlusion ->
