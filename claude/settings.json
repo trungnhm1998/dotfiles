@@ -9,7 +9,59 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "opus[1m]",
+  "skillOverrides": {
+    "keel": "off",
+    "level-design": "off",
+    "mermaid-diagrams": "off",
+    "new-game": "off",
+    "scope-check": "off",
+    "symdex-code-search": "off",
+    "ticket-swarm": "name-only",
+    "unity-shaders": "name-only",
+    "verify-api": "name-only",
+    "gif-to-sprite-frames": "name-only",
+    "gamedev-audio": "off",
+    "gamedev-art": "off",
+    "game-marketing": "off",
+    "inbox": "name-only",
+    "learn": "name-only",
+    "design": "name-only",
+    "find-skills": "name-only",
+    "close": "name-only",
+    "close-session": "name-only",
+    "finish-ticket": "name-only",
+    "game-feel": "off",
+    "handoff-prompt": "name-only",
+    "implement": "name-only",
+    "obsidian-inbox": "name-only",
+    "review": "name-only",
+    "unity-engineering": "name-only",
+    "unity-lead-consult": "name-only",
+    "unity-review": "name-only",
+    "unity-worktree-setup": "off",
+    "beautiful-mermaid": "name-only",
+    "caveman": "name-only",
+    "explain-code": "name-only",
+    "skill-creator": "name-only",
+    "watch-ci": "name-only"
+  },
+  "deniedMcpServers": [
+    {
+      "serverName": "claude.ai Gmail"
+    },
+    {
+      "serverName": "claude.ai Google Calendar"
+    },
+    {
+      "serverName": "claude.ai Google Drive"
+    },
+    {
+      "serverName": "claude.ai Atlassian"
+    },
+    {
+      "serverName": "claude.ai Figma"
+    }
+  ],
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -120,15 +172,14 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": false,
     "claude-mem@thedotmack": false,
-    "lua-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
-    "csharp-lsp@claude-plugins-official": true,
+    "csharp-lsp@claude-plugins-official": false,
     "gsd@gsd-plugin": false,
-    "frontend-design@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": false,
     "ponytail@ponytail": true,
-    "context7@claude-plugins-official": true
+    "context7@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "superpowers-dev": {
@@ -151,7 +202,7 @@
       }
     }
   },
-  "effortLevel": "max",
+  "effortLevel": "xhigh",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
