@@ -34,7 +34,7 @@ ExitMode(*) {
 Legend(m) {
     switch m {
         case "resize":  return "⟨ RESIZE ⟩    h j k l nudge  ·  ⇧ shrink  ·  esc done"
-        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  d drift  ·  ⌫ restart  ·  x gaming off  ·  esc"
+        case "service": return "⟨ SERVICE ⟩   r retile  ·  p pause  ·  t tiling  ·  f fullscreen  ·  o reload  ·  d drift  ·  ⌫ restart  ·  x gaming off  ·  g gaming(both)  ·  esc"
     }
     return ""
 }
@@ -154,6 +154,9 @@ OLED_Toggle(*) {                             ; cycle: static -> invisible -> agg
 ^!+#r::EnterMode("resize")            ; Hyper+r
 ^!+#`;::EnterMode("service")          ; Hyper+;  (semicolon escaped)
 ^!+#Escape::ExitMode()                ; panic exit — works from ANY state
+
+; Keyboard work/gaming toggle (Kanata on/off) — mirrors the YASB kanata pill.
+^!+#g::Run('pwsh -NoProfile -WindowStyle Hidden -File "' EnvGet("USERPROFILE") '\.config\kanata\kanata-toggle.ps1"', , "Hide")
 
 ; ============================================================
 ; Hyper (^!+#) — focus / act layer
@@ -312,6 +315,13 @@ x:: {
     OSD_Hide()      ; clear the badge before the stack goes down
     RunWait("komorebic.exe stop --ahk --masir", , "Hide")   ; stop komorebi + masir for gaming
     ExitApp()       ; QUIT AutoHotkey (process gone) — anti-cheat needs AHK terminated (ExitApp is the real kill)
+}
+g:: {
+    ; Full gaming: force Kanata OFF (idempotent), then take komorebi+AHK down like `x`.
+    Run('pwsh -NoProfile -WindowStyle Hidden -File "' EnvGet("USERPROFILE") '\.config\kanata\kanata-toggle.ps1" -Off', , "Hide")
+    OSD_Hide()
+    ; wm-toggle stops komorebi+masir and kills this AHK; come back via the YASB pills.
+    RunWait('pwsh -NoProfile -WindowStyle Hidden -File "' EnvGet("USERPROFILE") '\.config\komorebi\wm-toggle.ps1"', , "Hide")
 }
 Enter::ExitMode()
 Escape::ExitMode()
