@@ -429,6 +429,33 @@ function New-SafeSymlink {
     }
 }
 
+function Install-Kanata {
+    # Fetch the latest LLHOOK kanata.exe (the default Windows build — NO Interception
+    # driver, so nothing for anti-cheat to flag). NOT the winget 'jtroo.kanata_gui'
+    # tray app: we drive start/stop ourselves and a tray wrapper would fight that.
+    $dir = Join-Path $env:LOCALAPPDATA 'Programs\kanata'
+    $exe = Join-Path $dir 'kanata.exe'
+    if (Test-Path $exe) {
+        Write-Status "kanata.exe already present: $exe" -Type Success
+        return
+    }
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would download latest kanata.exe -> $exe" -ForegroundColor DarkGray
+        return
+    }
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    try {
+        $rel = Invoke-RestMethod 'https://api.github.com/repos/jtroo/kanata/releases/latest' `
+            -Headers @{ 'User-Agent' = 'dotfiles' }
+        $asset = $rel.assets | Where-Object { $_.name -eq 'kanata.exe' } | Select-Object -First 1
+        if (-not $asset) { throw "No 'kanata.exe' asset in release $($rel.tag_name)" }
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $exe -UseBasicParsing
+        Write-Status "Installed kanata $($rel.tag_name) -> $exe" -Type Success
+    } catch {
+        Write-Status "Failed to install kanata: $($_.Exception.Message)" -Type Error
+    }
+}
+
 # =============================================================================
 # Main Script
 # =============================================================================
@@ -591,6 +618,9 @@ if (-not $SkipPackages) {
     } else {
         Write-Status "bat is not installed, skipping theme installation" -Type Warning
     }
+
+    Write-Host "`nInstalling: Kanata (keyboard remapper, LLHOOK)" -ForegroundColor Cyan
+    Install-Kanata
 }
 
 # =============================================================================
