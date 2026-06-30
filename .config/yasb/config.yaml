@@ -32,7 +32,7 @@ bars:
       bottom: 0
       right: 0
     widgets:
-      left: ["wm_toggle", "workspaces", "active_layout", "taskbar"]
+      left: ["wm_toggle", "kanata_toggle", "workspaces", "active_layout", "taskbar"]
       center: ["clock"]
       right: ["cpu", "memory", "gpu", "traffic", "weather", "media", "volume", "microphone", "wifi", "bluetooth", "systray", "power_menu"]
 
@@ -115,6 +115,24 @@ widgets:
         return_format: "string"
       callbacks:
         on_left: "exec pwsh -NoProfile -WindowStyle Hidden -File C:\\Users\\mint\\.config\\komorebi\\wm-toggle.ps1"
+        on_middle: "do_nothing"
+        on_right: "do_nothing"
+
+  kanata_toggle:
+    type: "yasb.custom.CustomWidget"
+    options:
+      label: "{data}"
+      class_name: "kanata-toggle"
+      tooltip: true
+      tooltip_label: "Keyboard layout — click to toggle (gaming = Kanata off)"
+      exec_options:
+        # Poll Kanata's run-state -> bar glyph. Bare path (yasb splits run_cmd on spaces).
+        # Do NOT set `encoding` (yasb hardcodes output.decode("utf-8"); setting it throws -> "Loading...").
+        run_cmd: "pwsh -NoProfile -File C:\\Users\\mint\\.config\\kanata\\kanata-toggle.ps1 -State"
+        run_interval: 5000
+        return_format: "string"
+      callbacks:
+        on_left: "exec pwsh -NoProfile -WindowStyle Hidden -File C:\\Users\\mint\\.config\\kanata\\kanata-toggle.ps1"
         on_middle: "do_nothing"
         on_right: "do_nothing"
 
