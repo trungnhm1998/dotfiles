@@ -282,6 +282,12 @@ install_starship_curl() {
 }
 install_package starship - - - install_starship_curl
 echo
+install_pyenv_curl() {
+	echo "Installing pyenv via official installer..."
+	curl -fsSL https://pyenv.run | bash
+}
+install_package pyenv - pyenv pyenv install_pyenv_curl
+echo
 install_package eza eza eza eza
 echo
 install_package yazi - - yazi
