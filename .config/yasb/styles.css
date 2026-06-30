@@ -117,15 +117,26 @@
 .calendar .calendar-table::item:selected { background-color: #81c8be; color: #232634; }
 .power-menu-popup .button.hover { background-color: #414559; }
 
-/* ── wm-toggle (komorebi power switch — sits with the WM widgets) ── */
-.wm-toggle { margin: 0 3px; }
-.wm-toggle .widget-container {
+/* ── icon-toggle pills (wm + kanata power switches) ──────────────────
+   Qt QSS has no flexbox / justify-content / absolute-centering. The
+   native centerer is qproperty-alignment (below), but it only centers
+   the glyph's BOX — and these Nerd-Font icons are drawn a couple px
+   right-heavy INSIDE their cell, which no layout property can know
+   about. One small right-biased pad re-centers the ink; the same value
+   serves both pills (and both on/off glyphs) to within ~1px — the
+   practical ceiling for font-icon centering. */
+.wm-toggle, .kanata-toggle { margin: 0 3px; }
+.wm-toggle .widget-container,
+.kanata-toggle .widget-container {
     background-color: #292c3c;       /* mantle — match the floating pills */
     border-radius: 9px;
     padding: 0 8px;
 }
-.wm-toggle .label {
+.wm-toggle .label,
+.kanata-toggle .label {
     color: #babbf1;                  /* lavender — groups with active-layout */
     font-weight: 600;
-    padding: 0 4px;
+    qproperty-alignment: 'AlignCenter';   /* centers the glyph box (Qt's only centerer) */
+    padding: 0 6px 0 2px;            /* one nudge for both — FA icons render ~2px right-heavy */
 }
+
