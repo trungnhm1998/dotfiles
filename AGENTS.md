@@ -57,6 +57,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.config/wezterm` | `$HOME\.config\wezterm` |
 | `.config/windows-terminal/catppuccin-frappe.json` | `$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles\catppuccin-frappe.json` (Catppuccin Frappé color scheme; **both** WT stable + Preview read this edition-agnostic fragments dir, so one file themes both; select it once per app via Settings → Defaults → Color scheme — deploy never touches `settings.json`) |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
+| `.config/kanata` | `$HOME\.config\kanata` (Kanata 60%-keyboard remapper; **Windows uses `kanata.win.kbd`** — the macOS `kanata.kbd` has `fn`/media keys that won't compile here. Driver-free LLHOOK; "gaming" = `kanata.exe` stopped. Toggle: YASB `kanata_toggle` pill, `Hyper+G`, or service-mode `g` (both). Autostarts via a logon Scheduled Task.) |
 | `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
 | `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
 | `.config/psmux` | `$HOME\.config\psmux` (psmux — native-Windows tmux; reads tmux-syntax config but **not** TPM plugins. Launch via `tmux`/`psmux`/`pmux` from the pwsh profile, which sets the `mux_prog=psmux` user var so `wezterm.lua` hands over `Ctrl+Space`. Manual launch only — no auto-attach.) |
@@ -206,6 +207,7 @@ end
 | Yazi / Lazygit | `.config/yazi/`, `.config/lazygit/config.yml` |
 | Komorebi (Windows) | `.config/komorebi/komorebi.json` |
 | YASB (Windows status bar) | `.config/yasb/config.yaml` + `styles.css` (reload: `yasbc reload`) |
+| Kanata (Windows) | `.config/kanata/kanata.win.kbd` (config) · `.config/kanata/kanata-toggle.ps1` (start/stop/`-State`/`-Off`) |
 | Yabai (macOS) | `.config/yabai/yabairc`; signal/helper scripts `.config/yabai/scripts/` |
 | Hammerspoon (macOS) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
 | stackline (macOS) | `.config/hammerspoon/stackline/` (vendored `poddarh` fork) + `stackline_config.lua` (Frappe overrides); notes `docs/superpowers/stackline-fork-notes.md` |

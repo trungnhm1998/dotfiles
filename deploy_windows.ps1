@@ -78,6 +78,12 @@ $symlinks = @(
         Description = "Komorebi tiling window manager"
     }
     @{
+        Source      = "$dotfilesRoot\.config\kanata"
+        Target      = "$HOME\.config\kanata"
+        IsDirectory = $true
+        Description = "Kanata keyboard remapper (Windows 60%)"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\yasb"
         Target      = "$HOME\.config\yasb"
         IsDirectory = $true
@@ -698,6 +704,30 @@ foreach ($var in $envVars.GetEnumerator()) {
             Write-Host "  [DRY RUN] Would set environment variable" -ForegroundColor DarkGray
         }
     }
+}
+
+# =============================================================================
+# Kanata autostart (logon Scheduled Task, un-elevated so Hyper reaches komorebi's AHK)
+# =============================================================================
+
+Write-Host "`n=== Registering Kanata logon task ===" -ForegroundColor Magenta
+
+$kanataExe = Join-Path $env:LOCALAPPDATA 'Programs\kanata\kanata.exe'
+$kanataCfg = Join-Path $HOME '.config\kanata\kanata.win.kbd'
+if ($DryRun) {
+    Write-Host "  [DRY RUN] Would register logon task 'Kanata' -> $kanataExe --cfg $kanataCfg" -ForegroundColor DarkGray
+} elseif (-not (Test-Path $kanataExe)) {
+    Write-Status "kanata.exe not found ($kanataExe) — run without -SkipPackages first" -Type Warning
+} else {
+    # Hidden launch: pwsh starts kanata with a hidden window so no console lingers.
+    $cmd = "Start-Process '$kanataExe' -ArgumentList '--cfg','$kanataCfg' -WindowStyle Hidden"
+    $action    = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument "-NoProfile -WindowStyle Hidden -Command `"$cmd`""
+    $trigger   = New-ScheduledTaskTrigger -AtLogOn
+    $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
+    $settings  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+    Register-ScheduledTask -TaskName 'Kanata' -Action $action -Trigger $trigger `
+        -Principal $principal -Settings $settings -Force | Out-Null
+    Write-Status "Registered logon task 'Kanata' (disable if you log in on the Voyager)" -Type Success
 }
 
 # --- Hyper-key enabler: neutralize Windows' reserved Ctrl+Shift+Alt+Win (Office/Copilot) shortcut ---
