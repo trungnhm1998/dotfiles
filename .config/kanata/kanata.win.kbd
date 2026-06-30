@@ -1,0 +1,62 @@
+;; kanata.win.kbd — 60% remap (ZSA Voyager port, Windows / LLHOOK, work-mode only).
+;; "Gaming" = this process is STOPPED (see kanata-toggle.ps1) — there is no gaming layer.
+;; Driver-free LLHOOK grabs ALL attached keyboards, so run only with the 60%
+;; (the Voyager does its own home-row mods in firmware — don't double-remap it).
+(defcfg
+  process-unmapped-keys yes
+  concurrent-tap-hold yes
+)
+
+(defvar
+  tt 180
+  ht 180
+  left-hand  (q w e r t a s d f g z x c v b)
+  right-hand (y u i o p h j k l ; n m , . /)
+)
+
+(defalias
+  cap  (tap-hold 180 180 esc lctl)
+  hyp  (multi lctl lsft lalt lmet)   ;; Hyper = Ctrl+Shift+Alt+Win
+  meh  (multi lctl lsft lalt)        ;; Meh   = Ctrl+Shift+Alt
+
+  a    (tap-hold-release-keys $tt $ht a lctl $left-hand)
+  s    (tap-hold-release-keys $tt $ht s lsft $left-hand)
+  d    (tap-hold-release-keys $tt $ht d lalt $left-hand)
+  f    (tap-hold-release-keys $tt $ht f lmet $left-hand)
+  j    (tap-hold-release-keys $tt $ht j rmet $right-hand)
+  k    (tap-hold-release-keys $tt $ht k ralt $right-hand)
+  l    (tap-hold-release-keys $tt $ht l rsft $right-hand)
+  scln (tap-hold-release-keys $tt $ht ; rctl $right-hand)
+
+  z    (tap-hold 250 250 z @hyp)
+  x    (tap-hold 250 250 x @meh)
+  dot  (tap-hold 250 250 . @meh)
+  slsh (tap-hold 250 250 / @hyp)
+
+  spc  (tap-hold 200 200 spc (layer-while-held nav))
+)
+
+(defsrc
+  caps
+  q    w    e    r    t    y    u    i    o    p
+  a    s    d    f    g    h    j    k    l    ;
+  z    x    c    v    b    n    m    ,    .    /
+  ralt spc
+)
+
+(deflayer base
+  @cap
+  q    w    e    r    t    y    u    i    o    p
+  @a   @s   @d   @f   g    h    @j   @k   @l   @scln
+  @z   @x   c    v    b    n    m    ,    @dot @slsh
+  @hyp @spc
+)
+
+;; Nav (hold Space): left hand = live mods, h j k l = arrows, y u i o = page nav.
+(deflayer nav
+  _
+  _    _    _    _    _    home pgdn pgup end  _
+  lctl lsft lalt lmet _    left down up   rght _
+  _    _    _    _    _    _    _    _    _    _
+  _    _
+)
