@@ -713,6 +713,11 @@ foreach ($var in $envVars.GetEnumerator()) {
 Write-Host "`n=== Registering Kanata logon task ===" -ForegroundColor Magenta
 
 $kanataExe = Join-Path $env:LOCALAPPDATA 'Programs\kanata\kanata.exe'
+if (-not (Test-Path $kanataExe)) {
+    # Fall back to a scoop/PATH install (scoop shims kanata.exe -> a kanata_windows_*_x64.exe variant).
+    $shim = Get-Command kanata -ErrorAction SilentlyContinue
+    if ($shim) { $kanataExe = $shim.Source }
+}
 $kanataCfg = Join-Path $HOME '.config\kanata\kanata.win.kbd'
 if ($DryRun) {
     Write-Host "  [DRY RUN] Would register logon task 'Kanata' -> $kanataExe --cfg $kanataCfg" -ForegroundColor DarkGray

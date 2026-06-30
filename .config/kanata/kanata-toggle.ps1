@@ -30,11 +30,14 @@ function Get-KanataExe {
 }
 
 function Test-KanataRunning {
-    return $null -ne (Get-Process kanata -ErrorAction SilentlyContinue)
+    # kanata* — a scoop install runs 'kanata_windows_*_x64'; the GitHub-release exe is 'kanata'.
+    return $null -ne (Get-Process kanata* -ErrorAction SilentlyContinue)
 }
 
 function Stop-Kanata {
-    Get-Process kanata -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    # kanata* — also kills the scoop shim ('kanata') AND its worker ('kanata_windows_*_x64');
+    # stopping the shim alone orphans the worker and the keyboard stays remapped.
+    Get-Process kanata* -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 function Write-KanataState {
