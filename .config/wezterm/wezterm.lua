@@ -691,6 +691,9 @@ if is_windows then
 
     -- Track previous workspace (Leader+L), reconcile the Claude badge dir, and consume toast
     -- focus-on-click requests. update-status fires ~1x/sec and on switch.
+    -- ponytail: WZB_NO_UPDATESTATUS lets the perf harness skip this whole per-tick handler to
+    -- attribute its interactive cost. Behavior-preserving when unset; remove after the investigation.
+    if not os.getenv("WZB_NO_UPDATESTATUS") then
     wezterm.on("update-status", function(window)
         local current = window:active_workspace()
         if wezterm.GLOBAL.current_workspace ~= current then
@@ -769,6 +772,7 @@ if is_windows then
             end
         end
     end)
+    end
 
     -- Register the Claude badge tab component under the name tabline.wez require()s.
     package.loaded['tabline.components.tab.claude'] = require('tabline_claude_badge')
