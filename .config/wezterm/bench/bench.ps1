@@ -11,7 +11,7 @@
   ./bench.ps1 -Variant full -Mode interactive
 #>
 param(
-  [Parameter(Mandatory)][ValidateSet('stock','full','opengl','no-updatestatus','empty','plugins-only','webgpu-hp','wt')]
+  [Parameter(Mandatory)][ValidateSet('stock','full','opengl','no-updatestatus','empty','plugins-only','webgpu-hp','tabline-setup','local-requires','wt')]
   [string]$Variant,
   [Parameter(Mandatory)][ValidateSet('startup','interactive')][string]$Mode,
   [int]$Runs = 10,
@@ -42,6 +42,8 @@ function Get-LaunchSpec([string]$v) {
     'empty'           { @{ Exe=$WezGui; Args=@('--config-file',"$ConfigDir/empty.lua",'start','--','pwsh','-NoLogo');        Env=@{} } }
     'plugins-only'    { @{ Exe=$WezGui; Args=@('--config-file',"$ConfigDir/plugins-only.lua",'start','--','pwsh','-NoLogo'); Env=@{} } }
     'webgpu-hp'       { @{ Exe=$WezGui; Args=@('--config-file',"$ConfigDir/webgpu-hp.lua",'start','--','pwsh','-NoLogo'); Env=@{} } }
+    'tabline-setup'   { @{ Exe=$WezGui; Args=@('--config-file',"$ConfigDir/tabline-setup.lua",'start','--','pwsh','-NoLogo'); Env=@{} } }
+    'local-requires'  { @{ Exe=$WezGui; Args=@('--config-file',"$ConfigDir/local-requires.lua",'start','--','pwsh','-NoLogo'); Env=@{} } }
     'wt'              { @{ Exe=(Get-Command wt).Source; Args=@(); Env=@{} } }
   }
 }
