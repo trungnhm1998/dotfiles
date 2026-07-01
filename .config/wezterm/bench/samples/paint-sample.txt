@@ -1,0 +1,4 @@
+16:37:18.243  DEBUG  wezterm_gui::termwindow::render::paint > paint_impl elapsed=9.0734ms, fps=0
+16:37:18.431  DEBUG  wezterm_gui::termwindow::render::paint > paint_impl elapsed=864.8µs, fps=0
+16:37:19.402  DEBUG  wezterm_gui::termwindow::render::paint > paint_impl elapsed=978.3µs, fps=2.0180752
+16:37:20.924  DEBUG  wezterm_gui::termwindow::render::paint > paint_impl elapsed=518.2µs, fps=0.6568085
