@@ -122,6 +122,9 @@ After writing or editing code, check LSP diagnostics and fix errors before proce
 ## Debugging
 - Verify log channel reliability before using one (avoid print/LogService:LogInfo unless confirmed); confirm with editor logs when diagnosing races.
 
+## Long-running commands & ETAs
+- Before running any script, bench, build, CI job, or automation, state an expected duration and set the tool timeout to that ETA plus margin. If a run exceeds the ETA, stop waiting — investigate the cause, fix it, and retry, rather than letting it hang and hoping. (A silent 30-min hang once burned a whole session.)
+
 ## Compact instructions
 When compacting, always preserve: the list of files modified this session, test/build commands and their latest results, the active ticket/branch/PR, and any unresolved blockers or pending approvals.
 # graphify
