@@ -52,9 +52,11 @@ config.front_end = "WebGpu"
 -- (benched equal to Windows Terminal on this machine).
 -- Desktop-only: forces the RTX over the Intel iGPU. No-op on Apple Silicon (single GPU), but on
 -- an Intel MacBook it would force the discrete GPU (battery drain + switch flicker) — gate to Windows.
-if is_windows then
-    config.webgpu_power_preference = "HighPerformance"
-end
+-- webgpu_power_preference REMOVED (was Windows-only "HighPerformance"; now the default "LowPower"
+-- = Intel UHD 770 iGPU). Re-benched 2026-07-01 (N=5, first-paint): forcing the RTX cost ~528 ms of
+-- cold startup for ZERO throughput gain -- a 13.3 MB blob renders ~1.4 s on the iGPU vs ~1.6 s on
+-- the RTX. The ~10x iGPU penalty claimed above is STALE (does not reproduce on nightly 20260607).
+-- front_end stays "WebGpu" for its TUI-flicker/synchronized-output handling. Bench: .config/wezterm/bench/.
 
 -- appearance
 
