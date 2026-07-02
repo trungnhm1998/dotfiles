@@ -34,7 +34,6 @@ node_modules/
 secrets.env
 **/settings.local.json
 
-# Agent-generated planning artifacts (specs, plans, continuity) — kept local, not versioned
+# Agent-generated planning artifacts (specs, plans) — kept local, not versioned
 docs/superpowers/plans/
 docs/superpowers/specs/
-.planning/
