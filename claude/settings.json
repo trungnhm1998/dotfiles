@@ -11,7 +11,7 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "sonnet",
+  "model": "claude-fable-5[1m]",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -142,7 +142,7 @@
   "enabledPlugins": {
     "claude-mem@thedotmack": false,
     "lua-lsp@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
     "csharp-lsp@claude-plugins-official": true,
     "gsd@gsd-plugin": false,
     "frontend-design@claude-plugins-official": false,
@@ -170,7 +170,8 @@
       }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
+  "includeCoAuthoredBy": false,
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
