@@ -1608,13 +1608,6 @@
         "id": "TeamsWebView",
         "matching_strategy": "Equals"
       }
-    ],
-    "object_name_change": [
-      {
-        "kind": "Class",
-        "id": "TeamsWebView",
-        "matching_strategy": "Equals"
-      }
     ]
   },
   "Microsoft Teams classic": {
@@ -2022,6 +2015,11 @@
       {
         "kind": "Exe",
         "id": "PowerToys.FileLocksmithUI.exe",
+        "matching_strategy": "Equals"
+      },
+      {
+        "kind": "Exe",
+        "id": "PowerToys.QuickAccess.exe",
         "matching_strategy": "Equals"
       },
       {
@@ -2767,7 +2765,7 @@
         {
           "kind": "Title",
           "id": " - Microsoft Visual Studio",
-          "matching_strategy": "DoesNotEndWith"
+          "matching_strategy": "DoesNotContain"
         }
       ]
     ],

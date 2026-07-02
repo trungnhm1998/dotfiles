@@ -223,6 +223,16 @@
       "kind": "Exe",
       "id": "claude.exe",
       "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Exe",
+      "id": "Fork.exe",
+      "matching_strategy": "Equals"
+    },
+    {
+      "kind": "Title",
+      "id": "Fork -",
+      "matching_strategy": "DoesNotStartWith"
     }
   ]
 }
