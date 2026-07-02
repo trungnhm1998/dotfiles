@@ -20,6 +20,9 @@ directive="Max's durable knowledge lives in his Obsidian vault at $vault — han
 
 # Slim derivation: keep the header block and the "## 🗺️ Maps" section whole; in
 # every other section reduce "- [[Title]] — summary" to "- [[Title]]".
+# Capture first, print once: streaming the pipe straight to stdout would, under
+# pipefail with awk failing but jq succeeding on empty stdin, emit a degraded
+# success JSON *and then* the warning — two concatenated docs.
 if out="$(awk '
     /^## / { maps = ($0 ~ / Maps$/) }
     /^- /  { if (!maps) sub(/ — .*$/, "") }
