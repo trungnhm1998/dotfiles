@@ -20,14 +20,16 @@ directive="Max's durable knowledge lives in his Obsidian vault at $vault — han
 
 # Slim derivation: keep the header block and the "## 🗺️ Maps" section whole; in
 # every other section reduce "- [[Title]] — summary" to "- [[Title]]".
-if ! awk '
+if out="$(awk '
     /^## / { maps = ($0 ~ / Maps$/) }
     /^- /  { if (!maps) sub(/ — .*$/, "") }
            { print }
   ' "$index" \
   | jq -Rs --arg d "$directive" \
-      '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:($d + "\n\n--- 05.Wiki slim map (full summaries: 05.Wiki/index.md) ---\n" + .)}}'
+      '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:($d + "\n\n--- 05.Wiki slim map (full summaries: 05.Wiki/index.md) ---\n" + .)}}')"
 then
+  printf '%s\n' "$out"
+else
   # Vault + index EXIST but injection broke — surface it. This hook once died
   # silently for weeks (argv limit); expected-absence stays silent, breakage must
   # not. Static printf: jq itself may be the broken part.

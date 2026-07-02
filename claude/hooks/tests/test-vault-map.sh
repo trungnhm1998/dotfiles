@@ -66,4 +66,12 @@ assert_exit "$rc" "0" "broken pipeline still exits 0"
 assert_contains "$out" "vault-map hook failed" "broken pipeline emits warning"
 printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext' > /dev/null 2>&1
 assert_exit "$?" "0" "warning is valid hook JSON"
+
+# --- Tripwire: awk fails while jq still works => ONE warning doc, no concatenation ---
+fakebin2="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nexit 3\n' > "$fakebin2/awk"; chmod +x "$fakebin2/awk"
+out=$(PATH="$fakebin2:$PATH" OBSIDIAN_VAULT="$vault" bash "$HOOK"); rc=$?
+assert_exit "$rc" "0" "broken awk still exits 0"
+assert_contains "$out" "vault-map hook failed" "broken awk emits warning"
+assert_not_contains "$out" "05.Wiki slim map" "no degraded success JSON precedes the warning"
 finish
