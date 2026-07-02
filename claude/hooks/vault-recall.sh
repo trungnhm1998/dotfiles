@@ -11,7 +11,7 @@ prompt=$(printf '%s' "$input" | jq -r '.prompt // empty' 2>/dev/null)
 
 # --- Gate: only fire when the prompt reads like a recall question ---
 shopt -s nocasematch
-recall_re='(what|how) (do|did|have|can) i|did i (note|writ|sav|captur|do|try|decid)|my (preference|convention|note|setup|decision|approach|workflow|style)|last time|previously|earlier|we (decided|discussed|agreed|talked)|i (decided|noted|prefer|usually|always)|do i have|have i (noted|done|tried|decided)|what.?s my|remember (when|that|how|my)|how i (did|do|usually)|in (the|my) (vault|wiki|notes)|my notes? (on|about)'
+recall_re='(what|how) (do|did|have|can|was|were) (i|we)|did (i|we) (note|writ|sav|captur|do|try|decid)|my (preference|convention|note|setup|decision|approach|workflow|style)|last time|previously|earlier|(i|we) (decided|noted|prefer|usually|always|discussed|agreed|talked|tried|built|set ?up|configured|wrote|fixed)|do (i|we) have|have (i|we) (noted|done|tried|decided)|what.?s my|remember (when|that|how|my)|how (i|we) (did|do|usually)|in (the|my) (vault|wiki|notes)|my notes? (on|about)'
 [[ "$prompt" =~ $recall_re ]] || { shopt -u nocasematch; exit 0; }
 shopt -u nocasematch
 
@@ -53,6 +53,7 @@ for row in "${rows[@]}"; do
   [ -z "$row" ] && continue
   count=${row##*:}
   file=${row%:*}
+  file=${file//\\//}   # Windows rg emits .\a\b — normalize so basename tiering + display work
   rel=${file#./}
   base=${rel##*/}
   entry="- ${rel} (${count} matches)"$'\n'
