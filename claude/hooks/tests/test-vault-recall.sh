@@ -31,6 +31,16 @@ out=$(run "fix this null ref in Player.cs"); rc=$?
 assert_exit "$rc" "0" "non-recall prompt exits 0"
 assert_eq "$out" "" "non-recall prompt stays silent"
 
+# --- Tightened gate: forward-looking "we" questions stay silent ---
+out=$(run "how do we structure this class")
+assert_eq "$out" "" "'how do we <forward>' stays silent"
+out=$(run "how can we improve performance here")
+assert_eq "$out" "" "'how can we <forward>' stays silent"
+
+# --- Extended wh-words: past-tense recall fires ---
+out=$(run "when did we decide on kanata")
+assert_contains "$out" "Kanata Setup.md" "'when did we decide' fires"
+
 # --- Windows path forms normalized; sensitive files excluded ---
 out=$(run "what did i note about kanata")
 ctx=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')
