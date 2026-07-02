@@ -68,7 +68,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
-| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md` |
+| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`) |
 | `claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
@@ -186,6 +186,6 @@ end
 | Claude Code | `claude/` → `~/.claude/` |
 | Ad-hoc MCP configs | `claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name> [<name>…]` function (`claude --mcp-config`) |
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
-| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md` (Cursor: `scripts/copy-agents-rules.sh`) |
+| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows) |
 | opencode | `.config/opencode/opencode.jsonc` |
 | Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |
