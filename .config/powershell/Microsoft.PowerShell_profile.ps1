@@ -100,7 +100,9 @@ if ($env:WEZTERM_PANE) {
 Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
-Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
+if (-not [Console]::IsInputRedirected) {
+    Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
+}
 
 # Catppuccin Frappe syntax colors (Mauve = accent; see docs/catppuccin-frappe-theme.md)
 Set-PSReadLineOption -Colors @{
@@ -215,3 +217,29 @@ function tablet-on {
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
 # see vault: WezTerm Repaint Stall from an Injected Overlay Hook on Windows.
 function wz-probe { pwsh -NoProfile -ExecutionPolicy Bypass -File "$HOME\.config\wezterm\wezterm-freeze-probe.ps1" }
+
+# --- Un-hide a Unity Editor window launched hidden by Unity Hub ---
+# Unity Hub (Electron/Node) spawns Unity.exe with windowsHide=true -> STARTF_USESHOWWINDOW +
+# wShowWindow=SW_HIDE; Unity's main window obeys it via ShowWindow(SW_SHOWDEFAULT) -> born hidden
+# (no taskbar / alt-tab, .NET MainWindowHandle=0, but Responding=True). This shows it, no kill.
+# Proven via PEB read; see vault: Recovering a Hidden Windows Window.
+function Show-UnityWindow { & "$HOME\Show-UnityWindow.ps1" @args }
+Set-Alias suw Show-UnityWindow
+
+# --- Ad-hoc MCP servers (rare-use, not registered globally/per-project) ---
+# Configs live in dotfiles\claude\mcp\<name>.json; `ccmcp figma jira` starts Claude with
+# those servers for this session only. Leading args naming a config are consumed as
+# servers; everything after passes to claude (e.g. `ccmcp figma -p "hi"`).
+function ccmcp {
+  $mcpDir = "$HOME\dotfiles\claude\mcp"
+  $cfgs = @(); $rest = @($args)
+  while ($rest.Count -and (Test-Path "$mcpDir\$($rest[0]).json")) {
+    $cfgs += "$mcpDir\$($rest[0]).json"
+    $rest = @($rest | Select-Object -Skip 1)
+  }
+  if (-not $cfgs.Count) {
+    Write-Error "No MCP config matched. Available: $((Get-ChildItem $mcpDir -Filter *.json).BaseName -join ', ')"
+    return
+  }
+  claude --mcp-config @cfgs @rest
+}
