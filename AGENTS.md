@@ -69,7 +69,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
 | `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md` |
-| `claude/` (settings.json, agents, commands, hooks, skills, themes, statusline*) | `$HOME\.claude\…` |
+| `claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
 **Environment Variables (set by deploy script):** `XDG_CONFIG_HOME` → `$HOME\.config`; `KOMOREBI_CONFIG_HOME` → `$HOME\.config\komorebi`.

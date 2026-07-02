@@ -200,18 +200,6 @@ $symlinks = @(
         Description = "Claude Code settings"
     }
     @{
-        Source      = "$dotfilesRoot\claude\statusline.sh"
-        Target      = "$HOME\.claude\statusline.sh"
-        IsDirectory = $false
-        Description = "Claude Code statusline"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\statusline-command.sh"
-        Target      = "$HOME\.claude\statusline-command.sh"
-        IsDirectory = $false
-        Description = "Claude Code statusline command"
-    }
-    @{
         Source      = "$dotfilesRoot\claude\agents"
         Target      = "$HOME\.claude\agents"
         IsDirectory = $true

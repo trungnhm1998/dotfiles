@@ -37,7 +37,7 @@ link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 # NOTE: `skills` is deliberately NOT in this whole-dir loop. ~/.claude/skills must stay a
 # REAL directory so `npx skills` public installs and Claude Code plugin dirs live beside our
 # repo skills. It is linked per-item below. Mirrors deploy_windows.ps1's skills loop.
-for item in settings.json statusline.sh statusline-command.sh agents commands hooks rules themes; do
+for item in settings.json agents commands hooks rules themes; do
 	link_config "$DOTFILES/claude/$item" "$HOME/.claude/$item"
 done
 
