@@ -1,7 +1,9 @@
 {
   "env": {
     "ENABLE_LSP_TOOL": "1",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "ANTHROPIC_BASE_URL": "http://localhost:8088",
+    "ENABLE_TOOL_SEARCH": "auto"
   },
   "permissions": {
     "allow": [],
@@ -9,6 +11,7 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
+  "model": "sonnet",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -27,8 +30,6 @@
     "learn": "name-only",
     "design": "name-only",
     "find-skills": "name-only",
-    "close": "name-only",
-    "close-session": "name-only",
     "finish-ticket": "name-only",
     "game-feel": "off",
     "handoff-prompt": "name-only",
@@ -93,16 +94,6 @@
             "statusMessage": "loading vault map"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/continuity-readback.sh",
-            "timeout": 10,
-            "statusMessage": "continuity read-back"
-          }
-        ]
       }
     ],
     "Notification": [
@@ -129,30 +120,7 @@
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/session-ledger.sh",
-            "timeout": 5,
-            "statusMessage": "session ledger"
-          }
-        ]
-      }
-    ],
     "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/session-capture-stop.sh",
-            "timeout": 5,
-            "statusMessage": "session capture check"
-          }
-        ]
-      },
       {
         "hooks": [
           {
@@ -175,7 +143,7 @@
     "claude-mem@thedotmack": false,
     "lua-lsp@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
-    "csharp-lsp@claude-plugins-official": false,
+    "csharp-lsp@claude-plugins-official": true,
     "gsd@gsd-plugin": false,
     "frontend-design@claude-plugins-official": false,
     "ponytail@ponytail": true,
@@ -202,7 +170,7 @@
       }
     }
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
@@ -212,6 +180,7 @@
   "editorMode": "vim",
   "verbose": true,
   "preferredNotifChannel": "auto",
+  "autoCompactEnabled": false,
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
