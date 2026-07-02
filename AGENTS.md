@@ -184,6 +184,7 @@ end
 | IdeaVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | Claude Code | `claude/` → `~/.claude/` |
+| Ad-hoc MCP configs | `claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name>` function (`claude --mcp-config`) |
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
 | Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md` (Cursor: `scripts/copy-agents-rules.sh`) |
 | opencode | `.config/opencode/opencode.jsonc` |
