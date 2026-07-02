@@ -32,14 +32,16 @@ assert_exit "$rc" "0" "non-recall prompt exits 0"
 assert_eq "$out" "" "non-recall prompt stays silent"
 
 # --- Tightened gate: forward-looking "we" questions stay silent ---
-out=$(run "how do we structure this class")
+out=$(run "how do we mock kanata here")
 assert_eq "$out" "" "'how do we <forward>' stays silent"
 out=$(run "how can we improve performance here")
 assert_eq "$out" "" "'how can we <forward>' stays silent"
 
-# --- Extended wh-words: past-tense recall fires ---
-out=$(run "when did we decide on kanata")
-assert_contains "$out" "Kanata Setup.md" "'when did we decide' fires"
+# --- Extended wh-words: fire only via the first alternation ---
+out=$(run "when did we go with kanata")
+assert_contains "$out" "Kanata Setup.md" "'when did we' fires via wh extension"
+out=$(run "why did we build kanata")
+assert_contains "$out" "Kanata Setup.md" "'why did we' fires via wh extension"
 
 # --- Windows path forms normalized; sensitive files excluded ---
 out=$(run "what did i note about kanata")
