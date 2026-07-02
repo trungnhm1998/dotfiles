@@ -25,13 +25,16 @@ link_config() {
 }
 
 # --- Global agent instructions: one canonical file (claude/AGENTS.md) ---
-# Single source of truth shared by Claude Code, Codex, and opencode. Claude Code reads
-# it under the CLAUDE.md name; Codex and opencode read it as AGENTS.md at their own paths.
+# Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot. Claude
+# Code reads it as CLAUDE.md; Codex/opencode/pi read it as AGENTS.md; Copilot reads it as
+# copilot-instructions.md — each at its own path.
 # (Cursor has no global rules file — paste it into User Rules via scripts/copy-agents-rules.sh.)
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/CLAUDE.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.codex/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
+link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.copilot/copilot-instructions.md"
 
 # --- Other Claude Code authored config ---
 # NOTE: `skills` is deliberately NOT in this whole-dir loop. ~/.claude/skills must stay a
