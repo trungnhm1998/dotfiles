@@ -126,6 +126,17 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 | `.config/wezterm/wezterm_claude_focus.lua` | Pure focus module (`dir`/`mux_tag`/`pending` helpers, unit-tested) |
 | `.config/wezterm/wezterm.lua` | Focus consumption (status-tick poll → `set_active_workspace`/`activate`/`focus`) |
 
+## Vault RAG-lite (Obsidian wiki recall)
+
+Two hooks ground every session in Max's Obsidian vault (per-machine path resolved by `claude/hooks/lib/obsidian-vault.sh`; override with `$OBSIDIAN_VAULT`). Expected absence (no vault/index on a machine) is silent; if the vault resolves but injection breaks, `vault-map.sh` injects a ⚠ warning — never silence.
+
+| Purpose | Path |
+|---------|------|
+| SessionStart **slim map** — derives a titles-only catalog from `05.Wiki/index.md` (Maps hubs keep summaries; ~3K tokens) and injects it. Content streams through `jq -Rs`, never argv (a 101KB index once blew the ~32KB MSYS limit silently). | `claude/hooks/vault-map.sh` |
+| UserPromptSubmit **recall** — on recall-shaped prompts ("what did I…", "I/we tried/built/set up…"), ripgrep-searches the vault and injects ranked note titles as leads (title matches outrank body matches; sensitive-looking files excluded). | `claude/hooks/vault-recall.sh` |
+
+Tests: `claude/hooks/tests/test-vault-{map,recall}.sh`; run all with `bash claude/hooks/tests/run-tests.sh`.
+
 ## Session Memory Protocol (automated close-session capture)
 
 Keeps the Obsidian `05.Wiki` and per-project continuity notes current with minimal prompting. A deterministic per-session **ledger** (`~/.claude/.session-ledger/<id>.json`, maintained by `claude/hooks/session-ledger.sh` on `PostToolUse`) counts work signals (files written/edited, git commits, PRs). When uncaptured work crosses a threshold, the `Stop` hook (`claude/hooks/session-capture-stop.sh`) injects an escalating nudge to run `/close`.
