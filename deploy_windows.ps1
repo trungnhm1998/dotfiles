@@ -177,8 +177,9 @@ $symlinks = @(
     }
 
     # --- Global agent instructions: one canonical file (claude\AGENTS.md) ---
-    # Single source of truth shared by Claude Code, Codex, and opencode. Claude Code
-    # reads it under the CLAUDE.md name; Codex/opencode read it as AGENTS.md (see below).
+    # Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot.
+    # Claude Code reads it under the CLAUDE.md name; Codex/opencode/pi read it as
+    # AGENTS.md; Copilot reads it as copilot-instructions.md (see below).
     @{
         Source      = "$dotfilesRoot\claude\AGENTS.md"
         Target      = "$HOME\.claude\CLAUDE.md"
@@ -253,6 +254,22 @@ $symlinks = @(
         Target      = "$HOME\.config\opencode\AGENTS.md"
         IsDirectory = $false
         Description = "opencode global instructions (canonical claude\AGENTS.md)"
+    }
+
+    # --- pi (global instructions at ~\.pi\agent\AGENTS.md) ---
+    @{
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Target      = "$HOME\.pi\agent\AGENTS.md"
+        IsDirectory = $false
+        Description = "pi global instructions (canonical claude\AGENTS.md)"
+    }
+
+    # --- GitHub Copilot CLI (native personal-instructions file; NOT named AGENTS.md) ---
+    @{
+        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Target      = "$HOME\.copilot\copilot-instructions.md"
+        IsDirectory = $false
+        Description = "Copilot CLI global instructions (canonical claude\AGENTS.md)"
     }
 )
 
