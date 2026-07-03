@@ -6,6 +6,7 @@
 # noise — even when they forget -NoProfile. [Console]::IsInputRedirected alone
 # misses conpty-based agents, so we inspect the launch args and CI env instead.
 if ($env:CI -or
+    $env:GITHUB_ACTIONS -or
     ($Host.Name -ne 'ConsoleHost') -or
     ([Environment]::GetCommandLineArgs() -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')) {
     return
