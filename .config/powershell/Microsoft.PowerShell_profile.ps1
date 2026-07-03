@@ -1,3 +1,16 @@
+# ── Non-interactive / CI / agent guard ──────────────────────────────────────
+# Skip the entire interactive profile (PSReadLine Vi-mode, starship, module
+# imports, command overrides like ssh/ls/cd) unless this is a real interactive
+# REPL. Agents and CI that spawn `pwsh -Command …`, `-File …`, or `-NonInteractive`
+# then get vanilla PowerShell — no Vi-mode hang, no shadowed commands, no OSC
+# noise — even when they forget -NoProfile. [Console]::IsInputRedirected alone
+# misses conpty-based agents, so we inspect the launch args and CI env instead.
+if ($env:CI -or
+    ($Host.Name -ne 'ConsoleHost') -or
+    ([Environment]::GetCommandLineArgs() -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')) {
+    return
+}
+
 $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 $env:EDITOR = "nvim" # so can I press V and open nvim to edit commands
 $env:VISUAL = "nvim"
