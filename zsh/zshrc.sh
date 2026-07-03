@@ -164,3 +164,11 @@ if command -v eza >/dev/null 2>&1; then
 fi
 
 # eval $(thefuck --alias)
+
+# --- Claude Code, plain (no better-ccflare proxy) so Remote Control / `/rc` works ---
+# ANTHROPIC_BASE_URL routes Claude Code through the ccflare analytics proxy, but Remote Control
+# refuses any endpoint that isn't api.anthropic.com. Launch claude in a subshell with the var
+# unset -> it talks to Anthropic directly (RC works); the parent shell keeps ccflare untouched.
+# Plain `claude` still uses ccflare. NOTE: shadows the `cc` C-compiler in interactive shells only
+# -- build tools exec `cc` via PATH so they're unaffected; run `command cc` for the compiler.
+cc() { ( unset ANTHROPIC_BASE_URL; exec claude "$@" ) }

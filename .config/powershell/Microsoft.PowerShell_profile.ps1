@@ -253,3 +253,14 @@ function Copy-AgentsRules {
   Write-Host "Copied AGENTS.md -> paste into Cursor -> Settings -> Rules -> User Rules."
 }
 Set-Alias ccrules Copy-AgentsRules
+
+# --- Claude Code, plain (no better-ccflare proxy) so Remote Control / `/rc` works ---
+# ANTHROPIC_BASE_URL (User env var) routes Claude Code through the ccflare analytics proxy on
+# localhost:8088, but Remote Control refuses any endpoint that isn't api.anthropic.com. `cc` drops
+# the var for this one launch -> CLI talks to Anthropic directly (RC works), then restores it so the
+# rest of the shell keeps ccflare. Plain `claude` still uses ccflare.
+function cc {
+    $saved = $env:ANTHROPIC_BASE_URL
+    Remove-Item Env:\ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
+    try { claude @args } finally { if ($null -ne $saved) { $env:ANTHROPIC_BASE_URL = $saved } }
+}

@@ -2,16 +2,16 @@
   "env": {
     "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "ANTHROPIC_BASE_URL": "http://localhost:8088",
     "ENABLE_TOOL_SEARCH": "auto"
   },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [],
     "deny": [],
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -171,7 +171,6 @@
     }
   },
   "effortLevel": "xhigh",
-  "includeCoAuthoredBy": false,
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
