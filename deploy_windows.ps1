@@ -63,10 +63,9 @@ $packages = @(
 )
 
 $powershellModules = @(
-    "posh-git"
-    "Terminal-Icons"
     "PSReadLine"
     "BurntToast"   # clickable Claude toasts (claude-notify.ps1 emit mode)
+    # posh-git + Terminal-Icons removed 2026-07-04 — redundant with Starship + eza --icons (see profile).
 )
 
 $symlinks = @(

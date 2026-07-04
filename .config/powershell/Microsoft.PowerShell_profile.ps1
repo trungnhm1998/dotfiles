@@ -16,23 +16,11 @@ $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 $env:EDITOR = "nvim" # so can I press V and open nvim to edit commands
 $env:VISUAL = "nvim"
 
-# https://github.com/janikvonrotz/awesome-powershell
-Import-Module posh-git # Install-Module posh-git -Scope CurrentUser -Force
-# Terminal-Icons rewrites its theme cache (%APPDATA%\powershell\Community\Terminal-Icons\*.xml) on
-# every import via non-atomic Export-Clixml -Force. Concurrent pwsh launches (psmux / Zellij / Claude
-# agent-team panes) can read a file mid-rewrite -> corrupt CliXml -> the module's UNGUARDED load-time
-# Import-CliXml throws and the whole import aborts with a wall of red. The on-disk file self-heals once
-# the writing shell finishes, so one retry usually wins; degrade quietly if the race is still open.
-# ponytail: retry-once, not a write-lock -- a heavy concurrent storm can still skip icons this session.
-# Install-Module -Name Terminal-Icons -Repository PSGallery
-try {
-    Import-Module Terminal-Icons -ErrorAction Stop
-} catch {
-    try { Import-Module Terminal-Icons -ErrorAction Stop }
-    catch { Write-Verbose "Terminal-Icons skipped (concurrent-launch race): $($_.Exception.Message)" }
-}
+# Module imports. posh-git (git prompt) + Terminal-Icons (dir icons) removed 2026-07-04:
+# redundant with Starship (prompt) + eza --icons, and they cost ~740ms/shell. CompletionPredictor
+# removed too — it fed HistoryAndPlugin prediction, a completion query on every keystroke (typing lag).
+# See bench/profile-bench.ps1 for the attribution.
 Import-Module PSReadLine # Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
-Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
 
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
@@ -115,7 +103,7 @@ Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 if (-not [Console]::IsInputRedirected) {
-    Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView
+    Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource History -PredictionViewStyle InlineView
 }
 
 # Catppuccin Frappe syntax colors (Mauve = accent; see docs/catppuccin-frappe-theme.md)
