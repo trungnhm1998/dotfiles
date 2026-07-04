@@ -42,7 +42,13 @@ config.animation_fps = 60
 -- the legacy OpenGL path, which is a known TUI-flicker offender. If WebGpu misbehaves on
 -- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
 -- See wiki: [[Claude Code TUI Rendering on Windows]].
-config.front_end = "WebGpu"
+-- front_end trial (2026-07-04): OpenGL — GPU-accelerated (fast typing/output, unlike the CPU
+-- "Software" path that got left active) and WebGpu's documented fallback, which can dodge the
+-- Dx12 present-path repaint-stall. Flicker or stall returns? Switch the active line below; prefer
+-- root-causing the stall (tablet-off / close RTSS) over Software's laggy paint.
+-- config.front_end = "Software"  -- CPU: stall-proof, laggy paint (was left active by mistake)
+-- config.front_end = "WebGpu"    -- fastest startup+paint; suspected stall trigger on this box
+config.front_end = "OpenGL"
 -- wgpu defaults to webgpu_power_preference = "LowPower", which on this desktop selects the
 -- Intel UHD 770 iGPU instead of the RTX 5070 Ti and tanks bulk-output throughput ~10x
 -- (12.3 MB `type`: 70.5 s vs 7.1 s, benched 2026-06-10; on the right GPU WezTerm == WT).
