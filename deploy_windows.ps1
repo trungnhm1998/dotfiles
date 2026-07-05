@@ -199,39 +199,12 @@ $symlinks = @(
         IsDirectory = $false
         Description = "Claude Code settings"
     }
-    @{
-        Source      = "$dotfilesRoot\claude\agents"
-        Target      = "$HOME\.claude\agents"
-        IsDirectory = $true
-        Description = "Claude Code agents"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\commands"
-        Target      = "$HOME\.claude\commands"
-        IsDirectory = $true
-        Description = "Claude Code commands"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\hooks"
-        Target      = "$HOME\.claude\hooks"
-        IsDirectory = $true
-        Description = "Claude Code hooks"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\rules"
-        Target      = "$HOME\.claude\rules"
-        IsDirectory = $true
-        Description = "Claude Code path-scoped rules"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\themes"
-        Target      = "$HOME\.claude\themes"
-        IsDirectory = $true
-        Description = "Claude Code custom themes (catppuccin-frappe)"
-    }
-    # NOTE: Claude skills are intentionally NOT whole-dir symlinked here.
-    # ~\.claude\skills holds plugin-managed junctions; a directory symlink would
-    # destroy them. They are linked per-item below (see "Claude skills" loop).
+    # NOTE: Claude agents, commands, hooks, rules, themes, and skills are intentionally
+    # NOT whole-dir symlinked. Each of these ~\.claude\<dir> folders must stay a REAL
+    # directory so plugins/tools (e.g. oh-my-claudecode) can drop their own files
+    # alongside ours — a directory symlink would either clobber that content or route
+    # their writes into this repo (the failure that once emptied claude\agents). They
+    # are linked per-item below (see the New-PerItemLinks calls and "Claude skills" loop).
 
     # --- Codex (global instructions at ~\.codex\AGENTS.md) ---
     @{
@@ -677,6 +650,44 @@ if (-not $SkipSymlinks) {
             }
         }
     }
+
+    # Claude agents/commands/hooks/rules/themes: per-item symlinks so plugins/tools can
+    # coexist in these ~/.claude dirs. Link each top-level child (file OR subdir) into
+    # ~/.claude/<dir>/<name> ONLY if that name is free, mirroring the skills strategy.
+    # Self-heals a legacy whole-dir symlink by removing the reparse point first (this
+    # never touches the target contents in the repo — see the agents-data-loss note).
+    function New-PerItemLinks($srcDir, $dstDir, $label) {
+        Write-Host "`nLinking: $label (per-item, preserving plugin/tool files)" -ForegroundColor Cyan
+        if (-not (Test-Path $srcDir)) { Write-Status "Source missing, skipped: $srcDir" -Type Info; return }
+        $dstItem = Get-Item $dstDir -Force -ErrorAction SilentlyContinue
+        if ($dstItem -and $dstItem.LinkType) {
+            if ($DryRun) { Write-Host "  [DRY RUN] Would remove legacy whole-dir symlink: $dstDir" -ForegroundColor DarkGray }
+            else { $dstItem.Delete(); Write-Status "Removed legacy whole-dir symlink: $dstDir" -Type Info }
+        }
+        if (-not (Test-Path $dstDir)) {
+            if ($DryRun) { Write-Host "  [DRY RUN] Would create directory: $dstDir" -ForegroundColor DarkGray }
+            else { New-Item -ItemType Directory -Path $dstDir -Force | Out-Null }
+        }
+        foreach ($child in Get-ChildItem -Path $srcDir -Force) {
+            $dst = Join-Path $dstDir $child.Name
+            if (Test-Path $dst) {
+                Write-Status "'$($child.Name)' already present (left as-is)" -Type Success
+                continue
+            }
+            if ($DryRun) {
+                Write-Host "  [DRY RUN] Would create symlink: $dst -> $($child.FullName)" -ForegroundColor DarkGray
+            } else {
+                New-Item -ItemType SymbolicLink -Path $dst -Value $child.FullName -Force | Out-Null
+                Write-Status "Linked: $($child.Name)" -Type Success
+            }
+        }
+    }
+
+    New-PerItemLinks "$dotfilesRoot\claude\agents"   "$HOME\.claude\agents"   "Claude Code agents"
+    New-PerItemLinks "$dotfilesRoot\claude\commands" "$HOME\.claude\commands" "Claude Code commands"
+    New-PerItemLinks "$dotfilesRoot\claude\hooks"    "$HOME\.claude\hooks"    "Claude Code hooks"
+    New-PerItemLinks "$dotfilesRoot\claude\rules"    "$HOME\.claude\rules"    "Claude Code path-scoped rules"
+    New-PerItemLinks "$dotfilesRoot\claude\themes"   "$HOME\.claude\themes"   "Claude Code custom themes (catppuccin-frappe)"
 }
 
 # =============================================================================
