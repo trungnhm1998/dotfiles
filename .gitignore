@@ -37,3 +37,4 @@ secrets.env
 # Agent-generated planning artifacts (specs, plans) — kept local, not versioned
 docs/superpowers/plans/
 docs/superpowers/specs/
+.omc
