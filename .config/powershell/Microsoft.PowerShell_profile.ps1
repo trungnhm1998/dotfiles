@@ -5,10 +5,16 @@
 # then get vanilla PowerShell — no Vi-mode hang, no shadowed commands, no OSC
 # noise — even when they forget -NoProfile. [Console]::IsInputRedirected alone
 # misses conpty-based agents, so we inspect the launch args and CI env instead.
-if ($env:CI -or
-    $env:GITHUB_ACTIONS -or
-    ($Host.Name -ne 'ConsoleHost') -or
-    ([Environment]::GetCommandLineArgs() -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')) {
+#
+# psmux (native-Windows tmux) launches its pane shell with `-NoProfile -NoExit
+# -Command <shim>`, and the shim manually dot-sources $PROFILE. That -Command
+# would false-trip the arg scan and bail — but a session that stays open carries
+# -NoExit (psmux panes do; one-shot agent/CI/tool-call `-Command …` invocations
+# don't), so -NoExit exempts the arg scan. CI/GHA and non-ConsoleHost still bail.
+$__args = [Environment]::GetCommandLineArgs()
+$__oneShot = ($__args -notcontains '-NoExit') -and
+             ($__args -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')
+if ($env:CI -or $env:GITHUB_ACTIONS -or ($Host.Name -ne 'ConsoleHost') -or $__oneShot) {
     return
 }
 
