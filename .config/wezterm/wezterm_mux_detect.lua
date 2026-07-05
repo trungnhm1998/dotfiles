@@ -49,12 +49,21 @@ function M.is_tmux_pane(pane)
   return M.pane_prog(pane) == "tmux"
 end
 
--- psmux (native-Windows tmux) owns Ctrl+Space when psmux/pmux/tmux was launched inside a pwsh pane
--- (mux_prog user var set by the Invoke-Psmux wrapper). Like ssh/wsl, the persistent unix mux hides
--- the process name, so the user var is the reliable signal; fg-name/title cover non-mux panes.
+-- psmux (native-Windows tmux) owns Ctrl+Space in two cases:
+--   1. Launched via the Invoke-Psmux wrapper (tmux/psmux/pmux alias), which sets mux_prog=psmux
+--      from the outer pwsh pane before psmux starts -- covers manual launches.
+--   2. Auto-spawned (omc-teams / warm pool / teammate) with no wrapper: psmux's set-titles-string
+--      prefixes the pane title with "psmux:", and the mux forwards that title to WezTerm even
+--      under the persistent unix domain (where fg-process-name is nil and no user var is set).
+-- The raw-title check bypasses pane_prog's basename normalization, which would mangle a title
+-- containing "/" (e.g. "psmux:file:///...").
 function M.is_psmux_pane(pane)
   local p = M.pane_prog(pane)
-  return p == "psmux" or p == "pmux"
+  if p == "psmux" or p == "pmux" then
+    return true
+  end
+  local ok, title = pcall(function() return pane:get_title() end)
+  return ok and title ~= nil and title:find("^psmux:") ~= nil
 end
 
 -- WSL "owns" Ctrl+Space when the pane lives in a WSL multiplexer domain (picker-spawned), or when

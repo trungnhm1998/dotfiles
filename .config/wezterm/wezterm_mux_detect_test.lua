@@ -71,4 +71,13 @@ ok(D.is_psmux_pane(pane({ fg = "pmux", title = "pmux" })), "psmux via fg name (p
 ok(not D.is_psmux_pane(pane({ fg = nil, title = "pwsh.exe", uv = { mux_prog = "" } })), "empty uv not psmux")
 ok(not D.is_psmux_pane(a), "plain pwsh not psmux")
 
+-- G: auto-spawned psmux (omc-teams / warm pool) has no mux_prog and the mux hides fg; psmux's
+-- set-titles-string prefixes the pane title with "psmux:", forwarded to WezTerm. Detect that.
+ok(D.is_psmux_pane(pane({ fg = nil, title = "psmux:0:pwsh", domain = "unix" })), "G psmux via set-titles prefix")
+ok(D.is_psmux_pane(pane({ fg = nil, title = "psmux:main:nvim", domain = "unix" })), "G psmux title keeps child name")
+-- raw-title check must survive a child title containing "/" (pane_prog's norm would mangle it).
+ok(D.is_psmux_pane(pane({ fg = nil, title = "psmux:file:///C:/Users/mint", domain = "unix" })), "G psmux title with slashes")
+-- a non-psmux title must not match.
+ok(not D.is_psmux_pane(pane({ fg = nil, title = "nvim", domain = "unix" })), "non-psmux title not psmux")
+
 if fails == 0 then print("wezterm_mux_detect_test OK") else print(fails .. " FAILURES"); os.exit(1) end

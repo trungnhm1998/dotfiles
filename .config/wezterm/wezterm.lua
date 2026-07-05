@@ -371,6 +371,10 @@ end
 -- so Ctrl+Space lands in a remote tmux; the Mac auto-attaches tmux via its zsh, so a plain
 -- { args = { "ssh", "mac" } } (from ~/.ssh/config) is enough there. Edit this list to taste.
 local REMOTE_EXTRAS = {
+  -- psmux (native-Windows tmux): attach-or-create session "main" as the workspace's first tab.
+  -- The pane's inner pwsh self-announces mux_prog=psmux (profile + allow-passthrough), so WezTerm
+  -- yields Ctrl+Space to psmux here — same path omc-teams/warm spawns use.
+  { label = "psmux", kind = "psmux", spawn = { args = { "psmux.exe", "new", "-A", "-s", "main" } } },
   -- { label = "vps", kind = "vps", spawn = { args = { "ssh", "-t", "vps", "tmux new -A -s main" } } },
 }
 
