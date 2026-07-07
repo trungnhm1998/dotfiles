@@ -93,6 +93,22 @@ eq(M.proc_display('', 'C:\\Program Files\\PowerShell\\7\\pwsh.exe', imap).name, 
 eq(M.proc_display(nil, 'dotfiles - Lazygit', imap).name, 'dotfiles - Lazygit', 'proc_display shows descriptive title')
 eq(M.proc_display(nil, '⠐ Verify and research', imap).name, '⠐ Verify and research', 'proc_display shows Claude activity title')
 eq(M.proc_display('', '', imap), nil, 'proc_display empty -> nil')
+-- Off the mux the snapshot/live fg is POPULATED (node/claude/pwsh), so the old fg-first rule hid
+-- Claude's animated title. A Claude-activity title must now win over a real fg; other titles keep
+-- fg-first. Regression for the "tab/bar stopped showing Claude states after dropping the mux".
+eq(M.proc_display('C:\\Program Files\\nodejs\\node.exe', '⠐ Verify and research', imap).name,
+   '⠐ Verify and research', 'proc_display prefers a Claude activity title over a real fg (off-mux)')
+eq(M.proc_display('C:\\x\\pwsh.exe', 'dotfiles - Lazygit', imap).name, 'pwsh',
+   'proc_display keeps fg-first for non-Claude titles')
+
+-- is_claude_title: braille-spinner leader (any frame) is Claude; ascii/path/empty/nil are not.
+eq(M.is_claude_title('⠐ Verify and research'), true, 'is_claude_title: braille spinner leader')
+eq(M.is_claude_title('⣾ compiling'), true, 'is_claude_title: a different braille frame')
+eq(M.is_claude_title('   ⠋ indented'), true, 'is_claude_title: skips leading whitespace')
+eq(M.is_claude_title('dotfiles - Lazygit'), false, 'is_claude_title: ascii title is not Claude')
+eq(M.is_claude_title('C:\\x\\pwsh.exe'), false, 'is_claude_title: a path is not Claude')
+eq(M.is_claude_title(''), false, 'is_claude_title: empty is not Claude')
+eq(M.is_claude_title(nil), false, 'is_claude_title: nil is not Claude')
 
 -- truncate: UTF-8 aware (never splits a multibyte spinner), appends … when shortened
 eq(M.truncate('hello', 10), 'hello', 'truncate under limit unchanged')

@@ -108,11 +108,28 @@ function M.proc_label(fg_process_name, icon_map)
   return { name = name, icon = icon }
 end
 
--- Pure: choose a process label to display. Prefer the foreground process name; fall back to the
--- pane title -- mux-domain panes on Windows report NO fg name (snapshot or live), but the title
--- carries it: the live animated Claude activity ("⠐ Verify and research..."), "repo - Lazygit", or
--- a "...\pwsh.exe" path that proc_label basenames down to "pwsh". { name, icon } | nil for empty.
+-- Pure: is `title` a Claude Code activity line? Claude animates the pane TITLE with a braille
+-- spinner ("⠐ Verify and research"); every animation frame lives in the braille block
+-- U+2800..U+28FF, and no shell/lazygit/nvim/path title ever leads with one. Leading whitespace is
+-- skipped. This is the tell that lets proc_display show the live activity even when a real fg
+-- process exists (off the mux, where fg is populated). nil/empty/other-leading-glyph -> false.
+function M.is_claude_title(title)
+  if not title or title == '' then return false end
+  local s = title:gsub('^%s+', '')
+  if s == '' then return false end
+  local ok, cp = pcall(utf8.codepoint, s, 1)
+  return ok and cp >= 0x2800 and cp <= 0x28FF or false
+end
+
+-- Pure: choose a process label to display. A Claude-activity title wins outright so its live
+-- animated state shows on the tab/bar: under the mux fg was empty and the title fell through via
+-- the fallback below, but off the mux fg is populated (node/claude/pwsh) and would otherwise hide
+-- it. Otherwise prefer the foreground process name and fall back to the pane title -- "repo -
+-- Lazygit", or a "...\pwsh.exe" path that proc_label basenames down to "pwsh". { name, icon } | nil.
 function M.proc_display(fg_process_name, title, icon_map)
+  if M.is_claude_title(title) then
+    return M.proc_label(title, icon_map)
+  end
   local src = (fg_process_name and fg_process_name ~= '' and fg_process_name) or title
   return M.proc_label(src, icon_map)
 end

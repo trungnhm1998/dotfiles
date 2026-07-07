@@ -48,7 +48,7 @@ config.animation_fps = 60
 -- root-causing the stall (tablet-off / close RTSS) over Software's laggy paint.
 -- config.front_end = "Software"  -- CPU: stall-proof, laggy paint (was left active by mistake)
 -- config.front_end = "WebGpu"    -- fastest startup+paint; suspected stall trigger on this box
-config.front_end = "OpenGL"
+config.front_end = "WebGpu"
 -- wgpu defaults to webgpu_power_preference = "LowPower", which on this desktop selects the
 -- Intel UHD 770 iGPU instead of the RTX 5070 Ti and tanks bulk-output throughput ~10x
 -- (12.3 MB `type`: 70.5 s vs 7.1 s, benched 2026-06-10; on the right GPU WezTerm == WT).
@@ -87,6 +87,11 @@ config.term = "xterm-256color"
 config.notification_handling = "AlwaysShow"
 -- Nightly channel is updated by update-everything.ps1; skip the startup update check.
 config.check_for_updates = false
+
+-- TEMP DEBUG (remove after diagnosing the leader shifted-key issue): log every raw + mapped
+-- key event with its detected modifiers to the wezterm-gui log. Reload, reproduce
+-- Ctrl+Space then Shift+S, then compare the detected key/mods against the leader_mode binds.
+-- config.debug_key_events = true
 
 -- input (cross-platform keybinds; § 4 extends config.keys on Windows)
 
@@ -364,18 +369,18 @@ end
 -- domain is default_wsl_domain (above), and the Windows mux can't host a WSL2 server (AF_UNIX
 -- interop is WSL1-only) -> persist WSL work with tmux inside the distro instead.
 if is_windows and shellType ~= ShellTypes.WSL then
-    config.default_gui_startup_args = { "connect", "unix" }
+    -- config.default_gui_startup_args = { "connect", "unix" }
 end
 
 -- Manual remote targets not worth an ~/.ssh/config entry. A bare VPS needs `-t '<host>' tmux`
 -- so Ctrl+Space lands in a remote tmux; the Mac auto-attaches tmux via its zsh, so a plain
 -- { args = { "ssh", "mac" } } (from ~/.ssh/config) is enough there. Edit this list to taste.
 local REMOTE_EXTRAS = {
-  -- psmux (native-Windows tmux): attach-or-create session "main" as the workspace's first tab.
-  -- The pane's inner pwsh self-announces mux_prog=psmux (profile + allow-passthrough), so WezTerm
-  -- yields Ctrl+Space to psmux here — same path omc-teams/warm spawns use.
-  { label = "psmux", kind = "psmux", spawn = { args = { "psmux.exe", "new", "-A", "-s", "main" } } },
-  -- { label = "vps", kind = "vps", spawn = { args = { "ssh", "-t", "vps", "tmux new -A -s main" } } },
+    -- psmux (native-Windows tmux): attach-or-create session "main" as the workspace's first tab.
+    -- The pane's inner pwsh self-announces mux_prog=psmux (profile + allow-passthrough), so WezTerm
+    -- yields Ctrl+Space to psmux here — same path omc-teams/warm spawns use.
+    { label = "psmux", kind = "psmux", spawn = { args = { "psmux.exe", "new", "-A", "-s", "main" } } },
+    -- { label = "vps", kind = "vps", spawn = { args = { "ssh", "-t", "vps", "tmux new -A -s main" } } },
 }
 
 -- Leader+g: fuzzy-pick a remote (WSL distro / ~/.ssh/config host / extra) and land in a
@@ -383,31 +388,35 @@ local REMOTE_EXTRAS = {
 -- a reload. SwitchToWorkspace spawns the remote as the workspace's FIRST tab (no leftover pwsh
 -- tab) and just switches if the workspace already exists (no duplicate).
 local function remote_picker()
-  return wezterm.action_callback(function(window, pane)
-    local ssh_hosts = {}
-    pcall(function() ssh_hosts = wezterm.enumerate_ssh_hosts() end)
-    local targets = remotes.build_targets(ssh_hosts, get_wsl_distros(), REMOTE_EXTRAS)
-    local choices, map = {}, {}
-    for _, t in ipairs(targets) do
-      choices[#choices + 1] = { id = t.id, label = t.label }
-      map[t.id] = t
-    end
-    window:perform_action(
-      act.InputSelector({
-        title = "  Remote",
-        fuzzy = true,
-        choices = choices,
-        action = wezterm.action_callback(function(w, p, id, _label)
-          if not id then return end
-          local t = map[id]
-          if t then
-            w:perform_action(act.SwitchToWorkspace({ name = t.label, spawn = t.spawn }), p)
-          end
-        end),
-      }),
-      pane
-    )
-  end)
+    return wezterm.action_callback(function(window, pane)
+        local ssh_hosts = {}
+        pcall(function()
+            ssh_hosts = wezterm.enumerate_ssh_hosts()
+        end)
+        local targets = remotes.build_targets(ssh_hosts, get_wsl_distros(), REMOTE_EXTRAS)
+        local choices, map = {}, {}
+        for _, t in ipairs(targets) do
+            choices[#choices + 1] = { id = t.id, label = t.label }
+            map[t.id] = t
+        end
+        window:perform_action(
+            act.InputSelector({
+                title = "  Remote",
+                fuzzy = true,
+                choices = choices,
+                action = wezterm.action_callback(function(w, p, id, _label)
+                    if not id then
+                        return
+                    end
+                    local t = map[id]
+                    if t then
+                        w:perform_action(act.SwitchToWorkspace({ name = t.label, spawn = t.spawn }), p)
+                    end
+                end),
+            }),
+            pane
+        )
+    end)
 end
 
 -- ============================================================================
@@ -435,10 +444,7 @@ end
 
 local function split_current_pane(direction)
     return wezterm.action_callback(function(window, pane)
-        window:perform_action(
-            act.SplitPane({ direction = direction, command = pane_command(pane) }),
-            pane
-        )
+        window:perform_action(act.SplitPane({ direction = direction, command = pane_command(pane) }), pane)
     end)
 end
 
@@ -487,6 +493,29 @@ if is_windows then
     table.insert(config.keys, { key = "f", mods = "CTRL|SHIFT", action = workspace_switcher.switch_workspace() })
     table.insert(config.keys, { key = "[", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(-1) })
     table.insert(config.keys, { key = "]", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(1) })
+    -- Workspaces-only picker: a clean list of live workspaces (no zoxide dirs, unlike Ctrl+Shift+f).
+    -- Lives here, not in leader, because it needs Shift -- which the one_shot leader table eats. Was Leader+Shift+S.
+    table.insert(
+        config.keys,
+        { key = "s", mods = "CTRL|SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) }
+    )
+    -- Toggle to last-used workspace (Ctrl+Shift+O = "other"). Was Leader+L; moved out of leader for the same reason.
+    table.insert(config.keys, {
+        key = "o",
+        mods = "CTRL|SHIFT",
+        action = wezterm.action_callback(function(window, pane)
+            local prev = wezterm.GLOBAL.previous_workspace
+            if not prev then
+                return
+            end
+            for _, name in ipairs(wezterm.mux.get_workspace_names()) do
+                if name == prev then
+                    window:perform_action(act.SwitchToWorkspace({ name = prev }), pane)
+                    return
+                end
+            end
+        end),
+    })
 end
 
 -- Mode-chip for the tabline `mode` component: icon-only LEADER/COPY/SEARCH/RESIZE indicator.
@@ -510,11 +539,7 @@ local function mode_chip_fmt(mode, window)
     if icon_only and icon == nil then
         return mode
     end
-    return string.format(
-        "%s%s",
-        icon and icon .. (icon_only and "" or " ") or "",
-        icon_only and "" or mode
-    )
+    return string.format("%s%s", icon and icon .. (icon_only and "" or " ") or "", icon_only and "" or mode)
 end
 
 -- Shared key tables: leader_mode nav base + resize_mode. Windows-only leader extras (launcher,
@@ -533,15 +558,17 @@ config.key_tables = {
         { key = "j", action = act.ActivatePaneDirection("Down") },
         { key = "k", action = act.ActivatePaneDirection("Up") },
         { key = "l", action = act.ActivatePaneDirection("Right") },
-        -- Split horizontal (side-by-side); tmux `v` / `prefix |`.
-        { key = "|", mods = "SHIFT", action = split_current_pane("Right") },
+        -- Split horizontal (side-by-side); tmux `v`.
         { key = "v", action = split_current_pane("Right") },
-        -- Split vertical (stacked); tmux `s` / `prefix -`.
-        { key = "-", mods = "SHIFT", action = split_current_pane("Down") },
+        -- Split vertical (stacked); tmux `s`.
         { key = "s", action = split_current_pane("Down") },
         -- Pane/Tab management
         { key = "x", action = act.CloseCurrentPane({ confirm = true }) },
-        { key = "&", mods = "SHIFT", action = act.CloseCurrentTab({ confirm = true }) },
+        -- Leader keys MUST be unshifted. This table is activated one_shot=true, and on Windows
+        -- pressing a modifier (Shift) is itself consumed as the one-shot's single keypress -- it pops
+        -- the table before the letter lands (verified via debug_key_events, #6824). Any Shift-requiring
+        -- leader command is dead; shifted commands live at top-level Ctrl+Shift+* instead. `q` = close tab.
+        { key = "q", action = act.CloseCurrentTab({ confirm = true }) },
         {
             key = ",",
             action = act.PromptInputLine({
@@ -563,8 +590,8 @@ config.key_tables = {
         { key = "n", action = act.ActivateTabRelative(1) },
         -- Zoom pane toggle (tmux prefix + z)
         { key = "z", action = act.TogglePaneZoomState },
-        -- Debug overlay / Lua REPL (tmux `prefix :` parallel)
-        { key = ":", mods = "SHIFT", action = act.ShowDebugOverlay },
+        -- Debug overlay / Lua REPL. `;` = unshifted twin of `:` (leader keys must be unshifted -- see note above).
+        { key = ";", action = act.ShowDebugOverlay },
         -- tmux-style sticky resize (parallels `bind -r ... resize-pane`). Plain `r`; arrows/hjkl
         -- repeat without re-pressing prefix; Esc/q exit. Gated on pane count: a single-pane tab
         -- has nothing to resize, so `r` is a no-op there. A MODIFIED entry key can NOT be used:
@@ -574,10 +601,7 @@ config.key_tables = {
             action = wezterm.action_callback(function(window, pane)
                 local tab = window:active_tab()
                 if tab and #tab:panes() > 1 then
-                    window:perform_action(
-                        act.ActivateKeyTable({ name = "resize_mode", one_shot = false }),
-                        pane
-                    )
+                    window:perform_action(act.ActivateKeyTable({ name = "resize_mode", one_shot = false }), pane)
                 end
             end),
         },
@@ -629,8 +653,6 @@ end
 -- mac/Linux stays fallback-core (tmux sessions / claude-squad own session management).
 if is_windows then
     local leader = config.key_tables.leader_mode
-    -- Launcher
-    table.insert(leader, { key = "T", mods = "SHIFT", action = act.ShowLauncher })
     -- Switch to new or existing workspace
     table.insert(leader, {
         key = "w",
@@ -647,42 +669,8 @@ if is_windows then
             end),
         }),
     })
-    -- Fuzzy workspace launcher (built-in)
-    table.insert(leader, { key = "s", mods = "SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) })
     -- Fuzzy switcher (smart_workspace_switcher): workspaces + zoxide dirs
     table.insert(leader, { key = "f", action = workspace_switcher.switch_workspace() })
-    -- Fast cycle: ( prev workspace, ) next workspace, L last-used
-    table.insert(leader, { key = "(", mods = "SHIFT", action = act.SwitchWorkspaceRelative(-1) })
-    table.insert(leader, { key = ")", mods = "SHIFT", action = act.SwitchWorkspaceRelative(1) })
-    table.insert(leader, {
-        key = "L",
-        mods = "SHIFT",
-        action = wezterm.action_callback(function(window, pane)
-            local prev = wezterm.GLOBAL.previous_workspace
-            if not prev then
-                return
-            end
-            for _, name in ipairs(wezterm.mux.get_workspace_names()) do
-                if name == prev then
-                    window:perform_action(act.SwitchToWorkspace({ name = prev }), pane)
-                    return
-                end
-            end
-        end),
-    })
-    -- Rename the active workspace (tmux `prefix + $`)
-    table.insert(leader, {
-        key = "$",
-        mods = "SHIFT",
-        action = act.PromptInputLine({
-            description = "Rename workspace to:",
-            action = wezterm.action_callback(function(_, _, line)
-                if line and line ~= "" then
-                    wezterm.mux.rename_workspace(wezterm.mux.get_active_workspace(), line)
-                end
-            end),
-        }),
-    })
     -- Detach this domain (tmux `prefix d`); panes + procs stay on the mux server.
     table.insert(leader, { key = "d", action = act.DetachDomain("CurrentPaneDomain") })
     -- Remote picker (WSL / ssh hosts / extras) -> workspace. Plain key (modified keys in leader
@@ -690,104 +678,133 @@ if is_windows then
     table.insert(leader, { key = "g", action = remote_picker() })
 end
 
--- Windows-only: Claude tab-badge + toast-focus, namespaced by the stable mux-server socket tag.
--- mac/Linux uses SketchyBar + the tmux bell instead, so none of this runs there.
+-- Windows-only: Claude tab-badge + toast-focus. mac/Linux uses SketchyBar + the tmux bell instead,
+-- so none of this runs there.
 if is_windows then
-    -- Stable mux-namespace tag for the Claude badge/focus channels. The hooks namespace their
-    -- cache dir by basename($WEZTERM_UNIX_SOCKET) under the persistent 'unix' mux (socket 'sock');
-    -- the GUI's own WEZTERM_UNIX_SOCKET is the ephemeral gui-sock, so this poller must use THIS
-    -- constant to read the same dir the hooks write to. See [[WezTerm Multi-Mux Pane IDs on Windows]].
-    local MUX_SOCK = "sock"
-    local claude_alerts = require('wezterm_claude_alerts')
-    local claude_focus = require('wezterm_claude_focus')
+    local claude_alerts = require("wezterm_claude_alerts")
+    local claude_focus = require("wezterm_claude_focus")
 
-    -- Track previous workspace (Leader+L), reconcile the Claude badge dir, and consume toast
+    -- Mux-agnostic read of the badge/focus channels. The hooks (notify-lib.sh) namespace their
+    -- cache dir by basename($WEZTERM_UNIX_SOCKET): "sock" under the persistent 'unix' mux, but
+    -- "gui-sock-<PID>" on the plain local domain -- so the old hardcoded "sock" tag broke the moment
+    -- the GUI stopped attaching to the mux. Rather than guess the tag, union-scan every per-mux
+    -- subdir under <base> and let reconcile()/pending() filter by live pane id (ids are unique
+    -- within a GUI, so stale files from an old subdir self-prune on the next tick). Works on AND off
+    -- the mux. ponytail: a stale file whose id collides with a currently-live pane could flash one
+    -- wrong badge until that pane is next visited -- acceptable vs. re-coupling to the socket name.
+    local function read_all_subdir_files(base)
+        local files, subs = {}, {}
+        pcall(function()
+            subs = wezterm.read_dir(base)
+        end)
+        for _, sub in ipairs(subs) do
+            pcall(function()
+                for _, f in ipairs(wezterm.read_dir(sub)) do
+                    files[#files + 1] = f
+                end
+            end)
+        end
+        return files
+    end
+
+    -- Track previous workspace (Ctrl+Shift+O), reconcile the Claude badge dir, and consume toast
     -- focus-on-click requests. update-status fires ~1x/sec and on switch.
     -- ponytail: WZB_NO_UPDATESTATUS lets the perf harness skip this whole per-tick handler to
     -- attribute its interactive cost. Behavior-preserving when unset; remove after the investigation.
     if not os.getenv("WZB_NO_UPDATESTATUS") then
-    wezterm.on("update-status", function(window)
-        local current = window:active_workspace()
-        if wezterm.GLOBAL.current_workspace ~= current then
-            ---@diagnostic disable-next-line: inject-field
-            wezterm.GLOBAL.previous_workspace = wezterm.GLOBAL.current_workspace
-            ---@diagnostic disable-next-line: inject-field
-            wezterm.GLOBAL.current_workspace = current
-        end
+        wezterm.on("update-status", function(window)
+            local current = window:active_workspace()
+            if wezterm.GLOBAL.current_workspace ~= current then
+                ---@diagnostic disable-next-line: inject-field
+                wezterm.GLOBAL.previous_workspace = wezterm.GLOBAL.current_workspace
+                ---@diagnostic disable-next-line: inject-field
+                wezterm.GLOBAL.current_workspace = current
+            end
 
-        local dir = claude_alerts.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
-        local paths = {}
-        pcall(function() paths = wezterm.read_dir(dir) end)
-        -- Each alert file is named by $WEZTERM_PANE = the mux-SERVER pane id, but p:pane_id() here
-        -- is the GUI-CLIENT id -- a different space under the persistent mux, which silently broke
-        -- the badge. Each pwsh pane publishes its server id as the CLAUDE_SERVER_PANE user var
-        -- (Microsoft.PowerShell_profile.ps1); read it back to match. Fall back to the gui id for
-        -- panes that don't publish (local/non-pwsh, where server id == gui id anyway).
-        local function server_key(p)
-            local uv = p:get_user_vars() or {}
-            return uv['CLAUDE_SERVER_PANE'] or tostring(p:pane_id())
-        end
-        -- live maps server_id -> gui_id: truthy, so it doubles as reconcile's liveness set and as
-        -- the re-key table below. visited holds the active tab's server ids.
-        local live = {}
-        for _, w in ipairs(wezterm.mux.all_windows()) do
-            for _, t in ipairs(w:tabs()) do
-                for _, p in ipairs(t:panes()) do
-                    live[server_key(p)] = tostring(p:pane_id())
+            local paths = read_all_subdir_files(claude_alerts.dir(wezterm.home_dir, os.getenv("XDG_CACHE_HOME")))
+            -- Each alert file is named by $WEZTERM_PANE = the mux-SERVER pane id, but p:pane_id() here
+            -- is the GUI-CLIENT id -- a different space under the persistent mux, which silently broke
+            -- the badge. Each pwsh pane publishes its server id as the CLAUDE_SERVER_PANE user var
+            -- (Microsoft.PowerShell_profile.ps1); read it back to match. Fall back to the gui id for
+            -- panes that don't publish (local/non-pwsh, where server id == gui id anyway).
+            local function server_key(p)
+                local uv = p:get_user_vars() or {}
+                return uv["CLAUDE_SERVER_PANE"] or tostring(p:pane_id())
+            end
+            -- live maps server_id -> gui_id: truthy, so it doubles as reconcile's liveness set and as
+            -- the re-key table below. visited holds the active tab's server ids.
+            local live = {}
+            for _, w in ipairs(wezterm.mux.all_windows()) do
+                for _, t in ipairs(w:tabs()) do
+                    for _, p in ipairs(t:panes()) do
+                        live[server_key(p)] = tostring(p:pane_id())
+                    end
                 end
             end
-        end
-        local visited = {}
-        local at = window:active_tab()
-        if at then
-            for _, p in ipairs(at:panes()) do
-                visited[server_key(p)] = true
+            local visited = {}
+            local at = window:active_tab()
+            if at then
+                for _, p in ipairs(at:panes()) do
+                    visited[server_key(p)] = true
+                end
             end
-        end
-        local function read_file(path)
-            local fh = io.open(path, 'r'); if not fh then return nil end
-            local s = fh:read('*a'); fh:close(); return s
-        end
-        -- reconcile runs in server-id space (matches the alert file names); re-key the surviving
-        -- alerts back to gui pane ids so the tabline badge component (PaneInformation gui ids)
-        -- looks them up unchanged.
-        local by_sid = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
-        local by_gid = {}
-        for sid, kind in pairs(by_sid) do
-            local gid = live[sid]
-            if gid then by_gid[gid] = kind end
-        end
-        ---@diagnostic disable-next-line: inject-field
-        wezterm.GLOBAL.claude_alert = by_gid
+            local function read_file(path)
+                local fh = io.open(path, "r")
+                if not fh then
+                    return nil
+                end
+                local s = fh:read("*a")
+                fh:close()
+                return s
+            end
+            -- reconcile runs in server-id space (matches the alert file names); re-key the surviving
+            -- alerts back to gui pane ids so the tabline badge component (PaneInformation gui ids)
+            -- looks them up unchanged.
+            local by_sid = claude_alerts.reconcile(paths, live, visited, read_file, os.remove)
+            local by_gid = {}
+            for sid, kind in pairs(by_sid) do
+                local gid = live[sid]
+                if gid then
+                    by_gid[gid] = kind
+                end
+            end
+            ---@diagnostic disable-next-line: inject-field
+            wezterm.GLOBAL.claude_alert = by_gid
 
-        local fdir = claude_focus.mux_dir(wezterm.home_dir, os.getenv('XDG_CACHE_HOME'), MUX_SOCK)
-        local fpaths = {}
-        pcall(function() fpaths = wezterm.read_dir(fdir) end)
-        local want = claude_focus.pending(fpaths, os.time(), read_file, os.remove, 60)
-        if #want > 0 then
-            local want_set = {}
-            for _, id in ipairs(want) do want_set[id] = true end
-            for _, gw in ipairs(wezterm.gui.gui_windows()) do
-                local mw = gw:mux_window()
-                for _, tab in ipairs(mw:tabs()) do
-                    for _, p in ipairs(tab:panes()) do
-                        if want_set[tostring(p:pane_id())] then
-                            local target_ws = mw:get_workspace()
-                            if target_ws and target_ws ~= gw:active_workspace() then
-                                pcall(function() wezterm.mux.set_active_workspace(target_ws) end)
+            local fpaths = read_all_subdir_files(claude_focus.dir(wezterm.home_dir, os.getenv("XDG_CACHE_HOME")))
+            local want = claude_focus.pending(fpaths, os.time(), read_file, os.remove, 60)
+            if #want > 0 then
+                local want_set = {}
+                for _, id in ipairs(want) do
+                    want_set[id] = true
+                end
+                for _, gw in ipairs(wezterm.gui.gui_windows()) do
+                    local mw = gw:mux_window()
+                    for _, tab in ipairs(mw:tabs()) do
+                        for _, p in ipairs(tab:panes()) do
+                            if want_set[tostring(p:pane_id())] then
+                                local target_ws = mw:get_workspace()
+                                if target_ws and target_ws ~= gw:active_workspace() then
+                                    pcall(function()
+                                        wezterm.mux.set_active_workspace(target_ws)
+                                    end)
+                                end
+                                pcall(function()
+                                    p:activate()
+                                end)
+                                pcall(function()
+                                    gw:focus()
+                                end)
                             end
-                            pcall(function() p:activate() end)
-                            pcall(function() gw:focus() end)
                         end
                     end
                 end
             end
-        end
-    end)
+        end)
     end
 
     -- Register the Claude badge tab component under the name tabline.wez require()s.
-    package.loaded['tabline.components.tab.claude'] = require('tabline_claude_badge')
+    package.loaded["tabline.components.tab.claude"] = require("tabline_claude_badge")
 end
 
 -- Windows-only: command palette (Ctrl+Shift+P) entry for the fuzzy workspace picker --
