@@ -13,14 +13,16 @@
 # don't), so -NoExit exempts the arg scan. CI/GHA and non-ConsoleHost still bail.
 $__args = [Environment]::GetCommandLineArgs()
 $__oneShot = ($__args -notcontains '-NoExit') -and
-             ($__args -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')
-if ($env:CI -or $env:GITHUB_ACTIONS -or ($Host.Name -ne 'ConsoleHost') -or $__oneShot) {
+($__args -match '^-(NonInteractive|Command|c|EncodedCommand|e|ec|File|f)$')
+if ($env:CI -or $env:GITHUB_ACTIONS -or ($Host.Name -ne 'ConsoleHost') -or $__oneShot)
+{
     return
 }
 
 $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 $env:EDITOR = "nvim" # so can I press V and open nvim to edit commands
 $env:VISUAL = "nvim"
+$env:CLAUDE_CODE_TMUX_TRUECOLOR=1
 
 # Module imports. posh-git (git prompt) + Terminal-Icons (dir icons) removed 2026-07-04:
 # redundant with Starship (prompt) + eza --icons, and they cost ~740ms/shell. CompletionPredictor
@@ -28,6 +30,7 @@ $env:VISUAL = "nvim"
 # See bench/profile-bench.ps1 for the attribution.
 Import-Module PSReadLine # Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
 Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
+Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
 
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
 
@@ -38,49 +41,80 @@ $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info 
 # for `choco` will not function.
 # See https://ch0.co/tab-completion for details.
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-  Import-Module "$ChocolateyProfile"
+if (Test-Path($ChocolateyProfile))
+{
+    Import-Module "$ChocolateyProfile"
 }
 
 # Yazi
-function y {
+function y
+{
     $tmp = [System.IO.Path]::GetTempFileName()
     yazi $args --cwd-file="$tmp"
     $cwd = Get-Content -Path $tmp -Encoding UTF8
-    if (-not [String]::IsNullOrEmpty($cwd) -and $cwd -ne $PWD.Path) {
+    if (-not [String]::IsNullOrEmpty($cwd) -and $cwd -ne $PWD.Path)
+    {
         Set-Location -LiteralPath ([System.IO.Path]::GetFullPath($cwd))
     }
     Remove-Item -Path $tmp
 }
 
 # --- eza / ls colors (Catppuccin Frappe) ---
-if (Get-Command vivid -ErrorAction SilentlyContinue) {
+if (Get-Command vivid -ErrorAction SilentlyContinue)
+{
     $env:LS_COLORS = (vivid generate catppuccin-frappe)
-} else {
+} else
+{
     # vivid not installed (e.g. Windows) — curated static Frappe EZA_COLORS
     $env:EZA_COLORS = "di=1;38;2;140;170;238:ex=1;38;2;166;209;137:ln=38;2;129;200;190:fi=38;2;198;208;245:da=38;2;131;139;167:uu=38;2;229;200;144:gu=38;2;131;139;167:ur=38;2;229;200;144:uw=38;2;231;130;132:ux=38;2;166;209;137:ue=38;2;166;209;137:gr=38;2;229;200;144:gw=38;2;231;130;132:gx=38;2;166;209;137:tr=38;2;229;200;144:tw=38;2;231;130;132:tx=38;2;166;209;137:sn=38;2;202;158;230:sb=38;2;202;158;230:xx=38;2;131;139;167"
 }
 
 # --- eza ---
-function ls { eza --icons $args }
-function l { eza --icons $args }
-function ll { eza -lg --icons $args }
-function la { eza -lag --icons $args }
-function lt { eza -lTg --icons $args }
-function lt1 { eza -lTg --level=1 --icons $args }
-function lt2 { eza -lTg --level=2 --icons $args }
-function lt3 { eza -lTg --level=3 --icons $args }
-function lta { eza -lTag --icons $args }
-function lta1 { eza -lTag --level=1 --icons $args }
-function lta2 { eza -lTag --level=2 --icons $args }
-function lta3 { eza -lTag --level=3 --icons $args }
+function ls
+{ eza --icons $args 
+}
+function l
+{ eza --icons $args 
+}
+function ll
+{ eza -lg --icons $args 
+}
+function la
+{ eza -lag --icons $args 
+}
+function lt
+{ eza -lTg --icons $args 
+}
+function lt1
+{ eza -lTg --level=1 --icons $args 
+}
+function lt2
+{ eza -lTg --level=2 --icons $args 
+}
+function lt3
+{ eza -lTg --level=3 --icons $args 
+}
+function lta
+{ eza -lTag --icons $args 
+}
+function lta1
+{ eza -lTag --level=1 --icons $args 
+}
+function lta2
+{ eza -lTag --level=2 --icons $args 
+}
+function lta3
+{ eza -lTag --level=3 --icons $args 
+}
 
 Invoke-Expression (&starship init powershell)
 # integrate with wezterm because I use starship
 $prompt = ""
-function Invoke-Starship-PreCommand {
+function Invoke-Starship-PreCommand
+{
     $current_location = $executionContext.SessionState.Path.CurrentLocation
-    if ($current_location.Provider.Name -eq "FileSystem") {
+    if ($current_location.Provider.Name -eq "FileSystem")
+    {
         $ansi_escape = [char]27
         $provider_path = $current_location.ProviderPath -replace "\\", "/"
         $prompt = "$ansi_escape]7;file://${env:COMPUTERNAME}/${provider_path}$ansi_escape\"
@@ -92,7 +126,8 @@ function Invoke-Starship-PreCommand {
 # poller can map mux client<->server pane ids. Under the persistent unix mux the GUI is a client
 # and renumbers panes, so $WEZTERM_PANE (server id, used in the alert filename) != the gui id the
 # poller sees -- which silently broke the badge. Same SetUserVar OSC as `zj` below; value is base64.
-if ($env:WEZTERM_PANE) {
+if ($env:WEZTERM_PANE)
+{
     $paneB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($env:WEZTERM_PANE))
     [Console]::Write("`e]1337;SetUserVar=CLAUDE_SERVER_PANE=$paneB64`a")
 }
@@ -108,7 +143,8 @@ if ($env:WEZTERM_PANE) {
 Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
-if (-not [Console]::IsInputRedirected) {
+if (-not [Console]::IsInputRedirected)
+{
     Set-PSReadLineOption -EditMode vi -ViModeIndicator Cursor -PredictionSource History -PredictionViewStyle InlineView
 }
 
@@ -130,14 +166,17 @@ Set-PSReadLineOption -Colors @{
     InlinePrediction = '#626880'  # surface2
 }
 
-function claude-mem { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args }
+function claude-mem
+{ & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args 
+}
 
 # Ovrride vi mode ctrl r
 Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
 Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
 
 # --- Grammar fixer ---
-function fix-grammar {
+function fix-grammar
+{
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]
@@ -145,15 +184,25 @@ function fix-grammar {
         [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
         [string[]] $TextArgs
     )
-    begin   { $buf = [System.Collections.Generic.List[string]]::new() }
-    process { if ($PipeInput) { $buf.Add($PipeInput) } }
-    end {
+    begin
+    { $buf = [System.Collections.Generic.List[string]]::new() 
+    }
+    process
+    { if ($PipeInput)
+        { $buf.Add($PipeInput) 
+        } 
+    }
+    end
+    {
         $script = "$HOME\dotfiles\scripts\fix-grammar.ps1"
-        if ($buf.Count -gt 0) {
+        if ($buf.Count -gt 0)
+        {
             ($buf -join "`n") | & $script
-        } elseif ($TextArgs.Count -gt 0) {
+        } elseif ($TextArgs.Count -gt 0)
+        {
             & $script @TextArgs
-        } else {
+        } else
+        {
             & $script
         }
     }
@@ -168,9 +217,14 @@ Set-Alias -Name fg -Value fix-grammar
 # Launch Zellij and flag the WezTerm pane (user var) so wezterm.lua stops emulating tmux
 # while Zellij is the active multiplexer (see is_zellij_pane in wezterm.lua). MQ==/MA== are
 # base64 for "1"/"0"; the flag clears on exit so the pane returns to WezTerm's leader.
-function zj {
+function zj
+{
     [Console]::Write("`e]1337;SetUserVar=zellij=MQ==`a")
-    try { zellij @args } finally { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") }
+    try
+    { zellij @args 
+    } finally
+    { [Console]::Write("`e]1337;SetUserVar=zellij=MA==`a") 
+    }
 }
 
 # --- ssh / wsl -> WezTerm mux passthrough ---
@@ -179,24 +233,40 @@ function zj {
 # returns nil), so wezterm can't see that ssh/wsl is running -- we announce it via a user var, the
 # same OSC 1337 SetUserVar mechanism as `zj` above. Cleared on exit (finally) so the pane returns
 # to WezTerm's own leader. Read by mux_detect.pane_prog() in wezterm_mux_detect.lua.
-function Set-WezVar([string]$Name, [string]$Value) {
+function Set-WezVar([string]$Name, [string]$Value)
+{
     $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Value))
     [Console]::Write("`e]1337;SetUserVar=$Name=$b64`a")
 }
-function ssh {
+function ssh
+{
     Set-WezVar 'mux_prog' 'ssh'
-    try { ssh.exe @args } finally { Set-WezVar 'mux_prog' '' }
+    try
+    { ssh.exe @args 
+    } finally
+    { Set-WezVar 'mux_prog' '' 
+    }
 }
-function wsl {
+function wsl
+{
     Set-WezVar 'mux_prog' 'wsl'
-    try { wsl.exe @args } finally { Set-WezVar 'mux_prog' '' }
+    try
+    { wsl.exe @args 
+    } finally
+    { Set-WezVar 'mux_prog' '' 
+    }
 }
 
 # --- psmux (native-Windows tmux): flag the pane so wezterm.lua yields Ctrl+Space ---
 # Same OSC-1337 user-var dance as zj/ssh/wsl above. Manual launch only -- no auto-attach.
-function Invoke-Psmux {
+function Invoke-Psmux
+{
     Set-WezVar 'mux_prog' 'psmux'
-    try { psmux.exe @args } finally { Set-WezVar 'mux_prog' '' }
+    try
+    { psmux.exe @args 
+    } finally
+    { Set-WezVar 'mux_prog' '' 
+    }
 }
 Set-Alias psmux Invoke-Psmux
 Set-Alias tmux  Invoke-Psmux   # muscle memory: `tmux` launches psmux + flags the pane
@@ -211,54 +281,64 @@ Set-Alias pmux  Invoke-Psmux
 # SudoMaker is adapter-only, and a disabled PnP adapter stays disabled across reboots (durable,
 # no StartType dance). Self-elevate (one UAC click); the virtual display (dis)appearing is the
 # confirmation. See vault: WezTerm Repaint Stall from a Virtual Display on Windows.
-function tablet-off {
+function tablet-off
+{
     Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
-      "Stop-Service SuperDisplay -EA SilentlyContinue; Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Disable-PnpDevice -Confirm:`$false -EA SilentlyContinue"
+    "Stop-Service SuperDisplay -EA SilentlyContinue; Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Disable-PnpDevice -Confirm:`$false -EA SilentlyContinue"
 }
-function tablet-on {
+function tablet-on
+{
     Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-Command',
-      "Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Enable-PnpDevice -Confirm:`$false -EA SilentlyContinue; Start-Service SuperDisplay -EA SilentlyContinue"
+    "Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Enable-PnpDevice -Confirm:`$false -EA SilentlyContinue; Start-Service SuperDisplay -EA SilentlyContinue"
 }
 
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
 # see vault: WezTerm Repaint Stall from an Injected Overlay Hook on Windows.
-function wz-probe { pwsh -NoProfile -ExecutionPolicy Bypass -File "$HOME\.config\wezterm\wezterm-freeze-probe.ps1" }
+function wz-probe
+{ pwsh -NoProfile -ExecutionPolicy Bypass -File "$HOME\.config\wezterm\wezterm-freeze-probe.ps1" 
+}
 
 # --- Un-hide a Unity Editor window launched hidden by Unity Hub ---
 # Unity Hub (Electron/Node) spawns Unity.exe with windowsHide=true -> STARTF_USESHOWWINDOW +
 # wShowWindow=SW_HIDE; Unity's main window obeys it via ShowWindow(SW_SHOWDEFAULT) -> born hidden
 # (no taskbar / alt-tab, .NET MainWindowHandle=0, but Responding=True). This shows it, no kill.
 # Proven via PEB read; see vault: Recovering a Hidden Windows Window.
-function Show-UnityWindow { & "$HOME\Show-UnityWindow.ps1" @args }
+function Show-UnityWindow
+{ & "$HOME\Show-UnityWindow.ps1" @args 
+}
 Set-Alias suw Show-UnityWindow
 
 # --- Ad-hoc MCP servers (rare-use, not registered globally/per-project) ---
 # Configs live in dotfiles\claude\mcp\<name>.json; `ccmcp figma jira` starts Claude with
 # those servers for this session only. Leading args naming a config are consumed as
 # servers; everything after passes to claude (e.g. `ccmcp figma -p "hi"`).
-function ccmcp {
-  $mcpDir = "$HOME\dotfiles\claude\mcp"
-  $cfgs = @(); $rest = @($args)
-  while ($rest.Count -and (Test-Path "$mcpDir\$($rest[0]).json")) {
-    $cfgs += "$mcpDir\$($rest[0]).json"
-    $rest = @($rest | Select-Object -Skip 1)
-  }
-  if (-not $cfgs.Count) {
-    Write-Error "No MCP config matched. Available: $((Get-ChildItem $mcpDir -Filter *.json).BaseName -join ', ')"
-    return
-  }
-  claude --mcp-config @cfgs @rest
+function ccmcp
+{
+    $mcpDir = "$HOME\dotfiles\claude\mcp"
+    $cfgs = @(); $rest = @($args)
+    while ($rest.Count -and (Test-Path "$mcpDir\$($rest[0]).json"))
+    {
+        $cfgs += "$mcpDir\$($rest[0]).json"
+        $rest = @($rest | Select-Object -Skip 1)
+    }
+    if (-not $cfgs.Count)
+    {
+        Write-Error "No MCP config matched. Available: $((Get-ChildItem $mcpDir -Filter *.json).BaseName -join ', ')"
+        return
+    }
+    claude --mcp-config @cfgs @rest
 }
 
 # --- Cursor global rules -> clipboard (Cursor has no global file to symlink) ---
 # Cursor's User Rules live in a synced settings DB, so claude\AGENTS.md can't be symlinked
 # in. Copy it to the clipboard, then paste into Cursor -> Settings -> Rules -> User Rules.
 # Windows twin of scripts/copy-agents-rules.sh. Re-run after editing AGENTS.md.
-function Copy-AgentsRules {
-  Get-Content "$HOME\.claude\AGENTS.md" -Raw | Set-Clipboard
-  Write-Host "Copied AGENTS.md -> paste into Cursor -> Settings -> Rules -> User Rules."
+function Copy-AgentsRules
+{
+    Get-Content "$HOME\.claude\AGENTS.md" -Raw | Set-Clipboard
+    Write-Host "Copied AGENTS.md -> paste into Cursor -> Settings -> Rules -> User Rules."
 }
 Set-Alias ccrules Copy-AgentsRules
 
@@ -267,8 +347,61 @@ Set-Alias ccrules Copy-AgentsRules
 # localhost:8088, but Remote Control refuses any endpoint that isn't api.anthropic.com. `cc` drops
 # the var for this one launch -> CLI talks to Anthropic directly (RC works), then restores it so the
 # rest of the shell keeps ccflare. Plain `claude` still uses ccflare.
-function cc {
+function cc
+{
     $saved = $env:ANTHROPIC_BASE_URL
     Remove-Item Env:\ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
-    try { claude @args } finally { if ($null -ne $saved) { $env:ANTHROPIC_BASE_URL = $saved } }
+    try
+    { claude @args 
+    } finally
+    { if ($null -ne $saved)
+        { $env:ANTHROPIC_BASE_URL = $saved 
+        }
+    }
+}
+
+# --- Claude Code against a local llama-swap/llama-server box (no auth, per-invocation) ---
+# Points Claude Code at the OpenAI/Anthropic-compatible local server. Env is scoped to this
+# shell only (no setx / global), so plain `claude` in other shells is unaffected.
+function claude-local {
+    param($Box = "http://127.0.0.1:8080", $Model = "fast")
+    $env:ANTHROPIC_BASE_URL = $Box
+    $env:ANTHROPIC_AUTH_TOKEN = "none"
+    $env:ANTHROPIC_MODEL = $Model
+    $env:ANTHROPIC_DEFAULT_SONNET_MODEL = $Model
+    $env:ANTHROPIC_DEFAULT_HAIKU_MODEL = $Model
+    $env:ANTHROPIC_DEFAULT_OPUS_MODEL = $Model
+    claude @args
+}
+
+# --- Local AI stack toggle (opt-in so the GPU stays free for gaming by default) ---
+# `ai on`   start llama-swap (loopback 8080) -> Continue autocomplete + claude-local/opencode go live.
+# `ai off`  stop llama-swap + any llama-server child -> frees ALL VRAM for games.
+# `ai`      status: running? which models loaded? VRAM used.
+# No logon autostart by design: nothing touches the GPU until you opt in with `ai on`.
+function ai {
+    param([ValidateSet('on', 'off', 'status')] $do = 'status')
+    $exe = 'H:\llm\llama-swap\llama-swap.exe'
+    $cfg = "$HOME\dotfiles\.config\llama-swap\config.yaml"
+    if (-not (Test-Path $exe)) { Write-Host 'local AI stack not installed on this machine' -ForegroundColor DarkGray; return }
+    switch ($do) {
+        'on' {
+            if (Get-Process llama-swap -ErrorAction SilentlyContinue) { Write-Host 'llama-swap already on' -ForegroundColor Yellow; break }
+            Start-Process $exe -ArgumentList '--config', $cfg, '--listen', '127.0.0.1:8080' -WindowStyle Hidden -RedirectStandardOutput H:\llm\swap-out.log -RedirectStandardError H:\llm\swap-err.log
+            Write-Host 'llama-swap ON  (127.0.0.1:8080) - autocomplete + local agents live' -ForegroundColor Green
+        }
+        'off' {
+            Get-Process llama-swap, llama-server -ErrorAction SilentlyContinue | Stop-Process -Force
+            Write-Host 'local AI OFF - VRAM freed for gaming' -ForegroundColor Green
+        }
+        'status' {
+            if (Get-Process llama-swap -ErrorAction SilentlyContinue) {
+                $m = try { (Invoke-RestMethod http://127.0.0.1:8080/running -TimeoutSec 2).running.model -join ', ' } catch { '' }
+                Write-Host ("llama-swap ON  | loaded: {0}" -f $(if ($m) { $m } else { '(none yet)' })) -ForegroundColor Green
+            } else {
+                Write-Host 'llama-swap off' -ForegroundColor DarkGray
+            }
+            Write-Host ("VRAM used: " + (nvidia-smi --query-gpu=memory.used --format=csv,noheader))
+        }
+    }
 }

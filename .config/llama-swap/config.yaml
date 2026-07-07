@@ -1,0 +1,42 @@
+# llama-swap — Main PC (P1). Tuned 2026-07-06 by executor; see wargames/03-localai.md.
+# fast: --n-cpu-moe 18 -> VRAM ~12.5 GB (leaves room for resident tab), warm decode ~35 tok/s, tools OK.
+# big:  --n-cpu-moe 46 -> VRAM ~11.4 GB standalone, warm decode ~35 tok/s (co-resides with tab at ~2.7 GB
+#       headroom). Tuned 2026-07-07 via moe sweep 42-50: 44 fit but left <1 GB headroom on the shared
+#       desktop GPU; 46 trades ~2 tok/s for ~1.8 GB safety margin. Decode is warm-measured (last-3 of 7;
+#       cold req faults mmap experts in at ~25 tok/s). Both models sit far above the 15 tok/s floor.
+# --parallel 1: single-user; avoids the default 4x KV-slot over-allocation.
+# Do NOT add --no-mmap: under file-cache pressure it pages CPU experts to swap (decode 48 -> 7 tok/s).
+healthCheckTimeout: 300
+
+models:
+  "fast":
+    cmd: >
+      H:\llm\llama.cpp\llama-server.exe
+      -m H:\llm-models\Qwen3.6-35B-A3B-UD-IQ4_XS.gguf
+      --port ${PORT} -ngl 99 --n-cpu-moe 18 --parallel 1
+      --jinja -fa on -c 65536 --cache-type-k q8_0 --cache-type-v q8_0
+    ttl: 900
+  "big":
+    cmd: >
+      H:\llm\llama.cpp\llama-server.exe
+      -m H:\llm-models\Qwen3-Coder-Next-UD-Q4_K_XL.gguf
+      --port ${PORT} -ngl 99 --n-cpu-moe 46 --parallel 1
+      --jinja -fa on -c 262144 --cache-type-k q8_0 --cache-type-v q8_0
+    ttl: 900
+  "tab-qwen2.5-coder-1.5b":
+    cmd: >
+      H:\llm\llama.cpp\llama-server.exe
+      -m H:\llm-models\Qwen2.5-Coder-1.5B.Q8_0.gguf
+      --port ${PORT} -ngl 99 -c 8192 --parallel 1
+    ttl: 0
+
+# legacy groups (accepted in v235; matrix DSL is the newer form). tab resident, fast<->big swap.
+groups:
+  "resident":
+    persistent: true
+    swap: false
+    members: ["tab-qwen2.5-coder-1.5b"]
+  "chat":
+    persistent: true    # survive a tab (resident) request; swap:true still keeps fast/big mutually exclusive
+    swap: true          # only one of fast/big loaded at a time (they swap each other)
+    members: ["fast", "big"]

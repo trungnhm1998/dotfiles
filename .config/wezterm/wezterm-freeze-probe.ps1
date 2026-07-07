@@ -24,7 +24,18 @@ New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 
 $L = [System.Collections.Generic.List[string]]::new()
 $L.Add("==================== FREEZE PROBE  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ====================")
-$L.Add("Overlay/hook procs: RTSS=$([bool](Get-Process RTSS)) Afterburner=$([bool](Get-Process MSIAfterburner)) nvcontainer=$([bool](Get-Process nvcontainer)) Steam=$([bool](Get-Process steamwebhelper)) Discord=$([bool](Get-Process Discord))")
+$L.Add("Overlay/hook procs: RTSS=$([bool](Get-Process RTSS)) Afterburner=$([bool](Get-Process MSIAfterburner)) HooksLoader=$([bool](Get-Process RTSSHooksLoader64)) nvcontainer=$([bool](Get-Process nvcontainer)) Steam=$([bool](Get-Process steamwebhelper)) Discord=$([bool](Get-Process Discord))")
+# RTSSHooksLoader64 is the actual global-hook host: it survives killing RTSS/Afterburner and keeps
+# re-injecting RTSSHooks64.dll into every new process (2026-07-06 finding). Kill IT to stop injection.
+
+# Third known cause, same symptom: long-uptime wezterm-mux-server degradation (global freeze, slow
+# new-tab, survives GUI restart + front_end swap). Fix = restart the mux-server, not the GUI.
+$mux = Get-Process wezterm-mux-server
+if ($mux) {
+  foreach ($m in $mux) {
+    $L.Add("mux-server PID $($m.Id)  started $($m.StartTime)  uptime $((Get-Date) - $m.StartTime)  WS $([math]::Round($m.WorkingSet64/1MB))MB  handles $($m.HandleCount)")
+  }
+} else { $L.Add("mux-server: not running") }
 $mons = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID | ForEach-Object {
   (($_.UserFriendlyName | Where-Object { $_ -ne 0 }) | ForEach-Object { [char]$_ }) -join ''
 }

@@ -1,7 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
-  "theme": "catppuccin",
   "small_model": "9router/cu/claude-4.5-haiku",
   "agent": {
     "title": {
@@ -53,6 +52,14 @@
     },
   },
   "provider": {
+    "local-main": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": { "baseURL": "http://127.0.0.1:8080/v1" },
+      "models": {
+        "fast": { "limit": { "context": 65536, "output": 16384 } },
+        "big":  { "limit": { "context": 262144, "output": 16384 } },
+      },
+    },
   },
   "model": "9router/cu/default",
 }

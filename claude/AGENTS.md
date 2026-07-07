@@ -13,6 +13,7 @@ I'm a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm
 - Before non-trivial exploration, state a 2-line plan of what you'll read and why, then show a first draft I can refine.
 - Cite `file:line` for code; cite a source for factual/API claims.
 - Diagrams: **Mermaid only**, validated with the `beautiful-mermaid` skill (`--check`) before posting. Never post an un-rendered Mermaid block.
+- Only in plain ascii text that I can type, do not use em dashes, smart quotes, or other Unicode punctuation.
 
 ## Unity / C#
 - Default new projects to Unity 6.x LTS + URP unless told otherwise.

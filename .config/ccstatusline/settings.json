@@ -16,11 +16,11 @@
       {
         "id": "7cf19507-eb9f-460d-8035-c60ecdbb6237",
         "type": "context-bar",
+        "color": "brightCyan",
         "rawValue": false,
         "metadata": {
           "display": "slider"
-        },
-        "color": "brightCyan"
+        }
       }
     ],
     [
@@ -44,29 +44,29 @@
       {
         "id": "1364c80f-9add-4ee2-b11f-f97f8583b739",
         "type": "session-usage",
+        "merge": true,
         "metadata": {
           "display": "slider",
           "cursor": "true"
-        },
-        "merge": true
+        }
       },
       {
         "id": "7f1e3ccd-2a25-48f6-8e7c-03fd4ad7a8dd",
         "type": "reset-timer",
+        "rawValue": false,
         "metadata": {
           "display": "time",
           "compact": "true"
-        },
-        "rawValue": false
+        }
       },
       {
         "id": "7b3a7915-bb3d-427f-91e5-c0c199b6788a",
         "type": "weekly-usage",
+        "merge": true,
         "metadata": {
           "display": "slider",
           "cursor": "true"
-        },
-        "merge": true
+        }
       },
       {
         "id": "f180089f-7d01-4ca0-8295-43a59d84eca6",
@@ -75,13 +75,6 @@
           "display": "time",
           "compact": "true"
         }
-      }
-    ],
-    [
-      {
-        "id": "2dc5f1a8-28c1-42d9-a337-4e08add0dd66",
-        "type": "custom-command",
-        "commandPath": "bunx -y ccusage@latest statusline"
       }
     ]
   ],
@@ -106,5 +99,9 @@
     "theme": "catppuccin",
     "autoAlign": false,
     "continueThemeAcrossLines": true
+  },
+  "installation": {
+    "method": "pinned",
+    "installedVersion": "2.2.22"
   }
 }

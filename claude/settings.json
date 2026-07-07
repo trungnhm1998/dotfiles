@@ -2,7 +2,9 @@
   "env": {
     "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "ENABLE_TOOL_SEARCH": "auto"
+    "ENABLE_TOOL_SEARCH": "auto",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -135,19 +137,20 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bunx -y ccstatusline@latest",
+    "command": "ccstatusline",
     "padding": 0,
     "refreshInterval": 10
   },
   "enabledPlugins": {
     "claude-mem@thedotmack": false,
-    "lua-lsp@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
+    "lua-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
     "csharp-lsp@claude-plugins-official": true,
     "gsd@gsd-plugin": false,
     "frontend-design@claude-plugins-official": false,
     "ponytail@ponytail": true,
-    "context7@claude-plugins-official": false
+    "context7@claude-plugins-official": false,
+    "oh-my-claudecode@omc": false
   },
   "extraKnownMarketplaces": {
     "superpowers-dev": {
@@ -167,6 +170,12 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "omc": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode.git"
       }
     }
   },
