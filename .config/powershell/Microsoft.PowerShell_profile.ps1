@@ -374,6 +374,12 @@ function claude-local {
     claude @args
 }
 
+# Shortcuts: pin the whole CC session to one local chat model. fast<->big swap on the GPU, so it's
+# one model per session (mixing them would thrash big's ~16s reload). Both params named so extra
+# args (`cc-big --resume`) pass through to claude instead of hijacking the positional $Box.
+function cc-fast { claude-local -Box 'http://127.0.0.1:8080' -Model fast @args }
+function cc-big  { claude-local -Box 'http://127.0.0.1:8080' -Model big  @args }
+
 # --- Local AI stack toggle (opt-in so the GPU stays free for gaming by default) ---
 # `ai on`   start llama-swap (loopback 8080) -> Continue autocomplete + claude-local/opencode go live.
 # `ai off`  stop llama-swap + any llama-server child -> frees ALL VRAM for games.
