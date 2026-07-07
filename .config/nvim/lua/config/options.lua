@@ -17,6 +17,11 @@ opt.softtabstop = 4
 opt.tabstop = 4
 opt.expandtab = true
 
+-- Windows defaults 'fileformats' to "dos,unix", so every new file is created with CRLF.
+-- Put unix first: new files save as LF; existing CRLF files still detect as dos and open
+-- clean (no ^M), preserving their format until you deliberately :set ff=unix.
+opt.fileformats = { "unix", "dos" }
+
 -- Emit a terminal title so the WezTerm tab can identify this pane. WezTerm's mux hides the
 -- foreground process name for mux-domain panes, so the tab falls back to the pane title -- without
 -- this, an nvim tab shows nothing. Renders e.g. "nvim options.lua" (%t = filename tail).
