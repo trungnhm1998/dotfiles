@@ -10,6 +10,18 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 export PATH=$HOME/.local/share/umake/bin:$PATH
 export PATH=$PATH:/usr/local/nodejs/bin
 export PATH="$HOME/.local/bin:$PATH"
+
+# --- pyenv (Python version manager; shared mac + Linux) ---
+# Guarded so a machine without pyenv installed sources cleanly. We prepend the
+# Linux pyenv's own bin BEFORE calling `pyenv init` so on WSL2 a Windows-PATH
+# pyenv-win shim can't win (see deploy.sh's WSL2 note). `pyenv init - zsh`
+# prepends $PYENV_ROOT/shims, so `python`/`python3`/`python2` resolve to shims.
+export PYENV_ROOT="$HOME/.pyenv"
+if [ -d "$PYENV_ROOT" ] && [ -x "$PYENV_ROOT/bin/pyenv" ]; then
+	export PATH="$PYENV_ROOT/bin:$PATH"
+	eval "$(pyenv init - zsh)"
+fi
+
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 export XDG_CONFIG_HOME="$HOME/.config"
@@ -83,7 +95,6 @@ plugins+=(
 	git
 	zsh-autosuggestions
 	zsh-syntax-highlighting
-	pyenv
 	vi-mode
 	tmux
     sudo

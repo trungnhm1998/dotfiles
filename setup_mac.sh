@@ -96,6 +96,9 @@ ln -sf $HOME/dotfiles/.config/kanata $HOME/.config/kanata
 # AI tool configs (Claude Code + opencode) — shared with deploy.sh
 bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
+# pyenv + Python 3 (shared with deploy.sh; py2 is opt-in, see scripts/setup-python2.sh)
+bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
+
 # Pre-warm the Claude-notify WezTerm toast icon (-contentImage thumbnail). The hook
 # self-heals if this is skipped/missing; this just avoids paying generation on the
 # first notification. Needs WezTerm (cask above) + sips (built-in).

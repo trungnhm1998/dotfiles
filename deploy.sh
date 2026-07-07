@@ -381,6 +381,9 @@ ln -sf "$HOME/dotfiles/zed/keymap.json" "$HOME/.config/zed/keymap.json"
 # --- AI tool configs (Claude Code + opencode) ---
 bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
+# --- pyenv + Python 3 (shared with setup_mac.sh; py2 is opt-in, see setup-python2.sh) ---
+bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
+
 check_default_shell
 
 echo
