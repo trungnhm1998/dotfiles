@@ -37,4 +37,9 @@ secrets.env
 # Agent-generated planning artifacts (specs, plans) — kept local, not versioned
 docs/superpowers/plans/
 docs/superpowers/specs/
-.omc
+
+# Local LLM stack P1 execution artifacts
+wargames/
+docs/notes/
+docs/plans/
+docs/specs/
