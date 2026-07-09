@@ -343,10 +343,33 @@ if [ ! -d "$DIRECTORY" ]; then
 	git clone https://github.com/jeffreytse/zsh-vi-mode "${ZSH_CUSTOM}/plugins/zsh-vi-mode"
 fi
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-	wget "https://github.com/sharkdp/vivid/releases/download/v0.5.0/vivid_0.5.0_amd64.deb"
-	sudo dpkg -i vivid_0.5.0_amd64.deb
-fi
+# vivid: LS_COLORS generator. apt has no package; the pinned v0.5.0 deb lacked
+# the catppuccin-frappe theme zshrc.sh uses, so pull the latest release .deb
+# matched to the CPU arch. brew/pacman ship a current vivid already.
+install_vivid_deb() {
+	local arch
+	case "$(uname -m)" in
+		x86_64) arch="amd64" ;;
+		aarch64 | arm64) arch="arm64" ;;
+		*) echo "vivid: unsupported arch $(uname -m); install manually." && return 1 ;;
+	esac
+
+	local url
+	url=$(curl -sL "https://api.github.com/repos/sharkdp/vivid/releases/latest" \
+		| grep -o "https://[^\"]*_${arch}.deb" | head -1)
+	if [ -z "$url" ]; then
+		echo "vivid: could not find a ${arch} .deb in the latest release." && return 1
+	fi
+
+	echo "Installing vivid from ${url}..."
+	curl -Lo /tmp/vivid.deb "$url"
+	# Newer releases ship as the vivid-musl package, which conflicts with an
+	# older 'vivid' package; drop it first so dpkg -i doesn't refuse.
+	dpkg -s vivid >/dev/null 2>&1 && sudo dpkg -r vivid
+	sudo dpkg -i /tmp/vivid.deb
+	rm -f /tmp/vivid.deb
+}
+install_package vivid - vivid vivid install_vivid_deb
 
 echo
 echo -n "Would you like to backup your current dotfiles? (y/n) "
