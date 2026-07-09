@@ -2,6 +2,9 @@
 
 I'm a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up — explain the *why* so I learn, don't just hand me answers.
 
+## Must do
+- Use caveman to save tokens
+
 ## Working principles
 - **Surface, don't assume.** If multiple interpretations exist, name them and recommend one — never pick silently. If a simpler approach exists, say so; push back when warranted. Ask only when the choice is destructive or genuinely mine to make; otherwise default and note the assumption.
 - **Surgical changes.** Every changed line traces to my request — don't "improve" adjacent code, match existing style, remove only the orphans your own change created.
