@@ -42,27 +42,23 @@ config.animation_fps = 60
 -- the legacy OpenGL path, which is a known TUI-flicker offender. If WebGpu misbehaves on
 -- Windows (rare crash/flicker on Dx12), revert to "OpenGL" or try "Software".
 -- See wiki: [[Claude Code TUI Rendering on Windows]].
--- front_end trial (2026-07-04): OpenGL — GPU-accelerated (fast typing/output, unlike the CPU
--- "Software" path that got left active) and WebGpu's documented fallback, which can dodge the
--- Dx12 present-path repaint-stall. Flicker or stall returns? Switch the active line below; prefer
--- root-causing the stall (tablet-off / close RTSS) over Software's laggy paint.
--- config.front_end = "Software"  -- CPU: stall-proof, laggy paint (was left active by mistake)
--- config.front_end = "WebGpu"    -- fastest startup+paint; suspected stall trigger on this box
+-- front_end: WebGpu — the ONLY front_end that can pick the GPU adapter. OpenGL/Software have no
+-- adapter selection; OpenGL uses whatever GPU Windows hands the process (was the Intel UHD 770
+-- iGPU here). Flicker/stall on WebGpu (rare Dx12 present-stall)? Fall back to a line below AND set
+-- the Windows Graphics preference for wezterm-gui.exe to "High performance" so OpenGL still gets
+-- the RTX. Root-cause the stall (tablet-off / close RTSS) over the laggy Software paint.
+-- config.front_end = "Software"  -- CPU: stall-proof, laggy paint
+-- config.front_end = "OpenGL"    -- GPU-accelerated, no adapter picker (needs the OS Graphics pref for RTX)
 config.front_end = "WebGpu"
--- wgpu defaults to webgpu_power_preference = "LowPower", which on this desktop selects the
--- Intel UHD 770 iGPU instead of the RTX 5070 Ti and tanks bulk-output throughput ~10x
--- (12.3 MB `type`: 70.5 s vs 7.1 s, benched 2026-06-10; on the right GPU WezTerm == WT).
--- NOTE: do NOT pin webgpu_preferred_adapter via wezterm.gui.enumerate_gpus() here — config
--- eval runs many times at startup/reload and each enumerate pays a full multi-backend GPU
--- scan (measured: startup 0.6 s -> 6+ s). If WebGpu misbehaves again, fall back to "OpenGL"
--- (benched equal to Windows Terminal on this machine).
--- Desktop-only: forces the RTX over the Intel iGPU. No-op on Apple Silicon (single GPU), but on
--- an Intel MacBook it would force the discrete GPU (battery drain + switch flicker) — gate to Windows.
--- webgpu_power_preference REMOVED (was Windows-only "HighPerformance"; now the default "LowPower"
--- = Intel UHD 770 iGPU). Re-benched 2026-07-01 (N=5, first-paint): forcing the RTX cost ~528 ms of
--- cold startup for ZERO throughput gain -- a 13.3 MB blob renders ~1.4 s on the iGPU vs ~1.6 s on
--- the RTX. The ~10x iGPU penalty claimed above is STALE (does not reproduce on nightly 20260607).
--- front_end stays "WebGpu" for its TUI-flicker/synchronized-output handling. Bench: .config/wezterm/bench/.
+
+-- Force the RTX 5070 Ti over the Intel UHD 770. wgpu defaults to "LowPower" = iGPU (that's the
+-- "Intel UHD 770" your debug log enumerated). "HighPerformance" prefers the discrete GPU. Only
+-- WebGpu honors this; OpenGL/Software ignore it. Costs ~528 ms cold start (discrete-GPU wake) per
+-- launch. Windows-only: on an Intel MacBook "HighPerformance" forces the dGPU (battery drain);
+-- Apple Silicon is single-GPU (no-op). Do NOT pin webgpu_preferred_adapter via enumerate_gpus() --
+-- it re-scans every backend on each config eval (startup 0.6 s -> 6+ s). Bench: .config/wezterm/bench/.
+-- config.webgpu_power_preference = is_windows and "HighPerformance" or "LowPower"
+config.webgpu_power_preference = "HighPerformance"
 
 -- appearance
 
