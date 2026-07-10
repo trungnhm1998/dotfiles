@@ -11,7 +11,7 @@ elseif vim.fn.has("win32") == 1 then
 end
 
 return {
-    enabled = true,
+    enabled = false,
     "epwalsh/obsidian.nvim",
     version = "*", -- recommended, use latest release instead of latest commit
     lazy = true,
