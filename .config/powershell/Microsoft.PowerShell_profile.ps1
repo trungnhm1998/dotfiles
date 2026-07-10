@@ -23,28 +23,18 @@ $env:_ZO_DATA_DIR = "$HOME\ZoxideData"
 $env:EDITOR = "nvim" # so can I press V and open nvim to edit commands
 $env:VISUAL = "nvim"
 $env:CLAUDE_CODE_TMUX_TRUECOLOR=1
+# Starship logs "[WARN] Executing command git timed out" straight into the terminal when
+# git_status blows command_timeout in a big repo -- that's the "prompt failed to render" garbage.
+$env:STARSHIP_LOG = "error"
 
 # Module imports. posh-git (git prompt) + Terminal-Icons (dir icons) removed 2026-07-04:
 # redundant with Starship (prompt) + eza --icons, and they cost ~740ms/shell. CompletionPredictor
-# removed too — it fed HistoryAndPlugin prediction, a completion query on every keystroke (typing lag).
-# See bench/profile-bench.ps1 for the attribution.
-Import-Module PSReadLine # Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -AllowPrerelease -Force
-Import-Module PSFzf # Install-Module -Name PSFzf -Scope CurrentUser -Forcef
-Import-Module CompletionPredictor # Install-Module CompletionPredictor -Scope CurrentUser
+# removed 2026-07-11 (fed HistoryAndPlugin prediction; PredictionSource is History -- dead 26ms).
+# PSReadLine import removed too: the interactive host loads the newest installed version itself.
+# PSFzf (~225ms) + choco completion (~120ms) now load lazily at first idle -- see OnIdle block below.
 
 $env:FZF_DEFAULT_OPTS="--height 50% --layout reverse --border top --inline-info --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 --color=fg:#C6D0F5,header:#E78284,info:#CA9EE6,pointer:#F2D5CF --color=marker:#BABBF1,fg+:#C6D0F5,prompt:#CA9EE6,hl+:#E78284 --color=selected-bg:#51576D --color=border:#737994,label:#C6D0F5"
 
-
-# Import the Chocolatey Profile that contains the necessary code to enable
-# tab-completions to function for `choco`.
-# Be aware that if you are missing these lines from your profile, tab completion
-# for `choco` will not function.
-# See https://ch0.co/tab-completion for details.
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile))
-{
-    Import-Module "$ChocolateyProfile"
-}
 
 # Yazi
 function y
@@ -60,9 +50,17 @@ function y
 }
 
 # --- eza / ls colors (Catppuccin Frappe) ---
-if (Get-Command vivid -ErrorAction SilentlyContinue)
+# vivid output is static per vivid version -- cache it (spawning vivid cost ~160ms/shell);
+# regenerated when vivid.exe is newer than the cache.
+$__vivid = (Get-Command vivid -ErrorAction SilentlyContinue).Source
+if ($__vivid)
 {
-    $env:LS_COLORS = (vivid generate catppuccin-frappe)
+    $__vividCache = "$env:LOCALAPPDATA\vivid-frappe.ls_colors"
+    if (-not (Test-Path $__vividCache) -or (Get-Item $__vividCache).LastWriteTime -lt (Get-Item $__vivid).LastWriteTime)
+    {
+        vivid generate catppuccin-frappe | Set-Content $__vividCache -NoNewline
+    }
+    $env:LS_COLORS = Get-Content $__vividCache -Raw
 } else
 {
     # vivid not installed (e.g. Windows) — curated static Frappe EZA_COLORS
@@ -107,7 +105,19 @@ function lta3
 { eza -lTag --level=3 --icons $args 
 }
 
-Invoke-Expression (&starship init powershell)
+# starship/zoxide init scripts are static per binary version -- cache to files and dot-source
+# (saves the init process spawns, ~230ms/shell; starship's iex stub even spawned it twice).
+# Regenerated when the exe is newer than the cache.
+function __Update-InitCache([string]$Cache, [string]$ExePath, [string[]]$InitArgs)
+{
+    if (-not (Test-Path $Cache) -or (Get-Item $Cache).LastWriteTime -lt (Get-Item $ExePath).LastWriteTime)
+    {
+        & $ExePath @InitArgs | Set-Content $Cache
+    }
+}
+$__starshipInit = "$env:LOCALAPPDATA\starship-init.ps1"
+__Update-InitCache $__starshipInit (Get-Command starship).Source @('init', 'powershell', '--print-full-init')
+. $__starshipInit
 # integrate with wezterm because I use starship
 $prompt = ""
 function Invoke-Starship-PreCommand
@@ -140,7 +150,9 @@ if ($env:WEZTERM_PANE)
 # --cmd cd replaces `cd` with zoxide (and adds `cdi` for interactive jumps),
 # mirroring the zsh setup (`zoxide init zsh --cmd cd`). Real `cd` paths/.. still
 # work; only unknown args fall through to the zoxide database. No alias hack needed.
-Invoke-Expression (& { (zoxide init powershell --cmd cd | Out-String) })
+$__zoxideInit = "$env:LOCALAPPDATA\zoxide-init.ps1"
+__Update-InitCache $__zoxideInit (Get-Command zoxide).Source @('init', 'powershell', '--cmd', 'cd')
+. $__zoxideInit
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 if (-not [Console]::IsInputRedirected)
@@ -170,9 +182,18 @@ function claude-mem
 { & "bun" "C:\Users\mint\.claude\plugins\marketplaces\thedotmack\plugin\scripts\worker-service.cjs" $args 
 }
 
-# Ovrride vi mode ctrl r
-Set-PsFzfOption -PSReadlineChordProvider "ctrl+f"
-Set-PsFzfOption -PSReadlineChordReverseHistory "ctrl+r"
+# Lazy-load the heavy extras at first idle -- fires right after the first prompt paints,
+# so ctrl+f/ctrl+r and choco tab-completion are live within ~1s but don't block startup
+# (PSFzf ~225ms + choco ~120ms). -Global: the event action runs in its own module scope.
+$null = Register-EngineEvent PowerShell.OnIdle -MaxTriggerCount 1 -Action {
+    Import-Module PSFzf -Global # Install-Module -Name PSFzf -Scope CurrentUser -Force
+    Set-PsFzfOption -PSReadlineChordProvider "ctrl+f" -PSReadlineChordReverseHistory "ctrl+r"
+    $choco = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+    if (Test-Path $choco)
+    {
+        Import-Module $choco -Global
+    }
+}
 
 # --- Grammar fixer ---
 function fix-grammar
@@ -342,20 +363,23 @@ function Copy-AgentsRules
 }
 Set-Alias ccrules Copy-AgentsRules
 
-# --- Claude Code, plain (no better-ccflare proxy) so Remote Control / `/rc` works ---
-# ANTHROPIC_BASE_URL (User env var) routes Claude Code through the ccflare analytics proxy on
-# localhost:8088, but Remote Control refuses any endpoint that isn't api.anthropic.com. `cc` drops
-# the var for this one launch -> CLI talks to Anthropic directly (RC works), then restores it so the
-# rest of the shell keeps ccflare. Plain `claude` still uses ccflare.
+# --- Claude Code through better-ccflare (localhost:8080) for this one launch ---
+# Plain `claude` talks to Anthropic directly (no User-level ANTHROPIC_BASE_URL anymore); `cc`
+# opts this launch into the ccflare analytics proxy, then restores the shell's previous value.
+# Note: Remote Control refuses non-api.anthropic.com endpoints, so use plain `claude` for /rc.
+# Note: permission auto-mode's safety classifier (claude-opus-4-8[1m]) also routes through the
+# proxy; when the 2-account pool is rate-limited it reports "temporarily unavailable".
 function cc
 {
     $saved = $env:ANTHROPIC_BASE_URL
-    Remove-Item Env:\ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
+    $env:ANTHROPIC_BASE_URL = "http://localhost:8080"
     try
-    { claude @args 
+    { claude @args
     } finally
     { if ($null -ne $saved)
-        { $env:ANTHROPIC_BASE_URL = $saved 
+        { $env:ANTHROPIC_BASE_URL = $saved
+        } else
+        { Remove-Item Env:\ANTHROPIC_BASE_URL -ErrorAction SilentlyContinue
         }
     }
 }
