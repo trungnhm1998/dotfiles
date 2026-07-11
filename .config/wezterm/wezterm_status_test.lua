@@ -100,6 +100,17 @@ eq(M.proc_display('C:\\Program Files\\nodejs\\node.exe', '⠐ Verify and researc
    '⠐ Verify and research', 'proc_display prefers a Claude activity title over a real fg (off-mux)')
 eq(M.proc_display('C:\\x\\pwsh.exe', 'dotfiles - Lazygit', imap).name, 'pwsh',
    'proc_display keeps fg-first for non-Claude titles')
+-- Claude titles pass through VERBATIM: no basename (a '/' in the task text must survive),
+-- no .exe strip; claude icon preferred; is_claude marker set for consumers (focused_process).
+local cmap = { claude = 'C', default = 'D' }
+eq(M.proc_display('C:\\x\\node.exe', '✳ fix auth/bug', cmap).name, '✳ fix auth/bug',
+   'proc_display: Claude title verbatim, slashes survive')
+eq(M.proc_display(nil, '✳ task', cmap).icon, 'C', 'proc_display: claude icon preferred')
+eq(M.proc_display(nil, '✳ task', imap).icon, 'D', 'proc_display: default icon fallback (no claude key)')
+eq(M.proc_display(nil, '✳ task', cmap).is_claude, true, 'proc_display: is_claude marker set')
+eq(M.proc_display('C:\\x\\pwsh.exe', 'dotfiles - Lazygit', cmap).is_claude, nil,
+   'proc_display: non-Claude result has no marker')
+eq(M.proc_display(nil, '  ✳ padded  ', cmap).name, '✳ padded', 'proc_display: whitespace trimmed only')
 
 -- is_claude_title: braille-spinner leader (any frame) is Claude; ascii/path/empty/nil are not.
 eq(M.is_claude_title('⠐ Verify and research'), true, 'is_claude_title: braille spinner leader')

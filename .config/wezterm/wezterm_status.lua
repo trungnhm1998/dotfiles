@@ -133,14 +133,18 @@ function M.is_claude_title(title)
   return (cp >= 0x2800 and cp <= 0x28FF) or CLAUDE_SPINNER[cp] == true
 end
 
--- Pure: choose a process label to display. A Claude-activity title wins outright so its live
--- animated state shows on the tab/bar: under the mux fg was empty and the title fell through via
--- the fallback below, but off the mux fg is populated (node/claude/pwsh) and would otherwise hide
--- it. Otherwise prefer the foreground process name and fall back to the pane title -- "repo -
--- Lazygit", or a "...\pwsh.exe" path that proc_label basenames down to "pwsh". { name, icon } | nil.
+-- Pure: choose a process label to display. A Claude title wins outright and passes through
+-- VERBATIM (trimmed, spinner glyph kept -- the animation is the point): under the mux fg was
+-- empty and the title fell through anyway, but off the mux fg is populated (node/claude/pwsh)
+-- and would otherwise hide it. proc_label is NOT used for Claude titles -- it basenames, so a
+-- '/' in the task text would eat everything before it. Otherwise prefer the foreground process
+-- name and fall back to the pane title -- "repo - Lazygit", or a "...\pwsh.exe" path that
+-- proc_label basenames down to "pwsh". { name, icon, is_claude? } | nil.
 function M.proc_display(fg_process_name, title, icon_map)
   if M.is_claude_title(title) then
-    return M.proc_label(title, icon_map)
+    local name = title:gsub('^%s+', ''):gsub('%s+$', '')
+    local icon = icon_map and (icon_map.claude or icon_map.default) or nil
+    return { name = name, icon = icon, is_claude = true }
   end
   local src = (fg_process_name and fg_process_name ~= '' and fg_process_name) or title
   return M.proc_label(src, icon_map)
