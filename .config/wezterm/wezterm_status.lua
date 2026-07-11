@@ -172,6 +172,8 @@ function M.components(wezterm, opts)
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
   local proc_max = opts.proc_max or 24
+  -- Claude titles are sentences, not process names: give the bottom-right bar slot more room.
+  local claude_max = opts.claude_max or 48
   -- '◫' (U+25EB) resolves to JetBrainsMono NF at exactly one cell; nf.cod_split_horizontal had
   -- broken advance metrics in this font (rendered as a lightbulb and overlapped the pane count).
   local pane_glyph = opts.pane_glyph or '◫'
@@ -240,7 +242,8 @@ function M.components(wezterm, opts)
     pane = pane or (window and window:active_pane())
     if not pane then return '' end
     local pl = M.proc_display(M.adapt_fg(pane), M.adapt_title(pane), proc_icons)
-    return pl and M.truncate(pl.name, proc_max) or ''
+    if not pl then return '' end
+    return M.truncate(pl.name, pl.is_claude and claude_max or proc_max)
   end)
 
   C.counts = safe(function(window, pane)

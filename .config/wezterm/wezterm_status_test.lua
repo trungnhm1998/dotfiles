@@ -165,6 +165,27 @@ do
   eq(comp2.host_badge(stub_window), ' local ', 'host_badge nil icon -> label only')
 end
 
+-- focused_process (tabline_x, bottom-right): a Claude title shows spinner + task text and gets
+-- the LONGER claude_max truncation; non-Claude keeps proc_max (covered by 'pwsh' case above).
+do
+  local stub_pane = {
+    get_domain_name = function() return 'local' end,
+    get_foreground_process_name = function() return 'C:/x/node.exe' end,
+    get_current_working_dir = function() return { file_path = '/C:/repo' } end,
+    get_title = function() return '✳ Refactor the auth middleware' end,
+  }
+  local stub_window = { active_pane = function() return stub_pane end }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf,
+    run_child_process = function() return false, '', '' end,
+    mux = { get_workspace_names = function() return {} end },
+  }
+  local comp = M.components(stub_wez, { claude_max = 12 })
+  eq(comp.focused_process(stub_window), '✳ Refactor t…',
+     'focused_process: Claude title verbatim, claude_max truncation')
+end
+
 -- Tab components: tabline calls them with a TabInformation (1 arg) whose active_pane is a STRICT
 -- PaneInformation. They must resolve via tab.active_pane, read fields through the pcall-guarded
 -- adapter, and self-separate with a leading space. Regression for "tab only shows the index".
