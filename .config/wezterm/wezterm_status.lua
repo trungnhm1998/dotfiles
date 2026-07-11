@@ -108,17 +108,29 @@ function M.proc_label(fg_process_name, icon_map)
   return { name = name, icon = icon }
 end
 
--- Pure: is `title` a Claude Code activity line? Claude animates the pane TITLE with a braille
--- spinner ("⠐ Verify and research"); every animation frame lives in the braille block
--- U+2800..U+28FF, and no shell/lazygit/nvim/path title ever leads with one. Leading whitespace is
--- skipped. This is the tell that lets proc_display show the live activity even when a real fg
--- process exists (off the mux, where fg is populated). nil/empty/other-leading-glyph -> false.
+-- Pure: is `title` a Claude Code activity/brand title? Claude animates the pane TITLE with a
+-- spinner leader: braille frames (U+2800..U+28FF, seen under the mux) or the asterisk family
+-- (· ✢ ✳ ✶ ✻ ✽) current Claude Code cycles through. The idle title leads with "Claude".
+-- Explicit codepoints, not a dingbat range, so other TUIs' titles can't false-positive.
+-- Leading whitespace is skipped. This is the tell that lets proc_display show the live activity
+-- even when a real fg process exists (off the mux, where fg is populated).
+-- nil/empty/other-leading-glyph -> false.
+local CLAUDE_SPINNER = {
+  [0x00B7] = true, -- ·  middle dot
+  [0x2722] = true, -- ✢
+  [0x2733] = true, -- ✳
+  [0x2736] = true, -- ✶
+  [0x273B] = true, -- ✻
+  [0x273D] = true, -- ✽
+}
 function M.is_claude_title(title)
   if not title or title == '' then return false end
   local s = title:gsub('^%s+', '')
   if s == '' then return false end
+  if s:find('^Claude') then return true end
   local ok, cp = pcall(utf8.codepoint, s, 1)
-  return ok and cp >= 0x2800 and cp <= 0x28FF or false
+  if not ok then return false end
+  return (cp >= 0x2800 and cp <= 0x28FF) or CLAUDE_SPINNER[cp] == true
 end
 
 -- Pure: choose a process label to display. A Claude-activity title wins outright so its live

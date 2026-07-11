@@ -109,6 +109,15 @@ eq(M.is_claude_title('dotfiles - Lazygit'), false, 'is_claude_title: ascii title
 eq(M.is_claude_title('C:\\x\\pwsh.exe'), false, 'is_claude_title: a path is not Claude')
 eq(M.is_claude_title(''), false, 'is_claude_title: empty is not Claude')
 eq(M.is_claude_title(nil), false, 'is_claude_title: nil is not Claude')
+-- Asterisk-family spinner frames (current Claude Code) + idle brand title are Claude too.
+eq(M.is_claude_title('✳ Fixing auth bug'), true, 'is_claude_title: asterisk spinner frame')
+eq(M.is_claude_title('✢ thinking'), true, 'is_claude_title: sparkle frame')
+eq(M.is_claude_title('✶ thinking'), true, 'is_claude_title: six-point star frame')
+eq(M.is_claude_title('✻ thinking'), true, 'is_claude_title: teardrop asterisk frame')
+eq(M.is_claude_title('✽ thinking'), true, 'is_claude_title: heavy teardrop frame')
+eq(M.is_claude_title('· idle beat'), true, 'is_claude_title: middle-dot frame')
+eq(M.is_claude_title('Claude Code'), true, 'is_claude_title: idle brand title')
+eq(M.is_claude_title('* plain asterisk'), false, 'is_claude_title: ascii asterisk is not Claude')
 
 -- truncate: UTF-8 aware (never splits a multibyte spinner), appends … when shortened
 eq(M.truncate('hello', 10), 'hello', 'truncate under limit unchanged')
