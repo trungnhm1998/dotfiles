@@ -1,5 +1,4 @@
 {
-  "teammateMode": "tmux",
   "env": {
     "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
@@ -190,8 +189,10 @@
   "verbose": true,
   "preferredNotifChannel": "auto",
   "autoCompactEnabled": false,
+  "teammateMode": "tmux",
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "showThinkingSummaries": true
 }
