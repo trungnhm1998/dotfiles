@@ -108,27 +108,43 @@ function M.proc_label(fg_process_name, icon_map)
   return { name = name, icon = icon }
 end
 
--- Pure: is `title` a Claude Code activity line? Claude animates the pane TITLE with a braille
--- spinner ("⠐ Verify and research"); every animation frame lives in the braille block
--- U+2800..U+28FF, and no shell/lazygit/nvim/path title ever leads with one. Leading whitespace is
--- skipped. This is the tell that lets proc_display show the live activity even when a real fg
--- process exists (off the mux, where fg is populated). nil/empty/other-leading-glyph -> false.
+-- Pure: is `title` a Claude Code activity/brand title? Claude animates the pane TITLE with a
+-- spinner leader: braille frames (U+2800..U+28FF, seen under the mux) or the asterisk family
+-- (· ✢ ✳ ✶ ✻ ✽) current Claude Code cycles through. The idle title leads with "Claude".
+-- Explicit codepoints, not a dingbat range, so other TUIs' titles can't false-positive.
+-- Leading whitespace is skipped. This is the tell that lets proc_display show the live activity
+-- even when a real fg process exists (off the mux, where fg is populated).
+-- nil/empty/other-leading-glyph -> false.
+local CLAUDE_SPINNER = {
+  [0x00B7] = true, -- ·  middle dot
+  [0x2722] = true, -- ✢
+  [0x2733] = true, -- ✳
+  [0x2736] = true, -- ✶
+  [0x273B] = true, -- ✻
+  [0x273D] = true, -- ✽
+}
 function M.is_claude_title(title)
   if not title or title == '' then return false end
   local s = title:gsub('^%s+', '')
   if s == '' then return false end
+  if s:find('^Claude') then return true end
   local ok, cp = pcall(utf8.codepoint, s, 1)
-  return ok and cp >= 0x2800 and cp <= 0x28FF or false
+  if not ok then return false end
+  return (cp >= 0x2800 and cp <= 0x28FF) or CLAUDE_SPINNER[cp] == true
 end
 
--- Pure: choose a process label to display. A Claude-activity title wins outright so its live
--- animated state shows on the tab/bar: under the mux fg was empty and the title fell through via
--- the fallback below, but off the mux fg is populated (node/claude/pwsh) and would otherwise hide
--- it. Otherwise prefer the foreground process name and fall back to the pane title -- "repo -
--- Lazygit", or a "...\pwsh.exe" path that proc_label basenames down to "pwsh". { name, icon } | nil.
+-- Pure: choose a process label to display. A Claude title wins outright and passes through
+-- VERBATIM (trimmed, spinner glyph kept -- the animation is the point): under the mux fg was
+-- empty and the title fell through anyway, but off the mux fg is populated (node/claude/pwsh)
+-- and would otherwise hide it. proc_label is NOT used for Claude titles -- it basenames, so a
+-- '/' in the task text would eat everything before it. Otherwise prefer the foreground process
+-- name and fall back to the pane title -- "repo - Lazygit", or a "...\pwsh.exe" path that
+-- proc_label basenames down to "pwsh". { name, icon, is_claude? } | nil.
 function M.proc_display(fg_process_name, title, icon_map)
   if M.is_claude_title(title) then
-    return M.proc_label(title, icon_map)
+    local name = title:gsub('^%s+', ''):gsub('%s+$', '')
+    local icon = icon_map and (icon_map.claude or icon_map.default) or nil
+    return { name = name, icon = icon, is_claude = true }
   end
   local src = (fg_process_name and fg_process_name ~= '' and fg_process_name) or title
   return M.proc_label(src, icon_map)
@@ -156,6 +172,8 @@ function M.components(wezterm, opts)
   local branch_cache, top_cache = {}, {}
   local dirty_mark = opts.dirty_mark or '●'
   local proc_max = opts.proc_max or 24
+  -- Claude titles are sentences, not process names: give the bottom-right bar slot more room.
+  local claude_max = opts.claude_max or 48
   -- '◫' (U+25EB) resolves to JetBrainsMono NF at exactly one cell; nf.cod_split_horizontal had
   -- broken advance metrics in this font (rendered as a lightbulb and overlapped the pane count).
   local pane_glyph = opts.pane_glyph or '◫'
@@ -224,7 +242,8 @@ function M.components(wezterm, opts)
     pane = pane or (window and window:active_pane())
     if not pane then return '' end
     local pl = M.proc_display(M.adapt_fg(pane), M.adapt_title(pane), proc_icons)
-    return pl and M.truncate(pl.name, proc_max) or ''
+    if not pl then return '' end
+    return M.truncate(pl.name, pl.is_claude and claude_max or proc_max)
   end)
 
   C.counts = safe(function(window, pane)

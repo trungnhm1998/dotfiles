@@ -100,6 +100,17 @@ eq(M.proc_display('C:\\Program Files\\nodejs\\node.exe', '⠐ Verify and researc
    '⠐ Verify and research', 'proc_display prefers a Claude activity title over a real fg (off-mux)')
 eq(M.proc_display('C:\\x\\pwsh.exe', 'dotfiles - Lazygit', imap).name, 'pwsh',
    'proc_display keeps fg-first for non-Claude titles')
+-- Claude titles pass through VERBATIM: no basename (a '/' in the task text must survive),
+-- no .exe strip; claude icon preferred; is_claude marker set for consumers (focused_process).
+local cmap = { claude = 'C', default = 'D' }
+eq(M.proc_display('C:\\x\\node.exe', '✳ fix auth/bug', cmap).name, '✳ fix auth/bug',
+   'proc_display: Claude title verbatim, slashes survive')
+eq(M.proc_display(nil, '✳ task', cmap).icon, 'C', 'proc_display: claude icon preferred')
+eq(M.proc_display(nil, '✳ task', imap).icon, 'D', 'proc_display: default icon fallback (no claude key)')
+eq(M.proc_display(nil, '✳ task', cmap).is_claude, true, 'proc_display: is_claude marker set')
+eq(M.proc_display('C:\\x\\pwsh.exe', 'dotfiles - Lazygit', cmap).is_claude, nil,
+   'proc_display: non-Claude result has no marker')
+eq(M.proc_display(nil, '  ✳ padded  ', cmap).name, '✳ padded', 'proc_display: whitespace trimmed only')
 
 -- is_claude_title: braille-spinner leader (any frame) is Claude; ascii/path/empty/nil are not.
 eq(M.is_claude_title('⠐ Verify and research'), true, 'is_claude_title: braille spinner leader')
@@ -109,6 +120,15 @@ eq(M.is_claude_title('dotfiles - Lazygit'), false, 'is_claude_title: ascii title
 eq(M.is_claude_title('C:\\x\\pwsh.exe'), false, 'is_claude_title: a path is not Claude')
 eq(M.is_claude_title(''), false, 'is_claude_title: empty is not Claude')
 eq(M.is_claude_title(nil), false, 'is_claude_title: nil is not Claude')
+-- Asterisk-family spinner frames (current Claude Code) + idle brand title are Claude too.
+eq(M.is_claude_title('✳ Fixing auth bug'), true, 'is_claude_title: asterisk spinner frame')
+eq(M.is_claude_title('✢ thinking'), true, 'is_claude_title: sparkle frame')
+eq(M.is_claude_title('✶ thinking'), true, 'is_claude_title: six-point star frame')
+eq(M.is_claude_title('✻ thinking'), true, 'is_claude_title: teardrop asterisk frame')
+eq(M.is_claude_title('✽ thinking'), true, 'is_claude_title: heavy teardrop frame')
+eq(M.is_claude_title('· idle beat'), true, 'is_claude_title: middle-dot frame')
+eq(M.is_claude_title('Claude Code'), true, 'is_claude_title: idle brand title')
+eq(M.is_claude_title('* plain asterisk'), false, 'is_claude_title: ascii asterisk is not Claude')
 
 -- truncate: UTF-8 aware (never splits a multibyte spinner), appends … when shortened
 eq(M.truncate('hello', 10), 'hello', 'truncate under limit unchanged')
@@ -143,6 +163,27 @@ do
   -- Windows drops the local glyph (nil local_icon): label only, no leading icon / double space.
   local comp2 = M.components(stub_wez, { ssh_icon = 'S', wsl_icon = 'W' })
   eq(comp2.host_badge(stub_window), ' local ', 'host_badge nil icon -> label only')
+end
+
+-- focused_process (tabline_x, bottom-right): a Claude title shows spinner + task text and gets
+-- the LONGER claude_max truncation; non-Claude keeps proc_max (covered by 'pwsh' case above).
+do
+  local stub_pane = {
+    get_domain_name = function() return 'local' end,
+    get_foreground_process_name = function() return 'C:/x/node.exe' end,
+    get_current_working_dir = function() return { file_path = '/C:/repo' } end,
+    get_title = function() return '✳ Refactor the auth middleware' end,
+  }
+  local stub_window = { active_pane = function() return stub_pane end }
+  local nf = setmetatable({}, { __index = function() return 'I' end })
+  local stub_wez = {
+    nerdfonts = nf,
+    run_child_process = function() return false, '', '' end,
+    mux = { get_workspace_names = function() return {} end },
+  }
+  local comp = M.components(stub_wez, { claude_max = 12 })
+  eq(comp.focused_process(stub_window), '✳ Refactor t…',
+     'focused_process: Claude title verbatim, claude_max truncation')
 end
 
 -- Tab components: tabline calls them with a TabInformation (1 arg) whose active_pane is a STRICT
