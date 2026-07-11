@@ -34,3 +34,10 @@ if ! is_ide_terminal; then
 fi
 
 source "$HOME/dotfiles/zsh/zshrc.sh"
+
+# bun completions
+[ -s "/home/mint/.bun/_bun" ] && source "/home/mint/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
