@@ -111,7 +111,7 @@ function validateWithMmdc(source) {
   const tmpOut = join(CACHE_DIR, `check-${process.pid}.svg`);
   mkdirSync(CACHE_DIR, { recursive: true });
   writeFileSync(tmpIn, source);
-  const r = spawnSync('mmdc', ['-i', tmpIn, '-o', tmpOut, '--quiet'], { encoding: 'utf8' });
+  const r = spawnSync('mmdc', ['-i', tmpIn, '-o', tmpOut, '--quiet'], { encoding: 'utf8', shell: process.platform === 'win32' });
   // cleanup
   for (const f of [tmpIn, tmpOut]) { try { unlinkSync(f); } catch {} }
 

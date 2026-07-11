@@ -10,10 +10,10 @@
   "permissions": {
     "allow": [],
     "deny": [],
-    "defaultMode": "auto",
+    "defaultMode": "bypassPermissions",
     "additionalDirectories": []
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -137,9 +137,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "ccstatusline",
-    "padding": 0,
-    "refreshInterval": 10
+    "command": "~/.claude/hooks/statusline.sh"
   },
   "enabledPlugins": {
     "claude-mem@thedotmack": false,
@@ -179,13 +177,14 @@
       }
     }
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:catppuccin-frappe",
+  "theme": "dark",
   "editorMode": "vim",
   "verbose": true,
   "preferredNotifChannel": "auto",
