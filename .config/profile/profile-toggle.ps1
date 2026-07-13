@@ -237,6 +237,12 @@ function Invoke-ProfileSwitch {
 
 # Run only when executed directly; dot-sourcing (Pester) just loads the functions.
 if ($MyInvocation.InvocationName -ne '.') {
+    # Refuse unbound args instead of silently falling through to the bare toggle
+    # (a caller passing switches as splatted strings lands here -- fail loud).
+    if ($args.Count) {
+        Write-Error "profile-toggle: unrecognized arguments: $($args -join ' ')"
+        exit 1
+    }
     if ($State) {
         Write-ProfileState
     } elseif ($Boot) {

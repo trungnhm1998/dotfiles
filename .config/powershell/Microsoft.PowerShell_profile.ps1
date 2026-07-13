@@ -316,18 +316,15 @@ function tablet-on
 # --- gaming/work profile (see .config/profile/profile-toggle.ps1) ---
 function game
 {
+    # Real switches, not a splatted string array -- splatted '-Gaming' strings land
+    # in $args unbound (silent bare toggle). -NoHypervisor: FACEIT/ESEA lane; NOT Valorant.
     param([switch]$Reboot, [switch]$NoHypervisor)
-    $toggleArgs = @('-Gaming')
-    if ($Reboot)       { $toggleArgs += '-Reboot' }
-    if ($NoHypervisor) { $toggleArgs += '-NoHypervisor' }   # FACEIT/ESEA lane; NOT for Valorant
-    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') @toggleArgs
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Gaming -Reboot:$Reboot -NoHypervisor:$NoHypervisor
 }
 function work
 {
     param([switch]$Reboot)
-    $toggleArgs = @('-Work')
-    if ($Reboot) { $toggleArgs += '-Reboot' }
-    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') @toggleArgs
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Work -Reboot:$Reboot
 }
 
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
