@@ -817,6 +817,106 @@ if ($DryRun) {
     Write-Status "Registered 'dotfiles-profile-boot' (logon, replays marker profile)" -Type Success
 }
 
+# =============================================================================
+# One-time gaming + dev optimizations
+# (research + rationale: docs/specs/2026-07-13-gaming-profile-design.md)
+# =============================================================================
+
+Write-Host "`n=== One-time gaming/dev optimizations ===" -ForegroundColor Magenta
+
+function Set-RegValue {
+    param([string]$Path, [string]$Name, $Value, [string]$Type = 'DWord')
+    if ($DryRun) { Write-Host "  [DRY RUN] $Path\$Name = $Value" -ForegroundColor DarkGray; return }
+    if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
+    Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type $Type
+}
+
+# Game DVR / background recording off (input overhead + disk churn)
+Set-RegValue 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled' 0
+Set-RegValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR' 'AppCaptureEnabled' 0
+# Game Mode on (+2.7-3.3% avg fps, best on 1% lows; defers update installs mid-game)
+Set-RegValue 'HKCU:\Software\Microsoft\GameBar' 'AutoGameModeEnabled' 1
+# HAGS on (frame-time benefit; required for DLSS Frame Gen). Reboot-bound.
+Set-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' 'HwSchMode' 2
+# Raw mouse input (competitive aim): pointer acceleration off
+Set-RegValue 'HKCU:\Control Panel\Mouse' 'MouseSpeed' '0' 'String'
+Set-RegValue 'HKCU:\Control Panel\Mouse' 'MouseThreshold1' '0' 'String'
+Set-RegValue 'HKCU:\Control Panel\Mouse' 'MouseThreshold2' '0' 'String'
+# Long paths for dev tooling (Unity ignores it - keep project roots short anyway)
+Set-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabled' 1
+if (-not $DryRun) { git config --global core.longpaths true }
+# Storage Sense auto-clean off - its "temporary files" pass deletes DirectX shader caches
+Set-RegValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy' '01' 0
+Write-Status "Registry optimizations applied (HAGS needs a reboot)" -Type Success
+
+# Power plan: ensure a high-performance scheme is active (work needs compile perf too).
+# This box already runs 'Ultimate Performance'; only intervene if we're on Balanced/saver.
+$activePlan = (powercfg /getactivescheme)
+if ($activePlan -match '(Balanced|Power saver)') {
+    $ultimate = (powercfg /list | Select-String 'Ultimate Performance' | Select-Object -First 1)
+    if ($ultimate -and $ultimate.ToString() -match '([0-9a-f-]{36})') {
+        if (-not $DryRun) { powercfg /setactive $Matches[1] }
+        Write-Status "Switched power plan to Ultimate Performance" -Type Success
+    } else {
+        Write-Status "No Ultimate Performance plan found - create one: powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61" -Type Warning
+    }
+} else {
+    Write-Status "High-performance power plan already active" -Type Success
+}
+
+# Defender exclusions - NARROW scope: regenerable engine caches only (spec has the tradeoff).
+# Unity project Library/Temp dirs are discovered per-project (dirs with a ProjectSettings sibling).
+$defenderPaths = @(
+    (Join-Path $env:ProgramData 'Epic\Zen\Data')     # Unreal 5.4+ local DDC
+    (Join-Path $env:APPDATA 'Godot')                  # Godot editor + shader cache
+)
+foreach ($root in @('D:\Projects', (Join-Path $HOME 'Projects'))) {
+    if (-not (Test-Path $root)) { continue }
+    Get-ChildItem $root -Directory -Recurse -Depth 2 -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -eq 'ProjectSettings' } |
+        ForEach-Object {
+            $defenderPaths += (Join-Path $_.Parent.FullName 'Library')
+            $defenderPaths += (Join-Path $_.Parent.FullName 'Temp')
+        }
+}
+foreach ($p in $defenderPaths) {
+    if ($DryRun) { Write-Host "  [DRY RUN] Defender exclusion: $p" -ForegroundColor DarkGray }
+    else { Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue }
+}
+Write-Status "Defender exclusions: $($defenderPaths.Count) paths (re-run deploy after new Unity projects; tune with Get-MpPerformanceReport -TopScans 20)" -Type Success
+
+# Native autostarts -> removed; the dotfiles-profile-boot task owns startup now.
+$runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$ownedAutostarts = @('Docker Desktop', 'com.squirrel.slack.slack', 'Steam', 'GoogleDriveFS', 'org.openvpn.client')
+foreach ($name in $ownedAutostarts) {
+    if ($DryRun) { Write-Host "  [DRY RUN] Remove Run entry: $name" -ForegroundColor DarkGray }
+    else { Remove-ItemProperty -Path $runKey -Name $name -ErrorAction SilentlyContinue }
+}
+# jusched (Java updater) - junk, gone for good (lives in HKLM on 64-bit Java installs)
+foreach ($jk in 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run',
+                'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run') {
+    if (-not $DryRun) { Remove-ItemProperty -Path $jk -Name 'SunJavaUpdateSched' -ErrorAction SilentlyContinue }
+}
+Write-Status "Native autostarts removed for profile-managed apps" -Type Success
+
+# Things Windows/apps won't let us script - print the manual checklist once.
+Write-Host @"
+
+  MANUAL follow-ups (one-time, can't be scripted sanely):
+   - Docker Desktop > Settings > General: UNTICK 'Start Docker Desktop when you sign in'
+     (it re-adds its Run key on update if left on; same for Slack > Preferences,
+      Steam > Settings > Interface, Discord > Settings > Windows Settings)
+   - PowerToys Settings > General: 'Run at startup' OFF
+   - Settings > System > Notifications > Do not disturb: turn ON 'When playing a game'
+     (stored in CloudStore binary blobs - not scriptable)
+   - Settings > Privacy & security > Searching Windows: exclude D:\Projects and ~\Projects
+   - NVIDIA App/Control Panel: in-game Reflex ON where offered; driver Low Latency = Ultra
+     only for non-Reflex DX9-11 titles (does nothing in DX12/Vulkan)
+   - Raycast > Settings > Extensions > Script Commands: add directory
+     $dotfilesRoot\raycast\scripts
+   - Keep the GPU driver current (Oct 2025 KB5066835 regression was fixed in 581.94)
+"@ -ForegroundColor Yellow
+
 # --- Hyper-key enabler: neutralize Windows' reserved Ctrl+Shift+Alt+Win (Office/Copilot) shortcut ---
 # Without this, tapping the Hyper key alone pops the Office/Copilot UI. Per-user + reversible.
 # Undo: Remove-Item 'HKCU:\Software\Classes\ms-officeapp' -Recurse -Force
