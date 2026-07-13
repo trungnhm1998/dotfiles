@@ -753,32 +753,29 @@ foreach ($var in $envVars.GetEnumerator()) {
 }
 
 # =============================================================================
-# Kanata autostart (logon Scheduled Task, un-elevated so Hyper reaches komorebi's AHK)
+# Kanata autostart — ownership moved to dotfiles-profile-boot (2026-07-13)
 # =============================================================================
+# The standalone 'Kanata' AtLogOn task used to start kanata unconditionally. That
+# now races the profile-boot task, which owns kanata startup via the $Apps table
+# (starts it on work boots, kills it on gaming boots): gaming boots would see
+# this task restart kanata right after the profile kill, and work boots could
+# double-start it (two LLHOOK instances). Remove the standalone task; the config
+# symlink and kanata itself are untouched.
 
-Write-Host "`n=== Registering Kanata logon task ===" -ForegroundColor Magenta
+Write-Host "`n=== Removing standalone Kanata logon task (superseded by dotfiles-profile-boot) ===" -ForegroundColor Magenta
 
-$kanataExe = Join-Path $env:LOCALAPPDATA 'Programs\kanata\kanata.exe'
-if (-not (Test-Path $kanataExe)) {
-    # Fall back to a scoop/PATH install (scoop shims kanata.exe -> a kanata_windows_*_x64.exe variant).
-    $shim = Get-Command kanata -ErrorAction SilentlyContinue
-    if ($shim) { $kanataExe = $shim.Source }
-}
-$kanataCfg = Join-Path $HOME '.config\kanata\kanata.win.kbd'
+$existingKanataTask = Get-ScheduledTask -TaskName 'Kanata' -ErrorAction SilentlyContinue
 if ($DryRun) {
-    Write-Host "  [DRY RUN] Would register logon task 'Kanata' -> $kanataExe --cfg $kanataCfg" -ForegroundColor DarkGray
-} elseif (-not (Test-Path $kanataExe)) {
-    Write-Status "kanata.exe not found ($kanataExe) — run without -SkipPackages first" -Type Warning
+    if ($existingKanataTask) {
+        Write-Host "  [DRY RUN] Would remove logon task 'Kanata' (schtasks /delete /tn Kanata /f)" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  [DRY RUN] 'Kanata' logon task not present; nothing to remove" -ForegroundColor DarkGray
+    }
+} elseif ($existingKanataTask) {
+    schtasks /delete /tn 'Kanata' /f | Out-Null
+    Write-Status "Removed logon task 'Kanata' (startup now owned by dotfiles-profile-boot)" -Type Success
 } else {
-    # Hidden launch: pwsh starts kanata with a hidden window so no console lingers.
-    $cmd = "Start-Process '$kanataExe' -ArgumentList '--cfg','$kanataCfg' -WindowStyle Hidden"
-    $action    = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument "-NoProfile -WindowStyle Hidden -Command `"$cmd`""
-    $trigger   = New-ScheduledTaskTrigger -AtLogOn
-    $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
-    $settings  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-    Register-ScheduledTask -TaskName 'Kanata' -Action $action -Trigger $trigger `
-        -Principal $principal -Settings $settings -Force | Out-Null
-    Write-Status "Registered logon task 'Kanata' (disable if you log in on the Voyager)" -Type Success
+    Write-Status "'Kanata' logon task not present (already removed)" -Type Success
 }
 
 # =============================================================================
@@ -847,7 +844,11 @@ Set-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' 'LongPathsEnabl
 if (-not $DryRun) { git config --global core.longpaths true }
 # Storage Sense auto-clean off - its "temporary files" pass deletes DirectX shader caches
 Set-RegValue 'HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy' '01' 0
-Write-Status "Registry optimizations applied (HAGS needs a reboot)" -Type Success
+if ($DryRun) {
+    Write-Host "  [DRY RUN] Would apply registry optimizations (HAGS needs a reboot)" -ForegroundColor DarkGray
+} else {
+    Write-Status "Registry optimizations applied (HAGS needs a reboot)" -Type Success
+}
 
 # Power plan: ensure a high-performance scheme is active (work needs compile perf too).
 # This box already runs 'Ultimate Performance'; only intervene if we're on Balanced/saver.
@@ -855,8 +856,12 @@ $activePlan = (powercfg /getactivescheme)
 if ($activePlan -match '(Balanced|Power saver)') {
     $ultimate = (powercfg /list | Select-String 'Ultimate Performance' | Select-Object -First 1)
     if ($ultimate -and $ultimate.ToString() -match '([0-9a-f-]{36})') {
-        if (-not $DryRun) { powercfg /setactive $Matches[1] }
-        Write-Status "Switched power plan to Ultimate Performance" -Type Success
+        if ($DryRun) {
+            Write-Host "  [DRY RUN] Would switch power plan to Ultimate Performance" -ForegroundColor DarkGray
+        } else {
+            powercfg /setactive $Matches[1]
+            Write-Status "Switched power plan to Ultimate Performance" -Type Success
+        }
     } else {
         Write-Status "No Ultimate Performance plan found - create one: powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61" -Type Warning
     }

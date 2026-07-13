@@ -182,7 +182,7 @@ function Invoke-ProfileSwitch {
         [switch]$Stagger        # -Boot: pause between starts to avoid a logon CPU storm
     )
     $mutex = [System.Threading.Mutex]::new($false, 'Local\profile-toggle')
-    if (-not $mutex.WaitOne(0)) { return }                    # debounce double-clicks
+    if (-not $mutex.WaitOne(0)) { Write-ProfileLog 'debounced: another switch in progress'; return }
     try {
         Write-ProfileLog "-> $Direction begin"
         $plan = Get-ProfileActions -Direction $Direction
@@ -208,7 +208,23 @@ function Invoke-ProfileSwitch {
         Request-Elevated -Lines $lines
         Set-ProfileMarker -Value $Direction
         Write-ProfileLog "-> $Direction done"
-        if ($RebootAfter) { shutdown /r /t 5 }
+        if ($RebootAfter) {
+            # The elevated task (cold pwsh start + stopping 2 VPN services + bcdedit) can
+            # lose the race against a fixed-delay reboot; wait for it to consume the
+            # request file before shutting down, so hypervisor/VPN state isn't stale.
+            $waitedSec = 0
+            while ((Test-Path $RequestPath) -and ($waitedSec -lt 30)) {
+                Start-Sleep -Seconds 1
+                $waitedSec += 1
+            }
+            if (Test-Path $RequestPath) {
+                Write-ProfileLog 'WARN elevated request not consumed after 30s; rebooting anyway'
+            } else {
+                Start-Sleep -Seconds 5   # grace period for the elevated actions to finish
+                Write-ProfileLog "elevated request consumed after ${waitedSec}s; proceeding with reboot"
+            }
+            shutdown /r /t 5
+        }
     } finally {
         $mutex.ReleaseMutex()
     }

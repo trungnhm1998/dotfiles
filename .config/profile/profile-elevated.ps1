@@ -5,6 +5,12 @@
     validates it strictly (this is a trust boundary: the file is user-writable but
     this process is elevated), acts, deletes it.
     Scope is deliberately tiny: OpenVPN agent services + bcdedit hypervisor flip.
+
+    NOTE: the RunLevel-Highest task points at this file directly, and it is
+    user-writable — accepted tradeoff on a single-user box (equivalent to
+    NOPASSWD sudo on your own script). Hardening option: copy this script to an
+    admin-only location (e.g. an Administrators-only ACL'd path) and point the
+    scheduled task there instead.
 #>
 $RequestPath = Join-Path $HOME '.config\dotfiles\profile-elevated-request'
 $LogPath     = Join-Path $env:TEMP 'profile-elevated.log'
