@@ -1,0 +1,16 @@
+# ~/.wslconfig — WSL2 utility-VM limits (machine: 96GB RAM / 24 logical CPUs).
+# Docker Desktop's WSL2 backend has no resource sliders; this file IS the knob.
+# Applies after `wsl --shutdown`. Design: docs/specs/2026-07-13-gaming-profile-design.md
+#
+# Deliberately ABSENT (research 2026-07-13):
+#   sparseVhd=true            — disabled upstream for data corruption (WSL#13075)
+#   networkingMode=mirrored   — broke with third-party VPNs (Oct 2025); this box runs
+#                               OpenVPN+Tailscale. Opt in manually only if you need
+#                               in-distro servers reachable from LAN; docker -p works under NAT.
+
+[wsl2]
+memory=24GB
+processors=12
+
+[experimental]
+autoMemoryReclaim=dropcache

@@ -145,6 +145,12 @@ $symlinks = @(
         Description = "Starship prompt"
     }
     @{
+        Source      = "$dotfilesRoot\.config\wsl\wslconfig"
+        Target      = "$HOME\.wslconfig"
+        IsDirectory = $false
+        Description = "WSL2 utility-VM resource limits"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\ccstatusline\settings.json"
         Target      = "$HOME\.config\ccstatusline\settings.json"
         IsDirectory = $false
