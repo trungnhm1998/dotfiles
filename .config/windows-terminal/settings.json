@@ -33,7 +33,7 @@
     "alwaysShowTabs": true,
     "copyFormatting": "none",
     "copyOnSelect": true,
-    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "defaultProfile": "{9d2c6897-dcbc-4d63-8a80-cf4bffaadb6c}",
     "firstWindowPreference": "persistedLayoutAndContent",
     "keybindings":
     [
@@ -145,12 +145,24 @@
                 "name": "Command Prompt"
             },
             {
+                "commandline": "pwsh.exe -NoLogo",
+                "font":
+                {
+                    "size": 10
+                },
+                "guid": "{9d2c6897-dcbc-4d63-8a80-cf4bffaadb6c}",
+                "hidden": false,
+                "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                "name": "PowerShell 7",
+                "startingDirectory": "%USERPROFILE%"
+            },
+            {
                 "font":
                 {
                     "size": 10
                 },
                 "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-                "hidden": false,
+                "hidden": true,
                 "name": "PowerShell",
                 "source": "Windows.Terminal.PowershellCore"
             },
@@ -197,8 +209,15 @@
                 "source": "Windows.Terminal.SSH"
             },
             {
-                "guid": "{3c4615e6-7d0a-5f83-85fc-ee65209483d5}",
+                "commandline": "wsl.exe -d Ubuntu-24.04 --cd ~",
+                "guid": "{85320631-5779-4b99-9c49-6d9feaa57dbe}",
                 "hidden": false,
+                "icon": "ms-appx:///ProfileIcons/{9acb9455-ca41-5af7-950f-6bca1bc9722f}.png",
+                "name": "Ubuntu (WSL)"
+            },
+            {
+                "guid": "{3c4615e6-7d0a-5f83-85fc-ee65209483d5}",
+                "hidden": true,
                 "name": "Ubuntu-24.04",
                 "source": "Microsoft.WSL"
             },
