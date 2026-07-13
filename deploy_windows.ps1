@@ -537,6 +537,24 @@ if (-not $SkipPackages) {
         }
     }
 
+    # --- Scoop opt-in packages (all in the 'main' bucket) ---
+    if ($IncludeOptional) {
+        Write-Host "`n--- Installing Scoop Opt-in Packages ---" -ForegroundColor Cyan
+        if (Get-Command scoop -ErrorAction SilentlyContinue) {
+            foreach ($pkg in @('psmux', 'zellij', 'opencode')) {
+                if (Get-Command $pkg -ErrorAction SilentlyContinue) {
+                    Write-Status "$pkg already installed" -Type Success
+                } elseif ($DryRun) {
+                    Write-Host "  [DRY RUN] Would run: scoop install $pkg" -ForegroundColor DarkGray
+                } else {
+                    scoop install $pkg
+                }
+            }
+        } else {
+            Write-Status "scoop not available; skipping scoop opt-in packages" -Type Error
+        }
+    }
+
     # Install Catppuccin themes for bat
     Write-Host "`n--- Installing Bat Themes ---" -ForegroundColor Cyan
     if (Get-Command bat -ErrorAction SilentlyContinue) {
@@ -594,8 +612,12 @@ if (-not $SkipPackages) {
         Write-Status "bat is not installed, skipping theme installation" -Type Warning
     }
 
-    Write-Host "`nInstalling: Kanata (keyboard remapper, LLHOOK)" -ForegroundColor Cyan
-    Install-Kanata
+    if ($IncludeOptional) {
+        Write-Host "`nInstalling: Kanata (keyboard remapper, LLHOOK)" -ForegroundColor Cyan
+        Install-Kanata
+    } else {
+        Write-Status "Kanata skipped (opt-in; re-run with -IncludeOptional)" -Type Info
+    }
 }
 
 # =============================================================================
@@ -893,6 +915,7 @@ Write-Host @"
      only for non-Reflex DX9-11 titles (does nothing in DX12/Vulkan)
    - Raycast > Settings > Extensions > Script Commands: add directory
      $dotfilesRoot\raycast\scripts
+   - Raycast for Windows: no winget package - download installer from https://raycast.com
    - Keep the GPU driver current (Oct 2025 KB5066835 regression was fixed in 581.94)
 "@ -ForegroundColor Yellow
 
