@@ -1,17 +1,15 @@
 # AGENTS.md
 
-Guidance for agentic coding tools (Claude Code, Codex, Cursor, opencode, …) working in this repository. `CLAUDE.md` is a one-line `@AGENTS.md` import of this file, so every agent reads the same source.
-
 This is a personal dotfiles repository managing configurations for a complete development environment across macOS, Linux, and Windows. It emphasizes terminal-based tools, modal (vim) editing, and tiling window managers.
 
 ## Repository Overview
 
 Terminal-centric configs, one repo, three OSes. Core stack:
 
-- **Editors**: Neovim (LazyVim), IdeaVim, Zed
-- **Terminals**: Wezterm; Tmux (macOS/Linux only)
+- **Editors**: Neovim (LazyVim), IdeaVim, Zed, Jetbrains Editors Rider
+- **Terminals**: Wezterm; Tmux (macOS/Linux only/WSL2)
 - **Window managers**: Yabai + Hammerspoon (macOS), Komorebi (Windows)
-- **Shell**: Zsh (custom `zshrc_manager.sh` entry point + `zshrc.sh`)
+- **Shell**: Zsh (custom `zshrc_manager.sh` entry point + `zshrc.sh`), PowerShell 7
 - **Utilities**: Yazi (files), Lazygit, Starship (prompt), Zoxide (`cd`)
 
 There is **no build/test system** — it's a configuration repo. "Validation" means syntax-checking scripts and verifying symlinks/configs load.
