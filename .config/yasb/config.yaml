@@ -32,7 +32,7 @@ bars:
       bottom: 0
       right: 0
     widgets:
-      left: ["wm_toggle", "kanata_toggle", "workspaces", "active_layout", "taskbar"]
+      left: ["wm_toggle", "kanata_toggle", "profile_toggle", "workspaces", "active_layout", "taskbar"]
       center: ["clock"]
       right: ["cpu", "memory", "gpu", "traffic", "weather", "media", "volume", "microphone", "wifi", "bluetooth", "systray", "power_menu"]
 
@@ -133,6 +133,24 @@ widgets:
         return_format: "string"
       callbacks:
         on_left: "exec pwsh -NoProfile -WindowStyle Hidden -File C:\\Users\\mint\\.config\\kanata\\kanata-toggle.ps1"
+        on_middle: "do_nothing"
+        on_right: "do_nothing"
+
+  profile_toggle:
+    type: "yasb.custom.CustomWidget"
+    options:
+      label: "{data}"
+      class_name: "profile-toggle"
+      tooltip: true
+      tooltip_label: "Profile — click to flip work/gaming (apps, VPNs, Docker, WM)"
+      exec_options:
+        # Poll the profile marker -> bar glyph. Bare path (yasb splits run_cmd on spaces).
+        # Do NOT set `encoding` (yasb hardcodes output.decode("utf-8"); setting it throws -> "Loading...").
+        run_cmd: "pwsh -NoProfile -File C:\\Users\\mint\\.config\\profile\\profile-toggle.ps1 -State"
+        run_interval: 5000
+        return_format: "string"
+      callbacks:
+        on_left: "exec pwsh -NoProfile -WindowStyle Hidden -File C:\\Users\\mint\\.config\\profile\\profile-toggle.ps1"
         on_middle: "do_nothing"
         on_right: "do_nothing"
 

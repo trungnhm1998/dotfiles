@@ -125,15 +125,17 @@
    about. One small right-biased pad re-centers the ink; the same value
    serves both pills (and both on/off glyphs) to within ~1px — the
    practical ceiling for font-icon centering. */
-.wm-toggle, .kanata-toggle { margin: 0 3px; }
+.wm-toggle, .kanata-toggle, .profile-toggle { margin: 0 3px; }
 .wm-toggle .widget-container,
-.kanata-toggle .widget-container {
+.kanata-toggle .widget-container,
+.profile-toggle .widget-container {
     background-color: #292c3c;       /* mantle — match the floating pills */
     border-radius: 9px;
     padding: 0 8px;
 }
 .wm-toggle .label,
-.kanata-toggle .label {
+.kanata-toggle .label,
+.profile-toggle .label {
     color: #babbf1;                  /* lavender — groups with active-layout */
     font-weight: 600;
     qproperty-alignment: 'AlignCenter';   /* centers the glyph box (Qt's only centerer) */
