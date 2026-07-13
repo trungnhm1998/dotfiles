@@ -64,7 +64,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
 | `.config/lazygit` | `$env:APPDATA\lazygit` |
 | `.config/starship.toml` | `$HOME\.config\starship.toml` |
-| `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` |
+| `.config/powershell/Microsoft.PowerShell_profile.ps1` | `$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` (profile embeds the `Microsoft.Coreutils` DO-NOT-MODIFY shim block — interactive rewrite of unix commands to `C:\Program Files\coreutils\cmd\*.cmd`; `ls`/`la` are pulled from its rewrite set right after the block so eza keeps them. Coreutils installer/updates rewrite the live file and **break this symlink** — diff live vs repo, merge, re-link after coreutils updates.) |
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
