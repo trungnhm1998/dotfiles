@@ -20,9 +20,11 @@ There is **no build/test system** — it's a configuration repo. "Validation" me
 
 ```powershell
 # Windows — run as Administrator in PowerShell 7+
-.\deploy_windows.ps1                 # full: packages, symlinks, env vars
-.\deploy_windows.ps1 -SkipPackages   # symlinks only
-.\deploy_windows.ps1 -DryRun         # preview, no changes
+.\deploy_windows.ps1                     # full: packages (core+dev+gamedev+comfort manifests), symlinks, env vars
+.\deploy_windows.ps1 -IncludeOptional    # + optional manifest (launchers/chat/media), scoop muxers, kanata
+.\deploy_windows.ps1 -Manifests core     # cherry-pick winget manifests (core, dev, gamedev, comfort, optional)
+.\deploy_windows.ps1 -SkipPackages       # symlinks only
+.\deploy_windows.ps1 -DryRun             # preview, no changes
 ```
 
 ```bash
@@ -189,4 +191,5 @@ end
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
 | Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows) |
 | opencode | `.config/opencode/opencode.jsonc` |
+| Winget install manifests | `packages/winget-{core,dev,gamedev,comfort,optional}.json` (imported by `deploy_windows.ps1` via `-Manifests`/`-IncludeOptional`) |
 | Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |
