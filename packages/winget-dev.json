@@ -1,0 +1,28 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "Sources": [
+    {
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      },
+      "Packages": [
+        { "PackageIdentifier": "Docker.DockerDesktop" },
+        { "PackageIdentifier": "Microsoft.WSL" },
+        { "PackageIdentifier": "Microsoft.VisualStudioCode" },
+        { "PackageIdentifier": "ZedIndustries.Zed" },
+        { "PackageIdentifier": "JetBrains.Toolbox" },
+        { "PackageIdentifier": "Python.Python.3.13" },
+        { "PackageIdentifier": "Rustlang.Rustup" },
+        { "PackageIdentifier": "astral-sh.uv" },
+        { "PackageIdentifier": "CoreyButler.NVMforWindows" },
+        { "PackageIdentifier": "dandavison.delta" },
+        { "PackageIdentifier": "JesseDuffield.Lazydocker" },
+        { "PackageIdentifier": "MikeFarah.yq" },
+        { "PackageIdentifier": "Obsidian.Obsidian" }
+      ]
+    }
+  ]
+}

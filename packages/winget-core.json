@@ -1,0 +1,40 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "Sources": [
+    {
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      },
+      "Packages": [
+        { "PackageIdentifier": "Microsoft.PowerShell" },
+        { "PackageIdentifier": "Microsoft.WindowsTerminal" },
+        { "PackageIdentifier": "Microsoft.Coreutils" },
+        { "PackageIdentifier": "Fastfetch-cli.Fastfetch" },
+        { "PackageIdentifier": "jftuga.less" },
+        { "PackageIdentifier": "JernejSimoncic.Wget" },
+        { "PackageIdentifier": "Neovim.Neovim" },
+        { "PackageIdentifier": "OpenJS.NodeJS.LTS" },
+        { "PackageIdentifier": "Git.Git" },
+        { "PackageIdentifier": "BurntSushi.ripgrep.MSVC" },
+        { "PackageIdentifier": "junegunn.fzf" },
+        { "PackageIdentifier": "sharkdp.fd" },
+        { "PackageIdentifier": "eza-community.eza" },
+        { "PackageIdentifier": "jesseduffield.lazygit" },
+        { "PackageIdentifier": "Starship.Starship" },
+        { "PackageIdentifier": "sxyazi.yazi" },
+        { "PackageIdentifier": "ajeetdsouza.zoxide" },
+        { "PackageIdentifier": "sharkdp.bat" },
+        { "PackageIdentifier": "jqlang.jq" },
+        { "PackageIdentifier": "GitHub.cli" },
+        { "PackageIdentifier": "LGUG2Z.komorebi" },
+        { "PackageIdentifier": "AutoHotkey.AutoHotkey" },
+        { "PackageIdentifier": "wez.wezterm" },
+        { "PackageIdentifier": "AmN.yasb" },
+        { "PackageIdentifier": "DEVCOM.JetBrainsMonoNerdFont" }
+      ]
+    }
+  ]
+}
