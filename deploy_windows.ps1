@@ -15,6 +15,12 @@
     Show what would be done without executing
 .PARAMETER SkipFonts
     Skip Powerline fonts installation
+.PARAMETER Manifests
+    Which winget manifests to import (core, dev, gamedev, comfort, optional).
+    Default: core, dev, gamedev, comfort.
+.PARAMETER IncludeOptional
+    Also import the optional manifest (game launchers, chat/media) and install
+    the scoop opt-in packages (psmux, zellij, opencode) + kanata.
 .NOTES
     Requires Administrator privileges for creating symbolic links
 #>
@@ -24,7 +30,10 @@ param(
     [switch]$SkipSymlinks,
     [switch]$SkipFonts,
     [switch]$Force,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [ValidateSet('core', 'dev', 'gamedev', 'comfort', 'optional')]
+    [string[]]$Manifests = @('core', 'dev', 'gamedev', 'comfort'),
+    [switch]$IncludeOptional
 )
 
 # =============================================================================
@@ -32,35 +41,6 @@ param(
 # =============================================================================
 
 $dotfilesRoot = $PSScriptRoot
-
-$packages = @(
-    # Core Development Tools
-    @{ Id = "Neovim.Neovim"; Name = "Neovim" }
-    @{ Id = "OpenJS.NodeJS.LTS"; Name = "Node.js LTS" }
-    @{ Id = "Git.Git"; Name = "Git" }
-
-    # CLI Utilities
-    @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" }
-    @{ Id = "junegunn.fzf"; Name = "fzf" }
-    @{ Id = "sharkdp.fd"; Name = "fd" }
-    @{ Id = "eza-community.eza"; Name = "eza" }
-    @{ Id = "jesseduffield.lazygit"; Name = "lazygit" }
-    @{ Id = "Starship.Starship"; Name = "Starship" }
-    @{ Id = "sxyazi.yazi"; Name = "yazi" }
-    @{ Id = "ajeetdsouza.zoxide"; Name = "zoxide" }
-    @{ Id = "sharkdp.bat"; Name = "bat" }
-    @{ Id = "jqlang.jq"; Name = "jq" }
-    @{ Id = "GitHub.cli"; Name = "GitHub CLI" }
-
-    # Windows-Specific Tools
-    @{ Id = "LGUG2Z.komorebi"; Name = "Komorebi" }
-    @{ Id = "AutoHotkey.AutoHotkey"; Name = "AutoHotkey" }
-    @{ Id = "wez.wezterm"; Name = "Wezterm" }
-    @{ Id = "AmN.yasb"; Name = "YASB" }
-
-    # Fonts
-    @{ Id = "DEVCOM.JetBrainsMonoNerdFont"; Name = "JetBrainsMono Nerd Font" }
-)
 
 $powershellModules = @(
     "PSReadLine"
@@ -314,40 +294,30 @@ function Write-Status {
     Write-Host "$prefix $Message" -ForegroundColor $color
 }
 
-function Install-WingetPackage {
-    param(
-        [string]$PackageId,
-        [string]$DisplayName
-    )
+function Import-WingetManifest {
+    param([string]$Name)
 
-    # Check if already installed
-    $installed = winget list --id $PackageId --exact 2>$null | Select-String $PackageId
-
-    if ($installed) {
-        Write-Status "$DisplayName is already installed" -Type Success
+    $file = Join-Path $dotfilesRoot "packages\winget-$Name.json"
+    if (-not (Test-Path $file)) {
+        Write-Status "Manifest not found: $file" -Type Error
         return
     }
-
-    if (-not $Force) {
-        if (-not (Request-Confirmation "$DisplayName is not installed. Install it?")) {
-            Write-Status "Skipping $DisplayName" -Type Warning
-            return
-        }
-    }
-
-    Write-Status "Installing $DisplayName..." -Type Info
 
     if ($DryRun) {
-        Write-Host "  [DRY RUN] Would run: winget install --id $PackageId" -ForegroundColor DarkGray
+        $ids = (Get-Content $file -Raw | ConvertFrom-Json).Sources[0].Packages.PackageIdentifier
+        Write-Host "  [DRY RUN] Would import '$Name' ($($ids.Count) packages):" -ForegroundColor DarkGray
+        $ids | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         return
     }
 
-    winget install --id $PackageId --accept-package-agreements --accept-source-agreements --silent
-
+    Write-Status "Importing manifest: $Name" -Type Info
+    winget import -i $file --accept-package-agreements --accept-source-agreements --ignore-unavailable
     if ($LASTEXITCODE -eq 0) {
-        Write-Status "$DisplayName installed successfully" -Type Success
+        Write-Status "Manifest '$Name' imported" -Type Success
     } else {
-        Write-Status "Failed to install $DisplayName" -Type Error
+        # winget import exits nonzero when any entry fails OR is already installed;
+        # report and continue - never abort the deploy over one manifest.
+        Write-Status "Manifest '$Name' finished with exit code $LASTEXITCODE (failed or already-installed entries; see output above)" -Type Warning
     }
 }
 
@@ -536,15 +506,19 @@ if (-not $SkipPackages) {
         }
     }
 
-    # --- Install Winget Packages ---
-    Write-Host "`n--- Installing Winget Packages ---" -ForegroundColor Cyan
+    # --- Import Winget Manifests ---
+    Write-Host "`n--- Importing Winget Manifests ---" -ForegroundColor Cyan
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Status "winget not found. Please install App Installer from Microsoft Store." -Type Error
         exit 1
     }
 
-    foreach ($pkg in $packages) {
-        Install-WingetPackage -PackageId $pkg.Id -DisplayName $pkg.Name
+    $selectedManifests = $Manifests
+    if ($IncludeOptional -and $selectedManifests -notcontains 'optional') {
+        $selectedManifests += 'optional'
+    }
+    foreach ($name in $selectedManifests) {
+        Import-WingetManifest -Name $name
     }
 
     # Install PowerShell modules
