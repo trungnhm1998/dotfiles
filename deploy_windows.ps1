@@ -169,10 +169,16 @@ $symlinks = @(
         Description = "Zed editor keybindings"
     }
     @{
-        Source      = "$dotfilesRoot\.config\windows-terminal\catppuccin-frappe.json"
-        Target      = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles\catppuccin-frappe.json"
+        Source      = "$dotfilesRoot\.config\windows-terminal\settings.json"
+        Target      = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
         IsDirectory = $false
-        Description = "Windows Terminal Catppuccin Frappe color scheme (stable + Preview)"
+        Description = "Windows Terminal (stable) settings"
+    }
+    @{
+        Source      = "$dotfilesRoot\.config\windows-terminal\settings.json"
+        Target      = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+        IsDirectory = $false
+        Description = "Windows Terminal (Preview) settings"
     }
 
     # --- Global agent instructions: one canonical file (claude\AGENTS.md) ---
@@ -618,6 +624,14 @@ if (-not $SkipSymlinks) {
     if (Test-Path $staleOpencode) {
         if ($DryRun) { Write-Host "  [DRY RUN] Would remove: $staleOpencode" -ForegroundColor DarkGray }
         else { Remove-Item -Path $staleOpencode -Force }
+    }
+
+    # Windows Terminal: remove retired theme fragment — scheme now lives in the
+    # shared settings.json; leaving it would define "Catppuccin Frappe" twice.
+    $staleWtFragment = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles"
+    if (Test-Path $staleWtFragment) {
+        if ($DryRun) { Write-Host "  [DRY RUN] Would remove: $staleWtFragment" -ForegroundColor DarkGray }
+        else { Remove-Item -Path $staleWtFragment -Recurse -Force }
     }
 
     foreach ($link in $symlinks) {
