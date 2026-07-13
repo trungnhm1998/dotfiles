@@ -83,6 +83,12 @@ $symlinks = @(
         Description = "Kanata keyboard remapper (Windows 60%)"
     }
     @{
+        Source      = "$dotfilesRoot\.config\profile"
+        Target      = "$HOME\.config\profile"
+        IsDirectory = $true
+        Description = "Gaming/work profile toggle"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\yasb"
         Target      = "$HOME\.config\yasb"
         IsDirectory = $true
@@ -767,6 +773,42 @@ if ($DryRun) {
     Register-ScheduledTask -TaskName 'Kanata' -Action $action -Trigger $trigger `
         -Principal $principal -Settings $settings -Force | Out-Null
     Write-Status "Registered logon task 'Kanata' (disable if you log in on the Voyager)" -Type Success
+}
+
+# =============================================================================
+# Gaming/work profile tasks (design: docs/specs/2026-07-13-gaming-profile-design.md)
+#   dotfiles-profile-elevated : on-demand, RunLevel Highest — OpenVPN services + bcdedit.
+#                               Triggered by schtasks /run from profile-toggle.ps1 (no UAC).
+#   dotfiles-profile-boot     : at logon — replays the marker profile (staggered starts).
+# =============================================================================
+
+Write-Host "`n=== Registering profile toggle tasks ===" -ForegroundColor Magenta
+
+$profileScript  = Join-Path $HOME '.config\profile\profile-toggle.ps1'
+$elevatedScript = Join-Path $HOME '.config\profile\profile-elevated.ps1'
+if ($DryRun) {
+    Write-Host "  [DRY RUN] Would register 'dotfiles-profile-elevated' + 'dotfiles-profile-boot'" -ForegroundColor DarkGray
+} else {
+    # Elevated on-demand task: no trigger — fired via `schtasks /run`.
+    $eAction    = New-ScheduledTaskAction -Execute 'pwsh.exe' `
+        -Argument "-NoProfile -WindowStyle Hidden -File `"$elevatedScript`""
+    $ePrincipal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" `
+        -LogonType Interactive -RunLevel Highest
+    $eSettings  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+    Register-ScheduledTask -TaskName 'dotfiles-profile-elevated' -Action $eAction `
+        -Principal $ePrincipal -Settings $eSettings -Force | Out-Null
+    Write-Status "Registered 'dotfiles-profile-elevated' (on-demand, elevated)" -Type Success
+
+    # Boot task: logon trigger, un-elevated (starts tray apps in the user session).
+    $bAction    = New-ScheduledTaskAction -Execute 'pwsh.exe' `
+        -Argument "-NoProfile -WindowStyle Hidden -File `"$profileScript`" -Boot"
+    $bTrigger   = New-ScheduledTaskTrigger -AtLogOn
+    $bPrincipal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" `
+        -LogonType Interactive -RunLevel Limited
+    $bSettings  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+    Register-ScheduledTask -TaskName 'dotfiles-profile-boot' -Action $bAction -Trigger $bTrigger `
+        -Principal $bPrincipal -Settings $bSettings -Force | Out-Null
+    Write-Status "Registered 'dotfiles-profile-boot' (logon, replays marker profile)" -Type Success
 }
 
 # --- Hyper-key enabler: neutralize Windows' reserved Ctrl+Shift+Alt+Win (Office/Copilot) shortcut ---
