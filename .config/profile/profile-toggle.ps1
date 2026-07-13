@@ -29,24 +29,68 @@ $LogPath     = Join-Path $env:TEMP 'profile-toggle.log'
 # KillOrder/StartOrder: ascending; fast/input-critical first on kill, Docker last
 # (slow graceful stop) and first on start (slowest to warm up).
 $Apps = @(
-    @{ Name='kanata';    Profile='work'; KillOrder=10; StartOrder=20; Custom=@{ Kill={ }; Start={ } } }
-    @{ Name='komorebi';  Profile='work'; KillOrder=11; StartOrder=21; Custom=@{ Kill={ }; Start={ } } }
+    @{ Name='kanata';    Profile='work'; KillOrder=10; StartOrder=20; Custom=@{
+        # existing toggle is the owner; -Off is idempotent, plain call is a blind toggle
+        Kill  = { & pwsh -NoProfile -File (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') -Off }
+        Start = { if (-not (Get-Process kanata* -ErrorAction SilentlyContinue)) {
+                      & pwsh -NoProfile -File (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') } }
+    } }
+    @{ Name='komorebi';  Profile='work'; KillOrder=11; StartOrder=21; Custom=@{
+        # wm-toggle is a blind toggle -> gate each direction on komorebi's run state
+        Kill  = { if (Get-Process komorebi -ErrorAction SilentlyContinue) {
+                      & pwsh -NoProfile -File (Join-Path $HOME '.config\komorebi\wm-toggle.ps1') } }
+        Start = { if (-not (Get-Process komorebi -ErrorAction SilentlyContinue)) {
+                      & pwsh -NoProfile -File (Join-Path $HOME '.config\komorebi\wm-toggle.ps1') } }
+    } }
     @{ Name='PowerToys'; Profile='work'; Procs=@('PowerToys*')
        Start=(Join-Path $env:ProgramFiles 'PowerToys\PowerToys.exe') }
     @{ Name='Slack';     Profile='work'; Procs=@('slack')
        Start=(Join-Path $env:LOCALAPPDATA 'slack\slack.exe'); StartArgs=@('--startup') }
     @{ Name='GoogleDrive'; Profile='work'; Procs=@('GoogleDriveFS')
        Start=(Join-Path $env:ProgramFiles 'Google\Drive File Stream\launch.bat') }
-    @{ Name='PhoneLink'; Profile='work'; Procs=@('PhoneExperienceHost','CrossDeviceService','CrossDeviceResume')
-       Start=$null; Custom=@{ Kill={ }; Start={ } } }   # kill-only: Windows relaunches it on demand
+    @{ Name='PhoneLink'; Profile='work'; Procs=@('PhoneExperienceHost','CrossDeviceService','CrossDeviceResume'); Custom=@{
+        Kill  = { foreach ($p in 'PhoneExperienceHost','CrossDeviceService','CrossDeviceResume') {
+                      Get-Process $p -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue } }
+        Start = { }   # kill-only: Windows relaunches Phone Link on demand
+    } }
     @{ Name='KDEConnect'; Profile='work'; Procs=@('kdeconnectd','kdeconnect-indicator')
        Start=(Join-Path $env:ProgramFiles 'KDE Connect\bin\kdeconnect-indicator.exe') }
     @{ Name='Deskflow';  Profile='work'; Procs=@('deskflow','deskflow-core','deskflow-daemon')
        Start=(Join-Path $env:ProgramFiles 'Deskflow\deskflow.exe') }
-    @{ Name='Tailscale'; Profile='work'; KillOrder=60; StartOrder=60; Custom=@{ Kill={ }; Start={ } } }
-    @{ Name='OpenVPN';   Profile='work'; KillOrder=61; StartOrder=61; Custom=@{ Kill={ }; Start={ } } }
-    @{ Name='Docker';    Profile='work'; KillOrder=90; StartOrder=10; StartDelaySec=5
-       Custom=@{ Kill={ }; Start={ } } }
+    @{ Name='Tailscale'; Profile='work'; KillOrder=60; StartOrder=60; Custom=@{
+        Kill  = { & (Join-Path $env:ProgramFiles 'Tailscale\tailscale.exe') down 2>$null
+                  Get-Process tailscale-ipn -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue }
+        Start = { if (-not (Get-Process tailscale-ipn -ErrorAction SilentlyContinue)) {
+                      Start-Process (Join-Path $env:ProgramFiles 'Tailscale\tailscale-ipn.exe') }
+                  & (Join-Path $env:ProgramFiles 'Tailscale\tailscale.exe') up 2>$null }
+    } }
+    @{ Name='OpenVPN';   Profile='work'; KillOrder=61; StartOrder=61; Custom=@{
+        # GUI dies here; the agent services stop/start via the elevated task (batched in Invoke-ProfileSwitch)
+        Kill  = { Get-Process OpenVPNConnect -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue }
+        Start = { if (-not (Get-Process OpenVPNConnect -ErrorAction SilentlyContinue)) {
+                      Start-Process (Join-Path $env:ProgramFiles 'OpenVPN Connect\OpenVPNConnect.exe') `
+                          -ArgumentList '--opened-at-login','--minimize' } }
+    } }
+    @{ Name='Docker';    Profile='work'; KillOrder=90; StartOrder=10; StartDelaySec=5; Custom=@{
+        Kill  = {
+            # 1. SIGTERM containers (DB-safe), 2. official desktop stop w/ timeout, 3. wsl --shutdown
+            $ids = & docker ps -q 2>$null
+            if ($ids) { & docker stop $ids 2>$null | Out-Null }
+            $job = Start-Job { & docker desktop stop 2>$null }
+            if (-not (Wait-Job $job -Timeout 60)) {
+                # ponytail: 60s then force — docker desktop stop can hang on some WSL2 setups
+                Get-Process 'Docker Desktop','com.docker*' -ErrorAction SilentlyContinue |
+                    Stop-Process -Force -ErrorAction SilentlyContinue
+            }
+            Remove-Job $job -Force -ErrorAction SilentlyContinue
+            & wsl --shutdown 2>$null
+        }
+        Start = {
+            if (-not (Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue)) {
+                Start-Process (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe')
+            }
+        }
+    } }
     @{ Name='Steam';     Profile='gaming'; Procs=@('steam')
        Start=(Join-Path ${env:ProgramFiles(x86)} 'Steam\steam.exe'); StartArgs=@('-silent') }
     @{ Name='ExitLag';   Profile='gaming'; Procs=@('ExitLag')
@@ -102,8 +146,87 @@ function Write-ProfileState {
     $out.Flush()
 }
 
+function Invoke-AppKill {
+    param([Parameter(Mandatory)][hashtable]$App)
+    if ($App.Custom) { & $App.Custom.Kill; return }
+    foreach ($p in $App.Procs) {
+        Get-Process $p -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Invoke-AppStart {
+    param([Parameter(Mandatory)][hashtable]$App)
+    if ($App.Custom) { & $App.Custom.Start; return }
+    $running = @($App.Procs | ForEach-Object { Get-Process $_ -ErrorAction SilentlyContinue } | Where-Object { $_ })
+    if ($running.Count -gt 0) { return }                      # idempotent
+    if (-not (Test-Path $App.Start)) { Write-ProfileLog "SKIP start $($App.Name): missing $($App.Start)"; return }
+    if ($App.StartArgs) { Start-Process -FilePath $App.Start -ArgumentList $App.StartArgs }
+    else                { Start-Process -FilePath $App.Start }
+}
+
+function Request-Elevated {
+    # Drop a one-shot request file and poke the pre-registered elevated task (no UAC).
+    # The elevated side validates + deletes the file; 60s TTL guards stale requests.
+    param([Parameter(Mandatory)][string[]]$Lines)
+    if (-not (Test-Path $MarkerDir)) { New-Item -ItemType Directory -Path $MarkerDir -Force | Out-Null }
+    Set-Content -Path $RequestPath -Value $Lines
+    schtasks /run /tn 'dotfiles-profile-elevated' 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) { Write-ProfileLog 'WARN elevated task missing - service/bcdedit ops skipped (run deploy_windows.ps1)' }
+}
+
+function Invoke-ProfileSwitch {
+    param(
+        [Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction,
+        [switch]$WithHypervisorOff,
+        [switch]$RebootAfter,
+        [switch]$Stagger        # -Boot: pause between starts to avoid a logon CPU storm
+    )
+    $mutex = [System.Threading.Mutex]::new($false, 'Local\profile-toggle')
+    if (-not $mutex.WaitOne(0)) { return }                    # debounce double-clicks
+    try {
+        Write-ProfileLog "-> $Direction begin"
+        $plan = Get-ProfileActions -Direction $Direction
+        foreach ($app in $plan.Kill) {
+            try { Invoke-AppKill -App $app; Write-ProfileLog "killed $($app.Name)" }
+            catch { Write-ProfileLog "ERROR kill $($app.Name): $($_.Exception.Message)" }
+        }
+        foreach ($app in $plan.Start) {
+            try { Invoke-AppStart -App $app; Write-ProfileLog "started $($app.Name)" }
+            catch { Write-ProfileLog "ERROR start $($app.Name): $($_.Exception.Message)" }
+            if ($Stagger -and $app.StartDelaySec) { Start-Sleep -Seconds $app.StartDelaySec }
+        }
+        # Elevated batch: VPN services always; hypervisor only on the explicit lane.
+        # work always sends hv=auto-if-off so a prior -NoHypervisor session self-heals.
+        $lines = @()
+        if ($Direction -eq 'gaming') {
+            $lines += 'vpn=stop'
+            if ($WithHypervisorOff) { $lines += 'hv=off' }
+        } else {
+            $lines += 'vpn=start'
+            $lines += 'hv=auto-if-off'
+        }
+        Request-Elevated -Lines $lines
+        Set-ProfileMarker -Value $Direction
+        Write-ProfileLog "-> $Direction done"
+        if ($RebootAfter) { shutdown /r /t 5 }
+    } finally {
+        $mutex.ReleaseMutex()
+    }
+}
+
 # Run only when executed directly; dot-sourcing (Pester) just loads the functions.
 if ($MyInvocation.InvocationName -ne '.') {
-    if ($State) { Write-ProfileState }
-    # other verbs land in Task 2
+    if ($State) {
+        Write-ProfileState
+    } elseif ($Boot) {
+        Invoke-ProfileSwitch -Direction (Get-ProfileMarker) -Stagger
+    } elseif ($Gaming) {
+        Invoke-ProfileSwitch -Direction 'gaming' -WithHypervisorOff:$NoHypervisor -RebootAfter:$Reboot
+    } elseif ($Work) {
+        Invoke-ProfileSwitch -Direction 'work'
+    } else {
+        # bare call = toggle (yasb pill click)
+        $next = if ((Get-ProfileMarker) -eq 'gaming') { 'work' } else { 'gaming' }
+        Invoke-ProfileSwitch -Direction $next
+    }
 }
