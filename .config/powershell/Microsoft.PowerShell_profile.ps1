@@ -404,6 +404,17 @@ function claude-local {
 function cc-fast { claude-local -Box 'http://127.0.0.1:8080' -Model fast @args }
 function cc-big  { claude-local -Box 'http://127.0.0.1:8080' -Model big  @args }
 
+# --- Obsidian vault sync task toggle ---
+# ObsidianVaultSync (schtasks, runs scripts/vault-sync.ps1 every 30min) on/off/status.
+function vault-sync {
+    param([ValidateSet('on', 'off', 'status')] $do = 'status')
+    switch ($do) {
+        'on' { schtasks /Change /TN "ObsidianVaultSync" /ENABLE }
+        'off' { schtasks /Change /TN "ObsidianVaultSync" /DISABLE }
+        'status' { (schtasks /Query /TN "ObsidianVaultSync" /V /FO LIST | Select-String '^(Status|Scheduled Task State):') }
+    }
+}
+
 # --- Local AI stack toggle (opt-in so the GPU stays free for gaming by default) ---
 # `ai on`   start llama-swap (loopback 8080) -> Continue autocomplete + claude-local/opencode go live.
 # `ai off`  stop llama-swap + any llama-server child -> frees ALL VRAM for games.
