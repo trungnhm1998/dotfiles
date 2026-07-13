@@ -1,332 +1,353 @@
 {
-  "$help": "https://aka.ms/terminal-documentation",
-  "$schema": "https://aka.ms/terminal-profiles-schema-preview",
-  "actions": [
-    {
-      "command": {
-        "action": "copy",
-        "singleLine": false
-      },
-      "id": "User.copy.644BA8F2"
-    },
-    {
-      "command": "paste",
-      "id": "User.paste"
-    },
-    {
-      "command": "find",
-      "id": "User.find"
-    },
-    {
-      "command": {
-        "action": "splitPane",
-        "split": "auto",
-        "splitMode": "duplicate"
-      },
-      "id": "User.splitPane.A6751878"
-    }
-  ],
-  "alwaysShowNotificationIcon": true,
-  "alwaysShowTabs": true,
-  "copyFormatting": "none",
-  "copyOnSelect": true,
-  "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-  "firstWindowPreference": "persistedLayoutAndContent",
-  "keybindings": [
-    {
-      "id": null,
-      "keys": "ctrl+v"
-    },
-    {
-      "id": "User.find",
-      "keys": "ctrl+shift+f"
-    },
-    {
-      "id": null,
-      "keys": "ctrl+c"
-    },
-    {
-      "id": "User.splitPane.A6751878",
-      "keys": "ctrl+shift+d"
-    }
-  ],
-  "launchMode": "default",
-  "newTabMenu": [
-    {
-      "type": "remainingProfiles"
-    },
-    {
-      "allowEmpty": false,
-      "entries": [
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema-preview",
+    "actions":
+    [
         {
-          "commandline": null,
-          "name": null,
-          "source": "Windows.Terminal.SSH",
-          "type": "matchProfiles"
-        }
-      ],
-      "icon": "",
-      "inline": "auto",
-      "name": "SSH",
-      "type": "folder"
-    },
-    {
-      "allowEmpty": false,
-      "entries": [
+            "command":
+            {
+                "action": "copy",
+                "singleLine": false
+            },
+            "id": "User.copy.644BA8F2"
+        },
         {
-          "commandline": null,
-          "name": null,
-          "source": "Windows.Terminal.SSH",
-          "type": "matchProfiles"
+            "command": "paste",
+            "id": "User.paste"
+        },
+        {
+            "command": "find",
+            "id": "User.find"
+        },
+        {
+            "command":
+            {
+                "action": "splitPane",
+                "split": "auto",
+                "splitMode": "duplicate"
+            },
+            "id": "User.splitPane.A6751878"
         }
-      ],
-      "icon": "",
-      "inline": "auto",
-      "name": "SSH",
-      "type": "folder"
-    }
-  ],
-  "profiles": {
-    "defaults": {
-      "colorScheme": "Catppuccin Frappe",
-      "cursorShape": "filledBox",
-      "font": {
-        "colorGlyphs": true,
-        "face": "JetBrainsMono Nerd Font",
-        "size": 9,
-        "weight": "medium"
-      },
-      "useAcrylic": false
-    },
-    "list": [
-      {
-        "closeOnExit": "graceful",
-        "commandline": "cmd.exe /k \"%cmder_root%/vendor/init.bat\"",
-        "font": {
-          "colorGlyphs": true
+    ],
+    "alwaysShowNotificationIcon": true,
+    "alwaysShowTabs": true,
+    "copyFormatting": "none",
+    "copyOnSelect": true,
+    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "firstWindowPreference": "persistedLayoutAndContent",
+    "keybindings":
+    [
+        {
+            "id": null,
+            "keys": "ctrl+v"
         },
-        "guid": "{00000000-0000-0000-ba54-000000000132}",
-        "hidden": false,
-        "icon": "%cmder_root%/icons/cmder.ico",
-        "name": "Cmder",
-        "startingDirectory": "%USERPROFILE%",
-        "useAcrylic": false
-      },
-      {
-        "commandline": "%SystemRoot%/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -NoExit -Command \"Invoke-Expression '. ''%cmder_root%/vendor/profile.ps1'''\"",
-        "guid": "{00000000-0000-0000-ba54-000000000127}",
-        "hidden": false,
-        "icon": "%cmder_root%/icons/cmder.ico",
-        "name": "Cmder :: Powershell",
-        "startingDirectory": "%USERPROFILE%"
-      },
-      {
-        "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-        "hidden": false,
-        "name": "Windows PowerShell"
-      },
-      {
-        "commandline": "%SystemRoot%\\System32\\cmd.exe",
-        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-        "hidden": false,
-        "name": "Command Prompt"
-      },
-      {
-        "font": {
-          "size": 10
+        {
+            "id": "User.find",
+            "keys": "ctrl+shift+f"
         },
-        "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-        "hidden": false,
-        "name": "PowerShell",
-        "source": "Windows.Terminal.PowershellCore"
-      },
-      {
-        "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
-        "hidden": false,
-        "name": "Azure Cloud Shell",
-        "source": "Windows.Terminal.Azure"
-      },
-      {
-        "guid": "{3fa8ca88-6391-5b59-8ddb-1ce6ed09d7b2}",
-        "hidden": false,
-        "name": "Developer Command Prompt for VS 2022",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{bbdabdab-f4a2-5d09-8198-f4471f749eb8}",
-        "hidden": false,
-        "name": "Developer PowerShell for VS 2022",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{9018cde6-c05f-5c80-9b45-4a0cb2563d49}",
-        "hidden": true,
-        "name": "Developer Command Prompt for VS 2019",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{d91b7d5f-cf87-59c9-81fd-885054e0d745}",
-        "hidden": true,
-        "name": "Developer PowerShell for VS 2019",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{4084773c-24ff-5a4e-b4a3-35d9356c7549}",
-        "hidden": true,
-        "name": "Developer Command Prompt for VS 2017",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{d83b884d-8731-575a-83d6-c6554ff098e6}",
-        "hidden": false,
-        "name": "SSH - github.com",
-        "source": "Windows.Terminal.SSH"
-      },
-      {
-        "guid": "{3c4615e6-7d0a-5f83-85fc-ee65209483d5}",
-        "hidden": false,
-        "name": "Ubuntu-24.04",
-        "source": "Microsoft.WSL"
-      },
-      {
-        "guid": "{c3953419-a63c-5857-a3ec-6a45a56430e7}",
-        "hidden": false,
-        "name": "Ubuntu",
-        "source": "Microsoft.WSL"
-      },
-      {
-        "guid": "{7cad4f71-1f3d-510d-8a7a-63da8b3190ec}",
-        "hidden": false,
-        "name": "Developer Command Prompt for VS 18",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{7a007e65-f4f7-555a-a65f-6e3e1d3bde84}",
-        "hidden": false,
-        "name": "Developer PowerShell for VS 18",
-        "source": "Windows.Terminal.VisualStudio"
-      },
-      {
-        "guid": "{e41ecf32-9f29-5cba-9807-d5eb2c41fa0d}",
-        "hidden": false,
-        "name": "SSH - mac",
-        "source": "Windows.Terminal.SSH"
-      },
-      {
-        "guid": "{fb7273bd-71d6-582a-b693-d6e546220005}",
-        "hidden": false,
-        "name": "SSH - neopet-ec2",
-        "source": "Windows.Terminal.SSH"
-      },
-      {
-        "guid": "{e07844df-aa05-5e30-a48d-9c1561562da3}",
-        "hidden": false,
-        "name": "SSH - neopet-test",
-        "source": "Windows.Terminal.SSH"
-      },
-      {
-        "guid": "{c3905bb2-6888-54ae-9bb2-4442e14ebc0f}",
-        "hidden": false,
-        "name": "wsl-vpnkit",
-        "source": "Microsoft.WSL"
-      }
-    ]
-  },
-  "rendering.software": true,
-  "schemes": [
+        {
+            "id": null,
+            "keys": "ctrl+c"
+        },
+        {
+            "id": "User.splitPane.A6751878",
+            "keys": "ctrl+shift+d"
+        }
+    ],
+    "launchMode": "default",
+    "newTabMenu":
+    [
+        {
+            "type": "remainingProfiles"
+        },
+        {
+            "allowEmpty": false,
+            "entries":
+            [
+                {
+                    "commandline": null,
+                    "name": null,
+                    "source": "Windows.Terminal.SSH",
+                    "type": "matchProfiles"
+                }
+            ],
+            "icon": "\ue969",
+            "inline": "auto",
+            "name": "SSH",
+            "type": "folder"
+        },
+        {
+            "allowEmpty": false,
+            "entries":
+            [
+                {
+                    "commandline": null,
+                    "name": null,
+                    "source": "Windows.Terminal.SSH",
+                    "type": "matchProfiles"
+                }
+            ],
+            "icon": "\ue969",
+            "inline": "auto",
+            "name": "SSH",
+            "type": "folder"
+        }
+    ],
+    "profiles":
     {
-      "background": "#232136",
-      "black": "#393552",
-      "blue": "#9CCFD8",
-      "brightBlack": "#817C9C",
-      "brightBlue": "#9CCFD8",
-      "brightCyan": "#EA9A97",
-      "brightGreen": "#3E8FB0",
-      "brightPurple": "#C4A7E7",
-      "brightRed": "#EB6F92",
-      "brightWhite": "#E0DEF4",
-      "brightYellow": "#F6C177",
-      "cursorColor": "#59546D",
-      "cyan": "#EA9A97",
-      "foreground": "#E0DEF4",
-      "green": "#3E8FB0",
-      "name": "rose-pine-moon",
-      "purple": "#C4A7E7",
-      "red": "#EB6F92",
-      "selectionBackground": "#312F44",
-      "white": "#E0DEF4",
-      "yellow": "#F6C177"
+        "defaults":
+        {
+            "colorScheme": "Catppuccin Frappe",
+            "cursorShape": "filledBox",
+            "font":
+            {
+                "colorGlyphs": true,
+                "face": "JetBrainsMono Nerd Font",
+                "size": 9,
+                "weight": "medium"
+            },
+            "useAcrylic": false
+        },
+        "list":
+        [
+            {
+                "closeOnExit": "graceful",
+                "commandline": "cmd.exe /k \"%cmder_root%/vendor/init.bat\"",
+                "font":
+                {
+                    "colorGlyphs": true
+                },
+                "guid": "{00000000-0000-0000-ba54-000000000132}",
+                "hidden": false,
+                "icon": "%cmder_root%/icons/cmder.ico",
+                "name": "Cmder",
+                "startingDirectory": "%USERPROFILE%",
+                "useAcrylic": false
+            },
+            {
+                "commandline": "%SystemRoot%/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -NoExit -Command \"Invoke-Expression '. ''%cmder_root%/vendor/profile.ps1'''\"",
+                "guid": "{00000000-0000-0000-ba54-000000000127}",
+                "hidden": false,
+                "icon": "%cmder_root%/icons/cmder.ico",
+                "name": "Cmder :: Powershell",
+                "startingDirectory": "%USERPROFILE%"
+            },
+            {
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": false,
+                "name": "Windows PowerShell"
+            },
+            {
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": false,
+                "name": "Command Prompt"
+            },
+            {
+                "font":
+                {
+                    "size": 10
+                },
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "hidden": false,
+                "name": "PowerShell",
+                "source": "Windows.Terminal.PowershellCore"
+            },
+            {
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "hidden": false,
+                "name": "Azure Cloud Shell",
+                "source": "Windows.Terminal.Azure"
+            },
+            {
+                "guid": "{3fa8ca88-6391-5b59-8ddb-1ce6ed09d7b2}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{bbdabdab-f4a2-5d09-8198-f4471f749eb8}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{9018cde6-c05f-5c80-9b45-4a0cb2563d49}",
+                "hidden": true,
+                "name": "Developer Command Prompt for VS 2019",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{d91b7d5f-cf87-59c9-81fd-885054e0d745}",
+                "hidden": true,
+                "name": "Developer PowerShell for VS 2019",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{4084773c-24ff-5a4e-b4a3-35d9356c7549}",
+                "hidden": true,
+                "name": "Developer Command Prompt for VS 2017",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{d83b884d-8731-575a-83d6-c6554ff098e6}",
+                "hidden": false,
+                "name": "SSH - github.com",
+                "source": "Windows.Terminal.SSH"
+            },
+            {
+                "guid": "{3c4615e6-7d0a-5f83-85fc-ee65209483d5}",
+                "hidden": false,
+                "name": "Ubuntu-24.04",
+                "source": "Microsoft.WSL"
+            },
+            {
+                "guid": "{c3953419-a63c-5857-a3ec-6a45a56430e7}",
+                "hidden": false,
+                "name": "Ubuntu",
+                "source": "Microsoft.WSL"
+            },
+            {
+                "guid": "{7cad4f71-1f3d-510d-8a7a-63da8b3190ec}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 18",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{7a007e65-f4f7-555a-a65f-6e3e1d3bde84}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 18",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{e41ecf32-9f29-5cba-9807-d5eb2c41fa0d}",
+                "hidden": false,
+                "name": "SSH - mac",
+                "source": "Windows.Terminal.SSH"
+            },
+            {
+                "guid": "{fb7273bd-71d6-582a-b693-d6e546220005}",
+                "hidden": false,
+                "name": "SSH - neopet-ec2",
+                "source": "Windows.Terminal.SSH"
+            },
+            {
+                "guid": "{e07844df-aa05-5e30-a48d-9c1561562da3}",
+                "hidden": false,
+                "name": "SSH - neopet-test",
+                "source": "Windows.Terminal.SSH"
+            },
+            {
+                "guid": "{c3905bb2-6888-54ae-9bb2-4442e14ebc0f}",
+                "hidden": false,
+                "name": "wsl-vpnkit",
+                "source": "Microsoft.WSL"
+            }
+        ]
     },
-    {
-      "name": "Catppuccin Frappe",
-      "background": "#303446",
-      "foreground": "#C6D0F5",
-      "cursorColor": "#F2D5CF",
-      "selectionBackground": "#626880",
-      "black": "#51576D",
-      "red": "#E78284",
-      "green": "#A6D189",
-      "yellow": "#E5C890",
-      "blue": "#8CAAEE",
-      "purple": "#F4B8E4",
-      "cyan": "#81C8BE",
-      "white": "#B5BFE2",
-      "brightBlack": "#626880",
-      "brightRed": "#E78284",
-      "brightGreen": "#A6D189",
-      "brightYellow": "#E5C890",
-      "brightBlue": "#8CAAEE",
-      "brightPurple": "#F4B8E4",
-      "brightCyan": "#81C8BE",
-      "brightWhite": "#A5ADCE"
-    }
-  ],
-  "showTabsInTitlebar": true,
-  "showTerminalTitleInTitlebar": true,
-  "tabWidthMode": "compact",
-  "theme": "Catppuccin Frappe",
-  "themes": [
-    {
-      "name": "Catppuccin Frappe",
-      "tab": {
-        "background": "#303446FF",
-        "iconStyle": "default",
-        "showCloseButton": "always",
-        "unfocusedBackground": null
-      },
-      "tabRow": {
-        "background": "#292C3CFF",
-        "unfocusedBackground": "#232634FF"
-      },
-      "window": {
-        "applicationTheme": "dark",
-        "experimental.rainbowFrame": false,
-        "frame": null,
-        "unfocusedFrame": null,
-        "useMica": false
-      }
-    },
-    {
-      "name": "rose-pine-moon",
-      "tab": {
-        "background": "#232136FF",
-        "iconStyle": "default",
-        "showCloseButton": "always",
-        "unfocusedBackground": null
-      },
-      "tabRow": {
-        "background": "#393552FF",
-        "unfocusedBackground": "#908CAAFF"
-      },
-      "window": {
-        "applicationTheme": "dark",
-        "experimental.rainbowFrame": false,
-        "frame": null,
-        "unfocusedFrame": null,
-        "useMica": false
-      }
-    }
-  ],
-  "windowingBehavior": "useNew"
+    "rendering.software": true,
+    "schemes":
+    [
+        {
+            "background": "#303446",
+            "black": "#51576D",
+            "blue": "#8CAAEE",
+            "brightBlack": "#626880",
+            "brightBlue": "#8CAAEE",
+            "brightCyan": "#81C8BE",
+            "brightGreen": "#A6D189",
+            "brightPurple": "#F4B8E4",
+            "brightRed": "#E78284",
+            "brightWhite": "#A5ADCE",
+            "brightYellow": "#E5C890",
+            "cursorColor": "#F2D5CF",
+            "cyan": "#81C8BE",
+            "foreground": "#C6D0F5",
+            "green": "#A6D189",
+            "name": "Catppuccin Frappe",
+            "purple": "#F4B8E4",
+            "red": "#E78284",
+            "selectionBackground": "#626880",
+            "white": "#B5BFE2",
+            "yellow": "#E5C890"
+        },
+        {
+            "background": "#232136",
+            "black": "#393552",
+            "blue": "#9CCFD8",
+            "brightBlack": "#817C9C",
+            "brightBlue": "#9CCFD8",
+            "brightCyan": "#EA9A97",
+            "brightGreen": "#3E8FB0",
+            "brightPurple": "#C4A7E7",
+            "brightRed": "#EB6F92",
+            "brightWhite": "#E0DEF4",
+            "brightYellow": "#F6C177",
+            "cursorColor": "#59546D",
+            "cyan": "#EA9A97",
+            "foreground": "#E0DEF4",
+            "green": "#3E8FB0",
+            "name": "rose-pine-moon",
+            "purple": "#C4A7E7",
+            "red": "#EB6F92",
+            "selectionBackground": "#312F44",
+            "white": "#E0DEF4",
+            "yellow": "#F6C177"
+        }
+    ],
+    "showTabsInTitlebar": true,
+    "showTerminalTitleInTitlebar": true,
+    "tabWidthMode": "compact",
+    "theme": "Catppuccin Frappe",
+    "themes":
+    [
+        {
+            "name": "Catppuccin Frappe",
+            "tab":
+            {
+                "background": "#303446FF",
+                "iconStyle": "default",
+                "showCloseButton": "always",
+                "unfocusedBackground": null
+            },
+            "tabRow":
+            {
+                "background": "#292C3CFF",
+                "unfocusedBackground": "#232634FF"
+            },
+            "window":
+            {
+                "applicationTheme": "dark",
+                "experimental.rainbowFrame": false,
+                "frame": null,
+                "unfocusedFrame": null,
+                "useMica": false
+            }
+        },
+        {
+            "name": "rose-pine-moon",
+            "tab":
+            {
+                "background": "#232136FF",
+                "iconStyle": "default",
+                "showCloseButton": "always",
+                "unfocusedBackground": null
+            },
+            "tabRow":
+            {
+                "background": "#393552FF",
+                "unfocusedBackground": "#908CAAFF"
+            },
+            "window":
+            {
+                "applicationTheme": "dark",
+                "experimental.rainbowFrame": false,
+                "frame": null,
+                "unfocusedFrame": null,
+                "useMica": false
+            }
+        }
+    ],
+    "windowingBehavior": "useNew"
 }
