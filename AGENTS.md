@@ -55,7 +55,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 |--------|--------|
 | `.config/nvim` | `$HOME\.config\nvim` |
 | `.config/wezterm` | `$HOME\.config\wezterm` |
-| `.config/windows-terminal/catppuccin-frappe.json` | `$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\dotfiles\catppuccin-frappe.json` (Catppuccin Frappé color scheme; **both** WT stable + Preview read this edition-agnostic fragments dir, so one file themes both; select it once per app via Settings → Defaults → Color scheme — deploy never touches `settings.json`) |
+| `.config/windows-terminal/settings.json` | `$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json` **and** `...\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json` (one shared settings file for both WT editions; Frappe scheme embedded in `schemes`; WT writes through the symlink, so UI edits in either edition show up in `git diff`; the old `Fragments\dotfiles` theme fragment is retired and removed by deploy) |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
 | `.config/kanata` | `$HOME\.config\kanata` (Kanata 60%-keyboard remapper; **Windows uses `kanata.win.kbd`** — the macOS `kanata.kbd` has `fn`/media keys that won't compile here. Driver-free LLHOOK; "gaming" = `kanata.exe` stopped. Toggle: YASB `kanata_toggle` pill, `Hyper+G`, or service-mode `g` (both). Autostarts via a logon Scheduled Task.) |
 | `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
