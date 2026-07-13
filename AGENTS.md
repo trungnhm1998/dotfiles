@@ -56,6 +56,8 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.config/windows-terminal/settings.json` | `$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json` **and** `...\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json` (one shared settings file for both WT editions; Frappe scheme embedded in `schemes`; WT writes through the symlink, so UI edits in either edition show up in `git diff`; the old `Fragments\dotfiles` theme fragment is retired and removed by deploy) |
 | `.config/komorebi` | `$HOME\.config\komorebi` |
 | `.config/kanata` | `$HOME\.config\kanata` (Kanata 60%-keyboard remapper; **Windows uses `kanata.win.kbd`** — the macOS `kanata.kbd` has `fn`/media keys that won't compile here. Driver-free LLHOOK; "gaming" = `kanata.exe` stopped. Toggle: YASB `kanata_toggle` pill, `Hyper+G`, or service-mode `g` (both). Autostarts via a logon Scheduled Task.) |
+| `.config/profile` | `$HOME\.config\profile` (gaming/work profile toggle — `profile-toggle.ps1` engine + `$Apps` table; entry points: pwsh `game`/`work`, YASB pill, AHK service-mode `g`, Raycast. Marker `~/.config/dotfiles/profile` drives the `dotfiles-profile-boot` logon task; elevated ops via `dotfiles-profile-elevated`. Design: `docs/specs/2026-07-13-gaming-profile-design.md`) |
+| `.config/wsl/wslconfig` | `$HOME\.wslconfig` (WSL2 VM limits: 24GB/12cpu, dropcache reclaim; applies after `wsl --shutdown`) |
 | `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
 | `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
 | `.config/psmux` | `$HOME\.config\psmux` (psmux — native-Windows tmux; reads tmux-syntax config but **not** TPM plugins. Launch via `tmux`/`psmux`/`pmux` from the pwsh profile, which sets the `mux_prog=psmux` user var so `wezterm.lua` hands over `Ctrl+Space`. Manual launch only — no auto-attach.) |
@@ -178,6 +180,7 @@ end
 | Hammerspoon (macOS) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
 | stackline (macOS) | `.config/hammerspoon/stackline/` (vendored `poddarh` fork) + `stackline_config.lua` (Frappe overrides); notes `docs/superpowers/stackline-fork-notes.md` |
 | Kanata (macOS) | `.config/kanata/kanata.kbd` (+ `dev.kanata.kanata.plist`) |
+| Profile toggle (Windows) | `.config/profile/profile-toggle.ps1` (engine; `game`/`work` in pwsh) · `.config/profile/profile-elevated.ps1` (elevated task body) |
 | Zed | `zed/settings.unix.json` (mac/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
 | IdeaVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
