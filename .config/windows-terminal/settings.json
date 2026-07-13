@@ -34,7 +34,7 @@
     "copyFormatting": "none",
     "copyOnSelect": true,
     "defaultProfile": "{9d2c6897-dcbc-4d63-8a80-cf4bffaadb6c}",
-    "firstWindowPreference": "persistedLayoutAndContent",
+    "firstWindowPreference": "defaultProfile",
     "keybindings":
     [
         {
