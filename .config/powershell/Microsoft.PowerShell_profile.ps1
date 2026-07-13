@@ -324,7 +324,10 @@ function game
 }
 function work
 {
-    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Work
+    param([switch]$Reboot)
+    $toggleArgs = @('-Work')
+    if ($Reboot) { $toggleArgs += '-Reboot' }
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') @toggleArgs
 }
 
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops

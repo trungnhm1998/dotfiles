@@ -6,7 +6,7 @@
       -Gaming | -Work  -> switch explicitly (idempotent)
       -Boot            -> replay marker profile at logon (staggered starts)
       -State           -> print bar glyph (yasb pill poll)
-      -Reboot          -> with -Gaming: write marker then reboot clean
+      -Reboot          -> with -Gaming/-Work: write marker then reboot clean
       -NoHypervisor    -> with -Gaming -Reboot: also bcdedit hypervisor off (FACEIT/ESEA lane)
 #>
 param(
@@ -132,8 +132,13 @@ function Set-ProfileMarker {
 }
 
 function Write-ProfileLog {
+    # File is the source of truth; echo to the console too so an interactive
+    # `game`/`work` shows progress instead of sitting mute through the slow
+    # Docker teardown (yasb/AHK callers discard stdout, so this is safe).
     param([Parameter(Mandatory)][string]$Message)
-    "$(Get-Date -Format s)  $Message" | Add-Content -Path $LogPath
+    $line = "$(Get-Date -Format s)  $Message"
+    $line | Add-Content -Path $LogPath
+    Write-Host $line
 }
 
 function Write-ProfileState {
@@ -239,7 +244,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     } elseif ($Gaming) {
         Invoke-ProfileSwitch -Direction 'gaming' -WithHypervisorOff:$NoHypervisor -RebootAfter:$Reboot
     } elseif ($Work) {
-        Invoke-ProfileSwitch -Direction 'work'
+        Invoke-ProfileSwitch -Direction 'work' -RebootAfter:$Reboot
     } else {
         # bare call = toggle (yasb pill click)
         $next = if ((Get-ProfileMarker) -eq 'gaming') { 'work' } else { 'gaming' }
