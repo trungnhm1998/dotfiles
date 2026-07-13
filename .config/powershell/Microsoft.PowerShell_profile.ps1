@@ -313,6 +313,20 @@ function tablet-on
     "Get-PnpDevice -Class Display | Where-Object FriendlyName -match 'SuperDisplay|SudoMaker' | Enable-PnpDevice -Confirm:`$false -EA SilentlyContinue; Start-Service SuperDisplay -EA SilentlyContinue"
 }
 
+# --- gaming/work profile (see .config/profile/profile-toggle.ps1) ---
+function game
+{
+    param([switch]$Reboot, [switch]$NoHypervisor)
+    $toggleArgs = @('-Gaming')
+    if ($Reboot)       { $toggleArgs += '-Reboot' }
+    if ($NoHypervisor) { $toggleArgs += '-NoHypervisor' }   # FACEIT/ESEA lane; NOT for Valorant
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') @toggleArgs
+}
+function work
+{
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Work
+}
+
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
