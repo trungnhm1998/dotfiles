@@ -37,9 +37,9 @@ Model swap within a box is llama-swap's job: request a different model name → 
 
 | Name | Model | Quant | Placement | Expected |
 |---|---|---|---|---|
-| `fast` | Qwen3.6-35B-A3B (Apr 2026) | IQ4_XS ~19 GB | mostly GPU, few experts CPU | ~40–60 tok/s |
-| `big` | Qwen3-Coder-Next 80B-A3B (Feb 2026, 71.3% SWE-bench Verified, purpose-built for agent scaffolds) | UD-Q4_K_XL ~48 GB (Unsloth GGUF) | attention+KV GPU, experts RAM | ~15–30 tok/s (extrapolated — **must verify**) |
-| `tab-qwen2.5-coder-1.5b` | Qwen2.5-Coder-1.5B **base** (FIM-trained; Continue's validated autocomplete pick) | Q8_0 ~2 GB | GPU, **always loaded** | sub-100 ms TTFT target |
+| `fast` | Qwen3.6-35B-A3B (Apr 2026) | UD-IQ4_XS ~17.7 GB (`unsloth/Qwen3.6-35B-A3B-GGUF` — no plain IQ4_XS there; fallback `bartowski/Qwen_Qwen3.6-35B-A3B-GGUF` IQ4_XS 19.7 GB) | mostly GPU, few experts CPU | ~40–60 tok/s |
+| `big` | Qwen3-Coder-Next 80B-A3B (Feb 2026, 71.3% SWE-bench Verified, purpose-built for agent scaffolds) | UD-Q4_K_XL ~49.6 GB single file (`unsloth/Qwen3-Coder-Next-GGUF` — size dropped from repo name) | attention+KV GPU, experts RAM | ~15–30 tok/s (extrapolated — **must verify**) |
+| `tab-qwen2.5-coder-1.5b` | Qwen2.5-Coder-1.5B **base** (FIM-trained; Continue's validated autocomplete pick) | Q8_0 ~1.65 GB (`mradermacher/Qwen2.5-Coder-1.5B-GGUF` — bartowski only quantized Instruct) | GPU, **always loaded** | sub-100 ms TTFT target |
 
 **Long context:** `big` runs at **256k context** (`-c 262144`). Qwen3-Coder-Next uses hybrid attention (Gated DeltaNet — only ~¼ of layers keep full KV), so KV at 256k is ~3 GB at q8_0 and stays in VRAM — no speed penalty beyond prompt-processing time. Verify actual KV size in llama-server's load log during P1. `fast` stays at 64k: standard-attention KV at 200k would be ~10 GB (q8_0) and doesn't fit 16 GB alongside weights; `--no-kv-offload` (KV in system RAM) exists as an escape hatch but decodes at ~2–3 tok/s at high fill — not viable for agent loops. Long-context work routes to `big` by design.
 
@@ -53,21 +53,21 @@ models:
   "fast":
     cmd: >
       H:\llm\llama.cpp\llama-server.exe
-      -m H:\llm-models\Qwen3.6-35B-A3B-IQ4_XS.gguf
+      -m H:\llm-models\Qwen3.6-35B-A3B-UD-IQ4_XS.gguf
       --port ${PORT} -ngl 99 --n-cpu-moe 8
       --jinja -fa on -c 65536 --cache-type-k q8_0 --cache-type-v q8_0
     ttl: 900
   "big":
     cmd: >
       H:\llm\llama.cpp\llama-server.exe
-      -m H:\llm-models\Qwen3-Coder-Next-80B-A3B-UD-Q4_K_XL.gguf
+      -m H:\llm-models\Qwen3-Coder-Next-UD-Q4_K_XL.gguf
       --port ${PORT} -ngl 99 --n-cpu-moe 28
       --jinja -fa on -c 262144 --cache-type-k q8_0 --cache-type-v q8_0
     ttl: 900
   "tab-qwen2.5-coder-1.5b":
     cmd: >
       H:\llm\llama.cpp\llama-server.exe
-      -m H:\llm-models\Qwen2.5-Coder-1.5B-Q8_0.gguf
+      -m H:\llm-models\Qwen2.5-Coder-1.5B.Q8_0.gguf
       --port ${PORT} -ngl 99 -c 8192
     # no ttl — always on
 ```
@@ -153,6 +153,8 @@ P1 Main PC   install llama-swap + llama.cpp → download `fast`
 P2 Mac       lms daemon + MLX model → curl from main PC over LAN → opencode + claude-local smoke test
 P3 3090 Ti   llama-swap + firewall rule + WoL check → both models → smoke test from main PC
 ```
+
+**P1 execution brief: `wargames/03-localai.md`** (wargamed 2026-07-06) — move-by-move route with expected observations, counter-moves, forks, and sub-agent delegation (release-recon agent, background download lane, client-wiring agent). The P1 executor follows it verbatim; this spec stays the architecture source of truth.
 
 Gate for every phase: a real agentic task completes end-to-end with working tool calls. Benchmark numbers (tok/s at 0 and ~30k ctx) recorded in the implementation notes for future regression checks.
 
