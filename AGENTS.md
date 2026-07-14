@@ -60,7 +60,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.config/kanata` | `$HOME\.config\kanata` (Kanata 60%-keyboard remapper; **Windows uses `kanata.win.kbd`** — the macOS `kanata.kbd` has `fn`/media keys that won't compile here. Driver-free LLHOOK; "gaming" = `kanata.exe` stopped. Toggle: YASB `kanata_toggle` pill, `Hyper+G`, or service-mode `g` (both). Startup is owned by the `dotfiles-profile-boot` profile task (work boots start it, gaming boots keep it off) — no standalone logon task.) |
 | `.config/profile` | `$HOME\.config\profile` (gaming/work profile toggle — `profile-toggle.ps1` engine + `$Apps` table; entry points: pwsh `game`/`work`, YASB pill, AHK service-mode `g`, Raycast. Marker `~/.config/dotfiles/profile` drives the `dotfiles-profile-boot` logon task; elevated ops via `dotfiles-profile-elevated`. Design: `docs/specs/2026-07-13-gaming-profile-design.md`) |
 | `.config/wsl/wslconfig` | `$HOME\.wslconfig` (WSL2 VM limits: 24GB/12cpu, dropcache reclaim; applies after `wsl --shutdown`) |
-| `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`) |
+| `.config/yasb` | `$HOME\.config\yasb` (Windows status bar; reload with `yasbc reload`; `Hyper+B` / pwsh `bar` toggle the bar AND komorebi's work-area offsets via `yasb-toggle.ps1` — offsets read live from komorebi.json) |
 | `.config/zellij` | `$HOME\.config\zellij` (via `ZELLIJ_CONFIG_DIR`; note: layout pickers need `layout_dir` set in config.kdl — Zellij's `read_dir` won't enumerate custom layouts through a Windows symlink) |
 | `.config/psmux` | `$HOME\.config\psmux` (psmux — native-Windows tmux; reads tmux-syntax config but **not** TPM plugins. Launch via `tmux`/`psmux`/`pmux` from the pwsh profile, which sets the `mux_prog=psmux` user var so `wezterm.lua` hands over `Ctrl+Space`. Manual launch only — no auto-attach.) |
 | `.config/yazi` | `$env:APPDATA\yazi\config` (note: different from XDG) |
@@ -176,7 +176,7 @@ end
 | Starship | `.config/starship.toml` |
 | Yazi / Lazygit | `.config/yazi/`, `.config/lazygit/config.yml` |
 | Komorebi (Windows) | `.config/komorebi/komorebi.json` |
-| YASB (Windows status bar) | `.config/yasb/config.yaml` + `styles.css` (reload: `yasbc reload`) |
+| YASB (Windows status bar) | `.config/yasb/config.yaml` + `styles.css` (reload: `yasbc reload`) · `.config/yasb/yasb-toggle.ps1` (bar+offset toggle: `Hyper+B` / pwsh `bar`) |
 | Kanata (Windows) | `.config/kanata/kanata.win.kbd` (config) · `.config/kanata/kanata-toggle.ps1` (start/stop/`-State`/`-Off`) |
 | Yabai (macOS) | `.config/yabai/yabairc`; signal/helper scripts `.config/yabai/scripts/` |
 | Hammerspoon (macOS) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
