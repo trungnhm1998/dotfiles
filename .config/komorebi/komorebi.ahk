@@ -158,6 +158,9 @@ OLED_Toggle(*) {                             ; cycle: static -> invisible -> agg
 ; Keyboard work/gaming toggle (Kanata on/off) — mirrors the YASB kanata pill.
 ^!+#g::Run('pwsh -NoProfile -WindowStyle Hidden -File "' EnvGet("USERPROFILE") '\.config\kanata\kanata-toggle.ps1"', , "Hide")
 
+; Status-bar toggle (YASB stop/start + komorebi work-area offsets) — mirrors pwsh `bar`.
+^!+#b::Run('pwsh -NoProfile -WindowStyle Hidden -File "' EnvGet("USERPROFILE") '\.config\yasb\yasb-toggle.ps1"', , "Hide")
+
 ; ============================================================
 ; Hyper (^!+#) — focus / act layer
 ; ============================================================
