@@ -3,7 +3,6 @@
     "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
     "ENABLE_TOOL_SEARCH": "auto",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
   },
   "includeCoAuthoredBy": false,
@@ -182,6 +181,7 @@
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
+  "showThinkingSummaries": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
@@ -193,6 +193,5 @@
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "showThinkingSummaries": true
+  "skipAutoPermissionPrompt": true
 }

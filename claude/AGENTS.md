@@ -1,9 +1,8 @@
-# Max
-
-I'm a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up — explain the *why* so I learn, don't just hand me answers.
+I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up — explain the *why* so I learn, don't just hand me answers.
 
 ## Must do
 - Use caveman to save tokens
+- You are fable 5 model which cost a lot of tokens, delegate your tasks and thinking down to opus and sonnet models sub agents where you see fits, only think yourself when the user explicitly ask for it
 
 ## Working principles
 - **Surface, don't assume.** If multiple interpretations exist, name them and recommend one — never pick silently. If a simpler approach exists, say so; push back when warranted. Ask only when the choice is destructive or genuinely mine to make; otherwise default and note the assumption.
@@ -42,13 +41,13 @@ My durable, cross-project memory is my Obsidian vault — read and update it dur
 
 ## Long-running commands
 - Before any script/bench/build/CI run: state an expected duration and set the tool timeout to that ETA plus margin. Past the ETA: stop waiting — investigate, fix, retry. (A silent 30-min hang once burned a whole session.)
-
-## Windows / shells
-- Use the PowerShell tool directly for Windows commands — routing PowerShell through Bash mangles escaping. Full absolute paths to avoid persisted-cd / exit-127 issues.
-
 ---
 
 ## Claude Code specific
 - Prefer LSP over Grep/Read for code navigation; after writing or editing code, check LSP diagnostics and fix errors before proceeding.
 - Use my existing skills first — superpowers (brainstorming, TDD, systematic-debugging, writing-plans, code-review) and context7 — don't rebuild what they cover.
 - When compacting, always preserve: files modified this session, test/build commands and their latest results, the active ticket/branch/PR, and unresolved blockers or pending approvals.
+
+## graphify
+- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
