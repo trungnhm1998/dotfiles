@@ -335,6 +335,13 @@ function work
     & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Work -Reboot:$Reboot
 }
 
+# --- status bar toggle (see .config/yasb/yasb-toggle.ps1) ---
+function bar
+{
+    param([switch]$DryRun)
+    & (Join-Path $HOME '.config\yasb\yasb-toggle.ps1') -DryRun:$DryRun
+}
+
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
