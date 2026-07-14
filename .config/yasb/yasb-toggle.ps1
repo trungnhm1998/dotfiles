@@ -57,7 +57,7 @@ function Invoke-YasbToggle {
     param([switch]$DryRun)
 
     $running = Test-YasbRunning
-    $offsets = Get-MonitorOffsets
+    $offsets = @(Get-MonitorOffsets)
 
     # Debounce double-fires (hotkey mash): second invocation mid-toggle is a no-op.
     $mutex = [System.Threading.Mutex]::new($false, 'Local\yasb-toggle')
