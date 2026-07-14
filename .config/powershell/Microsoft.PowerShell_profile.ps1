@@ -342,6 +342,15 @@ function bar
     & (Join-Path $HOME '.config\yasb\yasb-toggle.ps1') -DryRun:$DryRun
 }
 
+# --- keyboard remap toggle (see .config/kanata/kanata-toggle.ps1) ---
+# Named kbd, not kanata: a kanata function would shadow kanata.exe and break the
+# script's in-process Get-Command fallback.
+function kbd
+{
+    param([switch]$State, [switch]$Off)
+    & (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') -State:$State -Off:$Off
+}
+
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
