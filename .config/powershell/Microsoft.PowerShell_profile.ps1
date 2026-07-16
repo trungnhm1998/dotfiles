@@ -351,6 +351,19 @@ function kbd
     & (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') -State:$State -Off:$Off
 }
 
+# --- worktree local-file seeding (see dotfiles scripts/worktree-seed.sh) ---
+# Copy local-only files (.worktreeinclude manifest) from the main worktree into a
+# fresh worktree. bash is the single cross-platform source of truth; these are thin
+# pass-throughs. `wt-seed <path>` seeds one; `wt-seed-all` re-pushes to every worktree.
+function wt-seed
+{
+    & bash "$HOME\dotfiles\scripts\worktree-seed.sh" @args
+}
+function wt-seed-all
+{
+    & bash "$HOME\dotfiles\scripts\worktree-seed.sh" --all
+}
+
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
