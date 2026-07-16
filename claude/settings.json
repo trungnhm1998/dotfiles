@@ -121,6 +121,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "EnterWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/worktree-seed-hook.sh",
+            "timeout": 15,
+            "statusMessage": "seed worktree locals"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
