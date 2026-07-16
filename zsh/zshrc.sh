@@ -182,3 +182,9 @@ fi
 # in interactive shells only -- build tools exec `cc` via PATH so they're unaffected; run
 # `command cc` for the compiler.
 cc() { ( export ANTHROPIC_BASE_URL="http://localhost:8080"; exec claude "$@" ) }
+
+# --- worktree local-file seeding (see dotfiles scripts/worktree-seed.sh) ---
+# Copy local-only files (.worktreeinclude manifest) from the main worktree into a fresh
+# one. `wt-seed <path>` seeds one worktree; `wt-seed-all` re-pushes to every worktree.
+wt-seed()     { bash "$HOME/dotfiles/scripts/worktree-seed.sh" "$@"; }
+wt-seed-all() { bash "$HOME/dotfiles/scripts/worktree-seed.sh" --all; }
