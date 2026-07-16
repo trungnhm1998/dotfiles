@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2319  # deliberate assert idiom: [ cond ]; check $?
 # Smoke test for scripts/worktree-seed.sh. Builds a throwaway git repo whose
 # manifest exercises every rule (dir entry, file entry, symlink dereference,
 # recursion-guard decoy, absolute-path + ".." rejection), adds worktrees, runs
@@ -15,6 +16,7 @@ bad()  { printf 'FAIL - %s\n' "$1"; fail=1; }
 check() { if [ "$1" -eq 0 ]; then ok "$2"; else bad "$2"; fi; }
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/wtseed.XXXXXX")"
+# shellcheck disable=SC2329  # invoked via trap EXIT
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT
 
@@ -79,7 +81,7 @@ printf '%s' "$out" | grep -q "skip path with"; check $? ".. path rejected with w
 printf '%s' "$out" | grep -q "seeded .* items ->"; check $? "summary line printed"
 
 # --- Second run is idempotent ---
-out2="$(ORCA_ROOT_PATH="$root" bash "$seed" "$wt1" 2>&1)"; rc2=$?
+ORCA_ROOT_PATH="$root" bash "$seed" "$wt1" >/dev/null 2>&1; rc2=$?
 check "$rc2" "second run exits 0 (idempotent)"
 [ -f "$wt1/.claude/skills/foo.md" ]; check $? "files still present after re-seed"
 
