@@ -322,16 +322,60 @@ function tablet-on
 }
 
 # --- gaming/work profile (see .config/profile/profile-toggle.ps1) ---
+# -Lite: WM stack only (kanata, komorebi+ahk+masir, yasb). Slack/VPN/Docker/Steam untouched,
+# no marker write, no elevated task -- for a game that only trips over the input/WM hooks.
+# The three toggles are blind flips, so gate each on its process (same as $Apps in
+# profile-toggle.ps1). Down: yasb before komorebi (its offset-zeroing needs komorebi alive).
+# Up: reverse -- yasb-toggle applies offsets before starting the bar.
+function Set-WmStack
+{
+    param([Parameter(Mandatory)][ValidateSet('up', 'down')][string]$Dir)
+    $kanata = Join-Path $HOME '.config\kanata\kanata-toggle.ps1'
+    $komo   = Join-Path $HOME '.config\komorebi\wm-toggle.ps1'
+    $yasb   = Join-Path $HOME '.config\yasb\yasb-toggle.ps1'
+    $kanataUp = [bool](Get-Process kanata*  -ErrorAction SilentlyContinue)
+    $komoUp   = [bool](Get-Process komorebi -ErrorAction SilentlyContinue)
+    $yasbUp   = [bool](Get-Process yasb     -ErrorAction SilentlyContinue)
+    if ($Dir -eq 'down')
+    {
+        if ($kanataUp)
+        { & $kanata
+        }
+        if ($yasbUp)
+        { & $yasb
+        }
+        if ($komoUp)
+        { & $komo
+        }
+    } else
+    {
+        if (-not $komoUp)
+        { & $komo
+        }
+        if (-not $yasbUp)
+        { & $yasb
+        }
+        if (-not $kanataUp)
+        { & $kanata
+        }
+    }
+}
 function game
 {
     # Real switches, not a splatted string array -- splatted '-Gaming' strings land
     # in $args unbound (silent bare toggle). -NoHypervisor: FACEIT/ESEA lane; NOT Valorant.
-    param([switch]$Reboot, [switch]$NoHypervisor)
+    param([switch]$Reboot, [switch]$NoHypervisor, [switch]$Lite)
+    if ($Lite)
+    { Set-WmStack down; return
+    }
     & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Gaming -Reboot:$Reboot -NoHypervisor:$NoHypervisor
 }
 function work
 {
-    param([switch]$Reboot)
+    param([switch]$Reboot, [switch]$Lite)
+    if ($Lite)
+    { Set-WmStack up; return
+    }
     & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Work -Reboot:$Reboot
 }
 
