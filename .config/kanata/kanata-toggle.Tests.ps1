@@ -15,3 +15,29 @@ Describe 'Get-KanataToggleAction' {
         $a.Cfg  | Should -Be 'C:\fake\config\kanata\kanata.win.kbd'
     }
 }
+
+Describe 'Invoke-KanataToggle' {
+    It 'launches kanata with --no-wait so a bad config fails visibly' {
+        Mock Test-KanataRunning { $false }
+        Mock Start-Process { }
+        Mock Add-Content { }
+
+        Invoke-KanataToggle
+
+        Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter {
+            $ArgumentList -contains '--no-wait'
+        }
+    }
+
+    It 'still passes the win.kbd config path' {
+        Mock Test-KanataRunning { $false }
+        Mock Start-Process { }
+        Mock Add-Content { }
+
+        Invoke-KanataToggle
+
+        Should -Invoke Start-Process -Times 1 -Exactly -ParameterFilter {
+            $ArgumentList -contains 'C:\fake\config\kanata\kanata.win.kbd'
+        }
+    }
+}

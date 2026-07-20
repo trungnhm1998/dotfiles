@@ -70,7 +70,11 @@ function Invoke-KanataToggle {
         if ($action.Verb -eq 'stop') {
             Stop-Kanata
         } else {
-            Start-Process -FilePath (Get-KanataExe) -ArgumentList '--cfg', $action.Cfg -WindowStyle Hidden
+            # --no-wait: without it a config parse error blocks forever on kanata's
+            # "Press enter to exit" prompt behind the hidden window. The process lingers,
+            # Test-KanataRunning reports it alive, and the yasb pill claims the keyboard
+            # is remapped when it is not.
+            Start-Process -FilePath (Get-KanataExe) -ArgumentList '--cfg', $action.Cfg, '--no-wait' -WindowStyle Hidden
         }
         "$(Get-Date -Format s)  -> $($action.Verb)" |
             Add-Content -Path (Join-Path $env:TEMP 'kanata-toggle.log')
