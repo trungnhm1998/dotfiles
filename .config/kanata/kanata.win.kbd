@@ -7,12 +7,14 @@
   concurrent-tap-hold yes
 )
 
-;; Hands for the opposite-hand rule. Hold resolves when the next key is on the
-;; other hand and has been pressed AND released; a same-hand press resolves as
-;; an immediate tap (same-hand defaults to tap). Hand lookup is by key, NOT by
-;; defsrc membership.
-;; Consequence: every chord must cross hands. Ctrl+C is k+c (right Ctrl), NOT
-;; d+c - d and c are both left, so d+c emits "dc".
+;; Hands for the opposite-hand rule. Two ways a hold can win:
+;;   cross-hand  - resolves the instant the other-hand key is pressed AND
+;;                 released. No timeout. This is the fast path k+c buys you.
+;;   same-hand   - only via the timeout: hold past $ht and (timeout hold)
+;;                 latches the mod. So Ctrl+C as d+c works, it just costs $ht.
+;; A fast same-hand ROLL inside $ht resolves to plain taps instead - that is
+;; what keeps typing "sad" from firing phantom modifiers.
+;; Hand lookup is by key and is independent of defsrc membership.
 ;; Keys absent from defhands (space, caps, ralt) fall through to
 ;; (unknown-hand ignore) and wait for the timeout. Never set (unknown-hand tap).
 (defhands
