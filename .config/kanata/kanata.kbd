@@ -16,12 +16,14 @@
 )
 
 ;; Hands for the opposite-hand rule. Hold resolves when the next key is on the
-;; other hand and has been pressed AND released; same-hand keys resolve as an
-;; immediate tap. Keys absent from defhands route to (unknown-hand ignore),
-;; which waits for the timeout. That is deliberate: this defsrc omits most of
-;; the alpha block, so Cmd+Q / Cmd+W / Cmd+C resolve on the $ht timeout rather
-;; than at typing speed. Do NOT "fix" that with (unknown-hand tap) — it would
-;; make Cmd+C emit "dc".
+;; other hand and has been pressed AND released; a same-hand press resolves as
+;; an immediate tap (same-hand defaults to tap). Hand lookup is by key, NOT by
+;; defsrc membership - the letters below get a hand even though this sparse
+;; defsrc omits most of them.
+;; Consequence: every chord must cross hands. Cmd+C is k+c (right Cmd), NOT
+;; d+c - d and c are both left, so d+c emits "dc".
+;; Keys absent from defhands (space, caps, the F-row, fn, ralt) route to
+;; (unknown-hand ignore) and wait for the timeout. Never set (unknown-hand tap).
 (defhands
   (left  q w e r t a s d f g z x c v b)
   (right y u i o p h j k l ; n m , . /))
@@ -66,13 +68,14 @@
   spc  (tap-hold 200 200 spc (layer-while-held nav))
 
   ;; Fn/Globe: emit the real fn (keeps fn-c Control Center, emoji picker, etc.)
-  ;; AND hold = the media layer below.
+  ;; AND hold = the media layer below. Restores the Fn+F-row media keys that
+  ;; kanata's keyboard grab otherwise turns into plain F-keys.
   fnl  (multi fn (layer-while-held funcs))
 
   ;; --- Gaming layer toggle (Fn+G) ---
-  game-on   (layer-switch gaming)
-  game-off  (layer-switch base)
-  fnl-game  (multi fn (layer-while-held funcs-game))
+  game-on   (layer-switch gaming)                     ;; WORK -> GAME
+  game-off  (layer-switch base)                       ;; GAME -> WORK
+  fnl-game  (multi fn (layer-while-held funcs-game))  ;; Fn in GAME -> exit-aware funcs
 )
 
 (defsrc

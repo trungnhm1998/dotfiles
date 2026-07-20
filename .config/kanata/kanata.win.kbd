@@ -8,10 +8,13 @@
 )
 
 ;; Hands for the opposite-hand rule. Hold resolves when the next key is on the
-;; other hand and has been pressed AND released; same-hand keys resolve as an
-;; immediate tap. Keys absent here fall through to (unknown-hand ignore), which
-;; waits for the timeout — correct, and required so shortcuts using letters
-;; outside defsrc still work.
+;; other hand and has been pressed AND released; a same-hand press resolves as
+;; an immediate tap (same-hand defaults to tap). Hand lookup is by key, NOT by
+;; defsrc membership.
+;; Consequence: every chord must cross hands. Ctrl+C is k+c (right Ctrl), NOT
+;; d+c - d and c are both left, so d+c emits "dc".
+;; Keys absent from defhands (space, caps, ralt) fall through to
+;; (unknown-hand ignore) and wait for the timeout. Never set (unknown-hand tap).
 (defhands
   (left  q w e r t a s d f g z x c v b)
   (right y u i o p h j k l ; n m , . /))
