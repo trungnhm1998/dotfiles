@@ -7,23 +7,21 @@
   concurrent-tap-hold yes
 )
 
-(defvar
-  tt      200    ;; tap timeout
-  ht-sft  160    ;; s / l  — Shift (ring)
-  ht-ctl  300    ;; a / ;  — Ctrl  (pinky)
-  ht-alt  400    ;; d / k  — Alt   (middle)
-  ht-met  450    ;; f / j / z / x / . / /  — Meta + Hyper + Meh
-  left-hand  (q w e r t a s d f g z x c v b)
-  right-hand (y u i o p h j k l ; n m , . /)
-)
+;; Hands for the opposite-hand rule. Hold resolves when the next key is on the
+;; other hand and has been pressed AND released; same-hand keys resolve as an
+;; immediate tap. Keys absent here fall through to (unknown-hand ignore), which
+;; waits for the timeout — correct, and required so shortcuts using letters
+;; outside defsrc still work.
+(defhands
+  (left  q w e r t a s d f g z x c v b)
+  (right y u i o p h j k l ; n m , . /))
 
-;; Flow-tap gate: if 3rd-most-recent key was < 200ms ago → immediate tap (no hold machinery).
-;; tap-hold-tap-keys: same-hand press → immediate tap; cross-hand never triggers early hold.
-(deftemplate charmod (char mod same-hand-keys ht)
-  (switch
-    ((key-timing 3 less-than 200)) $char break
-    () (tap-hold-tap-keys $tt $ht $char $mod $same-hand-keys) break
-  )
+(defvar
+  ;; These timeouts now only govern mod+MOUSE. Keyboard chords resolve on the
+  ;; opposite-hand key's release and never reach the timeout. Raise $ht if
+  ;; resting a finger produces phantom mods; lower it if Alt+click feels laggy.
+  ht  200
+  hth 350    ;; Hyper/Meh — worst misfire cost, longer guard
 )
 
 (defalias
@@ -31,19 +29,24 @@
   hyp  (multi lctl lsft lalt lmet)   ;; Hyper = Ctrl+Shift+Alt+Win
   meh  (multi lctl lsft lalt)        ;; Meh   = Ctrl+Shift+Alt
 
-  a    (t! charmod a lctl $left-hand  $ht-ctl)
-  s    (t! charmod s lsft $left-hand  $ht-sft)
-  d    (t! charmod d lalt $left-hand  $ht-alt)
-  f    (t! charmod f lmet $left-hand  $ht-met)
-  j    (t! charmod j rmet $right-hand $ht-met)
-  k    (t! charmod k ralt $right-hand $ht-alt)
-  l    (t! charmod l rsft $right-hand $ht-sft)
-  scln (t! charmod ; rctl $right-hand $ht-ctl)
+  ;; Home row, pinky->index: Meta, Alt, Ctrl, Shift. Windows' primary command
+  ;; modifier (Ctrl) sits on the middle finger; Win, the rarest, on the pinky.
+  ;; (timeout hold) is MANDATORY — tap-hold-opposite-hand* is the only tap-hold
+  ;; family defaulting the timeout to tap, and without it a solo hold emits a
+  ;; repeating letter and Ctrl+click dies.
+  a    (tap-hold-opposite-hand-release $ht a lmet (timeout hold))
+  s    (tap-hold-opposite-hand-release $ht s lalt (timeout hold))
+  d    (tap-hold-opposite-hand-release $ht d lctl (timeout hold))
+  f    (tap-hold-opposite-hand-release $ht f lsft (timeout hold))
+  j    (tap-hold-opposite-hand-release $ht j rsft (timeout hold))
+  k    (tap-hold-opposite-hand-release $ht k rctl (timeout hold))
+  l    (tap-hold-opposite-hand-release $ht l ralt (timeout hold))
+  scln (tap-hold-opposite-hand-release $ht ; rmet (timeout hold))
 
-  z    (t! charmod z @hyp $left-hand  $ht-met)
-  x    (t! charmod x @meh $left-hand  $ht-met)
-  dot  (t! charmod . @meh $right-hand $ht-met)
-  slsh (t! charmod / @hyp $right-hand $ht-met)
+  z    (tap-hold-opposite-hand-release $hth z @hyp (timeout hold))
+  x    (tap-hold-opposite-hand-release $hth x @meh (timeout hold))
+  dot  (tap-hold-opposite-hand-release $hth . @meh (timeout hold))
+  slsh (tap-hold-opposite-hand-release $hth / @hyp (timeout hold))
 
   spc  (tap-hold 200 200 spc (layer-while-held nav))
 )
@@ -68,7 +71,7 @@
 (deflayer nav
   _
   _    _    _    _    _    home pgdn pgup end  _
-  lctl lsft lalt lmet _    left down up   rght _
+  lmet lalt lctl lsft _    left down up   rght _
   _    _    _    _    _    _    _    _    _    _
   _    _
 )
