@@ -15,24 +15,22 @@
   )
 )
 
-(defvar
-  tt      200    ;; tap timeout
-  ht-sft  160    ;; s / l  — Shift (ring)
-  ht-ctl  300    ;; a / ;  — Ctrl  (pinky)
-  ht-alt  400    ;; d / k  — Alt   (middle)
-  ht-met  450    ;; f / j / z / x / . / /  — Meta + Hyper + Meh
-  ;; same-hand key lists: same-hand press → immediate tap, never a modifier.
-  left-hand  (q w e r t a s d f g z x c v b)
-  right-hand (y u i o p h j k l ; n m , . /)
-)
+;; Hands for the opposite-hand rule. Hold resolves when the next key is on the
+;; other hand and has been pressed AND released; same-hand keys resolve as an
+;; immediate tap. Keys absent from defhands route to (unknown-hand ignore),
+;; which waits for the timeout. That is deliberate: this defsrc omits most of
+;; the alpha block, so Cmd+Q / Cmd+W / Cmd+C resolve on the $ht timeout rather
+;; than at typing speed. Do NOT "fix" that with (unknown-hand tap) — it would
+;; make Cmd+C emit "dc".
+(defhands
+  (left  q w e r t a s d f g z x c v b)
+  (right y u i o p h j k l ; n m , . /))
 
-;; Flow-tap gate: if 3rd-most-recent key was < 200ms ago → immediate tap (no hold machinery).
-;; tap-hold-tap-keys: same-hand press → immediate tap; cross-hand never triggers early hold.
-(deftemplate charmod (char mod same-hand-keys ht)
-  (switch
-    ((key-timing 3 less-than 200)) $char break
-    () (tap-hold-tap-keys $tt $ht $char $mod $same-hand-keys) break
-  )
+(defvar
+  ;; Only governs mod+MOUSE and the unknown-hand fallback above. Keyboard
+  ;; chords between mapped keys resolve on the opposite-hand release.
+  ht  200
+  hth 350    ;; Hyper/Meh — worst misfire cost, longer guard
 )
 
 (defalias
@@ -41,38 +39,40 @@
   cap (tap-hold 180 180 esc lctl)
 
   ;; Hyper / Meh combos (used by the bottom row and Right-Option).
-  hyp (multi lctl lsft lalt lmet)   ;; Hyper ⌃⇧⌥⌘
-  meh (multi lctl lsft lalt)        ;; Meh   ⌃⇧⌥
+  hyp (multi lctl lsft lalt lmet)   ;; Hyper = Ctrl+Shift+Alt+Cmd
+  meh (multi lctl lsft lalt)        ;; Meh   = Ctrl+Shift+Alt
 
-  ;; Home-row mods, C-S-A-G order (pinky->index): Ctrl Shift Alt Cmd, mirrored.
-  a    (t! charmod a lctl $left-hand  $ht-ctl)
-  s    (t! charmod s lsft $left-hand  $ht-sft)
-  d    (t! charmod d lalt $left-hand  $ht-alt)
-  f    (t! charmod f lmet $left-hand  $ht-met)
-  j    (t! charmod j rmet $right-hand $ht-met)
-  k    (t! charmod k ralt $right-hand $ht-alt)
-  l    (t! charmod l rsft $right-hand $ht-sft)
-  scln (t! charmod ; rctl $right-hand $ht-ctl)
+  ;; Home row, pinky->index: Ctrl, Alt, Cmd, Shift. macOS' primary command
+  ;; modifier (Cmd) sits on the middle finger; Ctrl, rare on mac, on the pinky.
+  ;; (timeout hold) is MANDATORY — tap-hold-opposite-hand* is the only tap-hold
+  ;; family defaulting the timeout to tap, and without it a solo hold emits a
+  ;; repeating letter and Cmd+click dies.
+  a    (tap-hold-opposite-hand-release $ht a lctl (timeout hold))
+  s    (tap-hold-opposite-hand-release $ht s lalt (timeout hold))
+  d    (tap-hold-opposite-hand-release $ht d lmet (timeout hold))
+  f    (tap-hold-opposite-hand-release $ht f lsft (timeout hold))
+  j    (tap-hold-opposite-hand-release $ht j rsft (timeout hold))
+  k    (tap-hold-opposite-hand-release $ht k rmet (timeout hold))
+  l    (tap-hold-opposite-hand-release $ht l ralt (timeout hold))
+  scln (tap-hold-opposite-hand-release $ht ; rctl (timeout hold))
 
-  ;; Bottom-row Hyper/Meh: same flow-tap + timeout-only hold as Meta.
-  z    (t! charmod z @hyp $left-hand  $ht-met)
-  x    (t! charmod x @meh $left-hand  $ht-met)
-  dot  (t! charmod . @meh $right-hand $ht-met)
-  slsh (t! charmod / @hyp $right-hand $ht-met)
+  z    (tap-hold-opposite-hand-release $hth z @hyp (timeout hold))
+  x    (tap-hold-opposite-hand-release $hth x @meh (timeout hold))
+  dot  (tap-hold-opposite-hand-release $hth . @meh (timeout hold))
+  slsh (tap-hold-opposite-hand-release $hth / @hyp (timeout hold))
 
   ;; Space: tap = Space, hold = nav layer. Plain tap-hold (timeout-only) so
   ;; fast space->letter rolls never trigger the layer.
   spc  (tap-hold 200 200 spc (layer-while-held nav))
 
   ;; Fn/Globe: emit the real fn (keeps fn-c Control Center, emoji picker, etc.)
-  ;; AND hold = the media layer below. Restores the Fn+F-row media keys that
-  ;; kanata's keyboard grab otherwise turns into plain F-keys.
+  ;; AND hold = the media layer below.
   fnl  (multi fn (layer-while-held funcs))
 
   ;; --- Gaming layer toggle (Fn+G) ---
-  game-on   (layer-switch gaming)                    ;; WORK → GAME
-  game-off  (layer-switch base)                       ;; GAME → WORK
-  fnl-game  (multi fn (layer-while-held funcs-game))  ;; Fn in GAME → exit-aware funcs
+  game-on   (layer-switch gaming)
+  game-off  (layer-switch base)
+  fnl-game  (multi fn (layer-while-held funcs-game))
 )
 
 (defsrc
@@ -99,7 +99,7 @@
 (deflayer nav
   _    _    _    _    _    _    _    _    _    _    _    _
   _
-  lctl lsft lalt lmet _    down up   rght _
+  lctl lalt lmet lsft _    down up   rght _
   _    _    _    _
   _    _
   _    left home pgdn pgup end
