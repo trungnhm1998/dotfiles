@@ -28,12 +28,21 @@ $SettingsDir = Join-Path $env:USERPROFILE 'Documents\Battlefield 6\settings\stea
 # GstRender.AmbientOcclusion is deliberately absent: it is a mode list (Off/SSAO/
 # GTAO...), not a quality ladder, so it is set from the menu, not from here.
 $Bf6Targets = @{
-    # Display: 1920x1080 @ 480Hz native dual-mode (user decision 2026-07-31,
-    # replacing the previous 1600x1200 @ 240Hz 4:3 stretch).
-    'GstRender.ResolutionWidth'       = '1920'
+    # Display: 1440x1080 (4:3 stretched) @ 480Hz, confirmed by the user 2026-07-31
+    # after trying native 1920x1080. The panel runs its FHD 480Hz dual-mode and the
+    # GPU scales 1440 -> 1920 horizontally, so the stretch costs no refresh.
+    #
+    # GstRender.FullscreenRefreshRate is deliberately ABSENT. The game writes the
+    # true measured refresh there (observed 480.001007), so any hardcoded value
+    # would report as needing a patch forever and overwrite a number the game knows
+    # better than we do. ResolutionHertz already pins the intent.
+    #
+    # GstRender.AspectRatio is also absent: it currently reads 20 and the stretched
+    # setup works, but the enum is undocumented and guarding a value we cannot
+    # interpret risks reverting a correct future fix.
+    'GstRender.ResolutionWidth'       = '1440'
     'GstRender.ResolutionHeight'      = '1080'
     'GstRender.ResolutionHertz'       = '480.000000'
-    'GstRender.FullscreenRefreshRate' = '480.000000'
     # VSync was ON (1). It adds input latency and fights Reflex. Highest-value
     # single change found on this machine.
     'GstRender.VSyncMode'             = '0'
