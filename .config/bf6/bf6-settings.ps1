@@ -113,12 +113,12 @@ function Invoke-Bf6Patch {
     $backup = "$Path.bak-$stamp"
     Copy-Item -Path $Path -Destination $backup -ErrorAction Stop
     if (-not (Test-Path $backup)) { throw "backup failed: $backup" }
+    Write-Host "Backup  $backup" -ForegroundColor DarkGray
 
     $lines   = Get-Content -Path $Path
     $patched = Get-ProfsavePatch -Lines $lines -Targets $Bf6Targets
     Set-Content -Path $Path -Value $patched
     Write-Host "Patched $Path" -ForegroundColor Green
-    Write-Host "Backup  $backup" -ForegroundColor DarkGray
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
