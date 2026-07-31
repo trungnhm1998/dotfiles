@@ -16,6 +16,11 @@ $RequestPath = Join-Path $HOME '.config\dotfiles\profile-elevated-request'
 $LogPath     = Join-Path $env:TEMP 'profile-elevated.log'
 $VpnServices = @('agent_ovpnconnect', 'ovpnhelper_service')
 
+# Virtual display adapters disabled while gaming. Matched by HARDWARE ID, never by
+# instance ID: instance IDs change across driver updates, and a mismatch here would
+# disable the real GPU. Lowercase; the matcher lowercases its input before comparing.
+$VirtualDisplayHwIds = @('root\sudomaker\sudovda', 'superdisplay\display')
+
 function Get-ElevatedRequest {
     # Pure: request lines + age -> validated hashtable, or $null. Whitelist only.
     param([string[]]$Lines, [double]$AgeSeconds)
@@ -24,9 +29,42 @@ function Get-ElevatedRequest {
     foreach ($l in $Lines) {
         if ($l -match '^vpn=(stop|start)$')      { $req['vpn'] = $Matches[1] }
         elseif ($l -match '^hv=(off|auto-if-off)$') { $req['hv'] = $Matches[1] }
+        elseif ($l -match '^vdisp=(off|on)$')       { $req['vdisp'] = $Matches[1] }
     }
     if ($req.Count -eq 0) { return $null }
     return $req
+}
+
+function Test-VirtualDisplayHwId {
+    # Pure: does this device's hardware-ID list identify one of our virtual adapters?
+    # This is the safety gate. If it ever returns $true for a real GPU, `game` blanks
+    # the desktop, so it is tested against the real NVIDIA and Intel ID lists.
+    param([string[]]$HardwareIds)
+    foreach ($h in $HardwareIds) {
+        if ($h -and ($VirtualDisplayHwIds -contains $h.ToLower())) { return $true }
+    }
+    return $false
+}
+
+function Set-VirtualDisplay {
+    param([Parameter(Mandatory)][bool]$Enabled)
+    foreach ($dev in (Get-PnpDevice -Class Display -ErrorAction SilentlyContinue)) {
+        $hw = (Get-PnpDeviceProperty -InstanceId $dev.InstanceId `
+                   -KeyName DEVPKEY_Device_HardwareIds -ErrorAction SilentlyContinue).Data
+        if (-not (Test-VirtualDisplayHwId -HardwareIds $hw)) { continue }
+        try {
+            if ($Enabled) {
+                Enable-PnpDevice  -InstanceId $dev.InstanceId -Confirm:$false -ErrorAction Stop
+            } else {
+                Disable-PnpDevice -InstanceId $dev.InstanceId -Confirm:$false -ErrorAction Stop
+            }
+            "$(Get-Date -Format s)  vdisp $(if ($Enabled) { 'on' } else { 'off' }): $($dev.FriendlyName)" |
+                Add-Content $LogPath
+        } catch {
+            "$(Get-Date -Format s)  ERROR vdisp $($dev.FriendlyName): $($_.Exception.Message)" |
+                Add-Content $LogPath
+        }
+    }
 }
 
 function Invoke-ElevatedRequest {
@@ -46,6 +84,11 @@ function Invoke-ElevatedRequest {
             bcdedit /set hypervisorlaunchtype auto | Out-Null
             "$(Get-Date -Format s)  hypervisor restored to AUTO - reboot needed for WSL2/Docker" | Add-Content $LogPath
         }
+    }
+    if ($Req.vdisp -eq 'off') {
+        Set-VirtualDisplay -Enabled $false
+    } elseif ($Req.vdisp -eq 'on') {
+        Set-VirtualDisplay -Enabled $true
     }
 }
 
