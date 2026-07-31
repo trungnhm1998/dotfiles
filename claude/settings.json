@@ -10,7 +10,9 @@
     "allow": [],
     "deny": [],
     "defaultMode": "bypassPermissions",
-    "additionalDirectories": []
+    "additionalDirectories": [
+      "C:\\ObsidianVaults"
+    ]
   },
   "model": "claude-fable-5[1m]",
   "skillOverrides": {
@@ -65,18 +67,6 @@
     }
   ],
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/vault-recall.sh",
-            "timeout": 10,
-            "statusMessage": "vault recall search"
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "hooks": [
@@ -142,6 +132,16 @@
             "command": "bash ~/.claude/hooks/claude-stop-notify.sh",
             "timeout": 5,
             "statusMessage": "stop notify"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/vault-capture.sh",
+            "timeout": 10,
+            "statusMessage": "vault capture check"
           }
         ]
       }

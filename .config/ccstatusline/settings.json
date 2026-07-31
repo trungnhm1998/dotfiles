@@ -82,6 +82,7 @@
   "compactThreshold": 60,
   "colorLevel": 3,
   "defaultPadding": " ",
+  "defaultPaddingSide": "both",
   "inheritSeparatorColors": true,
   "globalBold": false,
   "gitCacheTtlSeconds": 5,
@@ -101,7 +102,7 @@
     "continueThemeAcrossLines": true
   },
   "installation": {
-    "method": "pinned",
-    "installedVersion": "2.2.22"
+    "method": "auto-update",
+    "packageManager": "bun"
   }
 }

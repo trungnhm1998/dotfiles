@@ -2,7 +2,7 @@
 name: game-debugger
 description: Use this agent when something is broken or behaving unexpectedly — crashes, null-refs, physics glitches, jobs/async race conditions, perf regressions, or "why is this happening". Works the problem systematically to root cause before proposing a minimal fix; does not guess-and-patch.
 tools: Read, Grep, Glob, Bash, Edit
-model: claude-opus-4-8
+model: claude-opus-5
 color: red
 ---
 

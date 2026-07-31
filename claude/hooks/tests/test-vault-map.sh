@@ -2,22 +2,19 @@
 . "$(dirname "$0")/_harness.sh"
 HOOK="$(dirname "$0")/../vault-map.sh"
 
-# --- Fixture vault: slim-map derivation cases ---
+# --- Fixture vault ---
 vault="$(mktemp -d)"; mkdir -p "$vault/05.Wiki"
 cat > "$vault/05.Wiki/index.md" << 'EOF'
 # Index
 
-*Catalog of every wiki page. Updated on every ingest; read first on every query.*
-*Sources: 1 · Concepts: 2 · Entities: 0 · Maps: 1 · Notes: 0 — last updated 2026-07-02*
-
-> Start at [[overview]] · timeline in [[log]].
+*Catalog of every wiki page.*
 
 ## 🗺️ Maps
-- [[Test Hub]] — hub summary that must survive verbatim.
+- [[Test Hub]] — hub summary.
 
 ## 🧠 Concepts
-- [[Alpha Concept]] — SENTINEL_SUMMARY_ALPHA body text that must be stripped.
-- [[Beta Long Name|Beta Alias]] — SENTINEL_SUMMARY_BETA with an alias link.
+- [[Alpha Concept]] — SENTINEL_ALPHA body text.
+- [[Beta Concept]] — SENTINEL_BETA body text.
 EOF
 
 out=$(OBSIDIAN_VAULT="$vault" bash "$HOOK"); rc=$?
@@ -25,15 +22,26 @@ assert_exit "$rc" "0" "fixture vault exits 0"
 printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext' > /dev/null 2>&1
 assert_exit "$?" "0" "emits valid hook JSON"
 ctx=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')
-assert_contains "$ctx" "hub summary that must survive verbatim" "Maps section kept whole"
-assert_contains "$ctx" "[[Alpha Concept]]" "concept title kept"
-assert_contains "$ctx" "[[Beta Long Name|Beta Alias]]" "alias-form title kept"
-assert_not_contains "$ctx" "SENTINEL_SUMMARY_ALPHA" "concept summary stripped"
-assert_not_contains "$ctx" "SENTINEL_SUMMARY_BETA" "alias-entry summary stripped"
-assert_contains "$ctx" "— last updated 2026-07-02" "header em-dash line untouched (only '- ' entries stripped)"
-assert_contains "$ctx" "05.Wiki/index.md" "directive points at the full index"
 
-# --- Big index: content must never ride argv (the original 101KB failure) ---
+# --- THE regression test for the headline bug: payload must stay tiny ---
+len=${#ctx}
+TESTS_RUN=$((TESTS_RUN+1))
+if [ "$len" -lt 2048 ]; then _pass "payload under 2048 bytes ($len)"
+else _fail "payload under 2048 bytes (got $len)"; fi
+
+# --- Scale is conveyed, catalog is not ---
+assert_contains "$ctx" "Maps: 1"     "map count present"
+assert_contains "$ctx" "Concepts: 2" "concept count present"
+assert_not_contains "$ctx" "[[Alpha Concept]]" "catalog titles NOT shipped"
+assert_not_contains "$ctx" "SENTINEL_ALPHA"    "catalog summaries NOT shipped"
+assert_not_contains "$ctx" "SENTINEL_BETA"     "catalog summaries NOT shipped (beta)"
+
+# --- Dispatch instruction names the agents exactly ---
+assert_contains "$ctx" "vault-librarian" "names the librarian agent"
+assert_contains "$ctx" "wiki-scribe"     "names the scribe agent"
+assert_contains "$ctx" "$vault"          "names the resolved vault path"
+
+# --- Big index must not grow the payload (the 38KB failure, inverted) ---
 big="$(mktemp -d)"; mkdir -p "$big/05.Wiki"
 {
   printf '# Index\n\n## 🗺️ Maps\n- [[Hub]] — hub line.\n\n## 🧠 Concepts\n'
@@ -45,33 +53,33 @@ big="$(mktemp -d)"; mkdir -p "$big/05.Wiki"
   done
 } > "$big/05.Wiki/index.md"
 out=$(OBSIDIAN_VAULT="$big" bash "$HOOK"); rc=$?
-assert_exit "$rc" "0" "200KB index exits 0"
-printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext' > /dev/null 2>&1
-assert_exit "$?" "0" "200KB index emits valid JSON (argv immunity)"
+assert_exit "$rc" "0" "2000-entry index exits 0"
 ctx=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext')
-assert_contains "$ctx" "[[Concept 1999]]" "big-index titles present"
-assert_not_contains "$ctx" "PAD_SUMMARY" "big-index summaries stripped"
+biglen=${#ctx}
+TESTS_RUN=$((TESTS_RUN+1))
+if [ "$biglen" -lt 2048 ]; then _pass "2000-entry index still under 2048 bytes ($biglen)"
+else _fail "2000-entry index still under 2048 bytes (got $biglen)"; fi
+assert_contains "$ctx" "Concepts: 2000" "big-index count is accurate"
+assert_not_contains "$ctx" "PAD_SUMMARY" "big-index content NOT shipped"
 
-# --- Expected absence: vault dir exists but no 05.Wiki/index.md => silent ---
+# --- Expected absence: vault exists but no index => silent ---
 empty="$(mktemp -d)"
 out=$(OBSIDIAN_VAULT="$empty" bash "$HOOK"); rc=$?
 assert_exit "$rc" "0" "missing index exits 0"
 assert_eq "$out" "" "missing index stays silent"
 
-# --- Tripwire: vault + index present but pipeline broken => warning JSON ---
+# --- Tripwire: vault + index present but jq broken => warning JSON ---
 fakebin="$(mktemp -d)"
 printf '#!/usr/bin/env bash\nexit 7\n' > "$fakebin/jq"; chmod +x "$fakebin/jq"
 out=$(PATH="$fakebin:$PATH" OBSIDIAN_VAULT="$vault" bash "$HOOK"); rc=$?
-assert_exit "$rc" "0" "broken pipeline still exits 0"
+assert_exit "$rc" "0" "broken jq still exits 0"
 assert_contains "$out" "vault-map hook failed" "broken pipeline emits warning"
-printf '%s' "$out" | jq -e '.hookSpecificOutput.additionalContext' > /dev/null 2>&1
-assert_exit "$?" "0" "warning is valid hook JSON"
 
-# --- Tripwire: awk fails while jq still works => ONE warning doc, no concatenation ---
+# --- Tripwire: awk broken => ONE warning doc, no concatenated success doc ---
 fakebin2="$(mktemp -d)"
 printf '#!/usr/bin/env bash\nexit 3\n' > "$fakebin2/awk"; chmod +x "$fakebin2/awk"
 out=$(PATH="$fakebin2:$PATH" OBSIDIAN_VAULT="$vault" bash "$HOOK"); rc=$?
 assert_exit "$rc" "0" "broken awk still exits 0"
 assert_contains "$out" "vault-map hook failed" "broken awk emits warning"
-assert_not_contains "$out" "05.Wiki slim map" "no degraded success JSON precedes the warning"
+assert_not_contains "$out" "vault-librarian" "no degraded success JSON precedes the warning"
 finish

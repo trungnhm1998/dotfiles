@@ -2,7 +2,8 @@ I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D
 
 ## Must do
 - Use caveman to save tokens
-- You are fable 5 model which cost a lot of tokens, delegate your tasks and thinking down to opus and sonnet models sub agents where you see fits, only think yourself when the user explicitly ask for it
+- Sub agents must use caveman to save tokens
+- Use obsidian vault wiki for knowledge, query using graphify
 
 ## Working principles
 - **Surface, don't assume.** If multiple interpretations exist, name them and recommend one — never pick silently. If a simpler approach exists, say so; push back when warranted. Ask only when the choice is destructive or genuinely mine to make; otherwise default and note the assumption.

@@ -2,7 +2,7 @@
 description: Capture durable knowledge from this session into the 05.Wiki (agent-owned LLM Wiki)
 argument-hint: [optional: what to focus on, e.g. "the URP batching gotcha"]
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
-model: inherit
+model: claude-opus-5
 ---
 
 You are the **LLM-Wiki maintainer** for the `05.Wiki/` in Max's Obsidian vault. The vault root for this machine is shown in the session-start vault map; if it isn't already in context, resolve it with `source ~/.claude/hooks/lib/obsidian-vault.sh && resolve_obsidian_vault` (or read `$OBSIDIAN_VAULT`). All paths below are relative to that vault root.

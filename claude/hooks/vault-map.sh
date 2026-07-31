@@ -1,41 +1,40 @@
 #!/usr/bin/env bash
-# SessionStart hook — inject a SLIM map of the 05.Wiki catalog so Claude begins
-# each session knowing what durable knowledge exists in Max's vault. You can't
-# reach for what you don't know is there; this is the "map".
+# SessionStart hook — inject a POINTER to the vault wiki, never the catalog.
 #
-# Slim = index.md header + the Maps section verbatim (routing hubs), every other
-# entry reduced to its [[title]]. Full one-line summaries stay in 05.Wiki/index.md,
-# one Read away. Content is STREAMED to jq (-Rs, stdin) — never argv, which
-# silently broke at the ~32KB MSYS limit once index.md outgrew it.
+# History: this hook used to awk-slim 05.Wiki/index.md (142KB) and inject the
+# result inline. At 38,065 bytes that blew past Claude Code's inline hook-output
+# limit; the payload was truncated to a ~2KB preview and persisted to a file, so
+# roughly 94% of the catalog never reached the model. Shipping scale plus a
+# dispatch instruction costs 630 bytes and works, because vault-librarian reads
+# the catalog in its own context window.
 set -o pipefail
 
-# Resolve this machine's vault root (see lib/obsidian-vault.sh).
 source "$(dirname "${BASH_SOURCE[0]}")/lib/obsidian-vault.sh" 2>/dev/null || exit 0
 vault="$(resolve_obsidian_vault)" || exit 0   # no vault here: expected, stay silent
 
 index="$vault/05.Wiki/index.md"
 [ -f "$index" ] || exit 0                     # no index yet: expected, stay silent
 
-directive="Max's durable knowledge lives in his Obsidian vault at $vault — hand-curated PARA notes plus the agent-owned LLM wiki at 05.Wiki. The slim catalog below lists every wiki page by title (Maps keep their summaries); full one-line summaries live in 05.Wiki/index.md. When a question touches Max's own knowledge, preferences, past decisions, or cross-project learnings, CONSULT the relevant pages (open them with the Read tool, follow [[links]]) before answering from memory. Capture new durable knowledge with /wiki-capture."
+# Section counts convey scale in ~40 bytes. "## 🧠 Concepts" -> "Concepts: 333".
+if counts="$(awk '
+    /^## / { if (h) printf "%s: %d; ", h, n; sub(/^## +/, "", $0); sub(/^[^A-Za-z]+/, "", $0); h = $0; n = 0; next }
+    /^- /  { n++ }
+    END    { if (h) printf "%s: %d", h, n }
+  ' "$index")" && [ -n "$counts" ]; then
+  ctx="Max's durable knowledge lives in his Obsidian vault at ${vault} (hand-curated PARA notes plus the agent-owned LLM wiki at 05.Wiki). Wiki scale: ${counts}.
+DISPATCH the vault-librarian subagent BEFORE you answer a design or architecture question, BEFORE you start non-trivial implementation, and whenever a prompt touches Max's own knowledge, preferences, past decisions, or cross-project learnings. The wiki already holds his conventions, system designs, existing features, and prior solutions, so assume it has something relevant before assuming it does not. Do not grep the vault yourself and do not answer from memory; the librarian reads 05.Wiki/index.md, the always-current catalog, and returns a short answer with source paths. Skip it only for trivial mechanical edits.
+To record durable knowledge from this session, dispatch the wiki-scribe subagent (or run /wiki-capture)."
+  out="$(jq -n --arg c "$ctx" '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$c}}')" || out=""
+else
+  out=""
+fi
 
-# Slim derivation: keep the header block and the "## 🗺️ Maps" section whole; in
-# every other section reduce "- [[Title]] — summary" to "- [[Title]]".
-# Capture first, print once: streaming the pipe straight to stdout would, under
-# pipefail with awk failing but jq succeeding on empty stdin, emit a degraded
-# success JSON *and then* the warning — two concatenated docs.
-if out="$(awk '
-    /^## / { maps = ($0 ~ / Maps$/) }
-    /^- /  { if (!maps) sub(/ — .*$/, "") }
-           { print }
-  ' "$index" \
-  | jq -Rs --arg d "$directive" \
-      '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:($d + "\n\n--- 05.Wiki slim map (full summaries: 05.Wiki/index.md) ---\n" + .)}}')"
-then
+if [ -n "$out" ]; then
   printf '%s\n' "$out"
 else
   # Vault + index EXIST but injection broke — surface it. This hook once died
-  # silently for weeks (argv limit); expected-absence stays silent, breakage must
-  # not. Static printf: jq itself may be the broken part.
-  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"⚠ vault-map hook failed (vault found, injection pipeline broke). Run: bash ~/.claude/hooks/vault-map.sh to debug."}}'
+  # silently for weeks; expected-absence stays silent, breakage must not.
+  # Static printf: jq itself may be the broken part.
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"WARNING: vault-map hook failed (vault found, injection pipeline broke). Run: bash ~/.claude/hooks/vault-map.sh to debug."}}'
 fi
 exit 0
