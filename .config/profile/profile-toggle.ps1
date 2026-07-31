@@ -179,6 +179,28 @@ function Request-Elevated {
     if ($LASTEXITCODE -ne 0) { Write-ProfileLog 'WARN elevated task missing - service/bcdedit ops skipped (run deploy_windows.ps1)' }
 }
 
+function Get-ElevatedRequestLines {
+    # Elevated batch: VPN services always; hypervisor only on the explicit lane.
+    # work always sends hv=auto-if-off so a prior -NoHypervisor session self-heals.
+    # vdisp: the SudoMaker/SuperDisplay virtual adapters are phantom displays and
+    # needless surface for a kernel anti-cheat. Off while gaming, restored on work.
+    param(
+        [Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction,
+        [switch]$WithHypervisorOff
+    )
+    $lines = @()
+    if ($Direction -eq 'gaming') {
+        $lines += 'vpn=stop'
+        $lines += 'vdisp=off'
+        if ($WithHypervisorOff) { $lines += 'hv=off' }
+    } else {
+        $lines += 'vpn=start'
+        $lines += 'vdisp=on'
+        $lines += 'hv=auto-if-off'
+    }
+    return $lines
+}
+
 function Invoke-ProfileSwitch {
     param(
         [Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction,
@@ -200,26 +222,16 @@ function Invoke-ProfileSwitch {
             catch { Write-ProfileLog "ERROR start $($app.Name): $($_.Exception.Message)" }
             if ($Stagger -and $app.StartDelaySec) { Start-Sleep -Seconds $app.StartDelaySec }
         }
-        # Elevated batch: VPN services always; hypervisor only on the explicit lane.
-        # work always sends hv=auto-if-off so a prior -NoHypervisor session self-heals.
-        # vdisp: the SudoMaker/SuperDisplay virtual adapters are phantom displays and
-        # needless surface for a kernel anti-cheat. Off while gaming, restored on work.
-        $lines = @()
-        if ($Direction -eq 'gaming') {
-            $lines += 'vpn=stop'
-            $lines += 'vdisp=off'
-            if ($WithHypervisorOff) { $lines += 'hv=off' }
-        } else {
-            $lines += 'vpn=start'
-            $lines += 'vdisp=on'
-            $lines += 'hv=auto-if-off'
-        }
+        $lines = Get-ElevatedRequestLines -Direction $Direction -WithHypervisorOff:$WithHypervisorOff
         Request-Elevated -Lines $lines
         if ($Direction -eq 'gaming') {
             # Dual-mode is a monitor firmware flip (OSD / DisplayWidget), not a Windows
             # resolution change, so it cannot be scripted. Windows adopts 1920x1080 on
             # its own once the panel re-presents its EDID.
+            # Write-Host for the interactive path; Write-ProfileLog too so the reminder
+            # is durably recorded for the yasb/AHK/-Boot paths that discard stdout.
             Write-Host "Reminder: flip the PG32UCDP to FHD 480Hz dual-mode (OSD)." -ForegroundColor Yellow
+            Write-ProfileLog "Reminder: flip the PG32UCDP to FHD 480Hz dual-mode (OSD)."
         }
         Set-ProfileMarker -Value $Direction
         Write-ProfileLog "-> $Direction done"

@@ -51,6 +51,27 @@ Describe 'Get-ProfileActions' {
     }
 }
 
+Describe 'Get-ElevatedRequestLines' {
+    It 'gaming direction sends vdisp=off' {
+        (Get-ElevatedRequestLines -Direction 'gaming') | Should -Contain 'vdisp=off'
+    }
+    It 'work direction sends vdisp=on' {
+        (Get-ElevatedRequestLines -Direction 'work') | Should -Contain 'vdisp=on'
+    }
+    It 'gaming without -WithHypervisorOff' {
+        (Get-ElevatedRequestLines -Direction 'gaming') | Should -Be @('vpn=stop', 'vdisp=off')
+    }
+    It 'gaming with -WithHypervisorOff' {
+        (Get-ElevatedRequestLines -Direction 'gaming' -WithHypervisorOff) | Should -Be @('vpn=stop', 'vdisp=off', 'hv=off')
+    }
+    It 'work without -WithHypervisorOff' {
+        (Get-ElevatedRequestLines -Direction 'work') | Should -Be @('vpn=start', 'vdisp=on', 'hv=auto-if-off')
+    }
+    It 'work with -WithHypervisorOff (hv always auto-if-off, switch ignored)' {
+        (Get-ElevatedRequestLines -Direction 'work' -WithHypervisorOff) | Should -Be @('vpn=start', 'vdisp=on', 'hv=auto-if-off')
+    }
+}
+
 Describe 'ConvertTo-ProfileName' {
     It 'maps gaming to gaming'            { ConvertTo-ProfileName -Raw "gaming`n"  | Should -Be 'gaming' }
     It 'maps anything else to work'       { ConvertTo-ProfileName -Raw 'garbage'   | Should -Be 'work' }
