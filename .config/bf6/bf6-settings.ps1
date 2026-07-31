@@ -22,22 +22,30 @@ $SettingsDir = Join-Path $env:USERPROFILE 'Documents\Battlefield 6\settings\stea
 # rewriting one as the other is how you get a setting the game silently ignores.
 #
 # Quality ladder assumed to be 0=Low 1=Medium 2=High 3=Ultra. Task 7 cross-checks
-# this against the in-game menu on first run BEFORE these values are trusted.
+# this against the in-game menu on first run BEFORE ShadowQuality is trusted; every
+# other quality key here is held at its existing value rather than moved.
 #
 # GstRender.AmbientOcclusion is deliberately absent: it is a mode list (Off/SSAO/
 # GTAO...), not a quality ladder, so it is set from the menu, not from here.
 $Bf6Targets = @{
+    # Display: 1920x1080 @ 480Hz native dual-mode (user decision 2026-07-31,
+    # replacing the previous 1600x1200 @ 240Hz 4:3 stretch).
     'GstRender.ResolutionWidth'       = '1920'
     'GstRender.ResolutionHeight'      = '1080'
     'GstRender.ResolutionHertz'       = '480.000000'
     'GstRender.FullscreenRefreshRate' = '480.000000'
-    'GstRender.MeshQuality'           = '1'
+    # VSync was ON (1). It adds input latency and fights Reflex. Highest-value
+    # single change found on this machine.
+    'GstRender.VSyncMode'             = '0'
+    # Quality: already at 0 on the live profile. Held here as guards so a patch
+    # or a stray menu click cannot silently raise them again.
+    'GstRender.MeshQuality'           = '0'
     'GstRender.EffectsQuality'        = '0'
-    'GstRender.UndergrowthQuality'    = '1'
-    'GstRender.TerrainQuality'        = '1'
+    'GstRender.UndergrowthQuality'    = '0'
+    'GstRender.TerrainQuality'        = '0'
     'GstRender.PostProcessQuality'    = '0'
-    # Hold at 0 so the in-game overlay does not stack on top of the user.cfg
-    # PerfOverlay cvars. The requirement is ONE number, not a block.
+    # Hold at 0 so the in-game overlay does not stack on the user.cfg PerfOverlay
+    # cvars. The requirement is ONE number, not a block.
     'GstRender.PerformanceOverlay'    = '0'
 }
 
