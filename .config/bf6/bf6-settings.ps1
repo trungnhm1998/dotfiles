@@ -66,6 +66,71 @@ function Get-ProfsavePatch {
     return ,($out.ToArray())
 }
 
+function Get-LiveProfsavePath {
+    # Newest PROFSAVE*_profile wins. BF6 has shipped several names (PROFSAVE_profile,
+    # PROFSAVEbf6mp_profile); the most recently written one is the live multiplayer
+    # profile. Returns $null when the dir or the file is missing.
+    if (-not (Test-Path $SettingsDir)) { return $null }
+    $f = Get-ChildItem -Path $SettingsDir -Filter 'PROFSAVE*_profile' -File -ErrorAction SilentlyContinue |
+         Sort-Object LastWriteTime -Descending |
+         Select-Object -First 1
+    if (-not $f) { return $null }
+    return $f.FullName
+}
+
+function Show-Bf6Verify {
+    param([Parameter(Mandatory)][string]$Path)
+    $lines = Get-Content -Path $Path
+    foreach ($key in ($Bf6Targets.Keys | Sort-Object)) {
+        $hit = $lines | Where-Object { $_ -match ('^' + [regex]::Escape($key) + '\s') } | Select-Object -First 1
+        if (-not $hit) {
+            Write-Host ("  {0,-36} ABSENT (skipped)" -f $key) -ForegroundColor DarkYellow
+            continue
+        }
+        $current = ($hit -split '\s+', 2)[1]
+        $want    = $Bf6Targets[$key]
+        if ($current -eq $want) {
+            Write-Host ("  {0,-36} {1}" -f $key, $current) -ForegroundColor Green
+        } else {
+            Write-Host ("  {0,-36} {1}  ->  {2}" -f $key, $current, $want) -ForegroundColor Yellow
+        }
+    }
+}
+
+function Invoke-Bf6Patch {
+    param([Parameter(Mandatory)][string]$Path)
+    # Backup first, and abort if the backup did not land. Losing keybinds and
+    # loadouts to a half-written patch is a far worse outcome than not patching.
+    $stamp  = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $backup = "$Path.bak-$stamp"
+    Copy-Item -Path $Path -Destination $backup -ErrorAction Stop
+    if (-not (Test-Path $backup)) { throw "backup failed: $backup" }
+
+    $lines   = Get-Content -Path $Path
+    $patched = Get-ProfsavePatch -Lines $lines -Targets $Bf6Targets
+    Set-Content -Path $Path -Value $patched -Encoding ASCII
+    Write-Host "Patched $Path" -ForegroundColor Green
+    Write-Host "Backup  $backup" -ForegroundColor DarkGray
+}
+
 if ($MyInvocation.InvocationName -ne '.') {
-    # Main path lands in Task 2.
+    $path = Get-LiveProfsavePath
+    if (-not $path) {
+        Write-Host "No PROFSAVE*_profile found under $SettingsDir" -ForegroundColor Red
+        Write-Host "Launch BF6 once so it writes a profile, then re-run." -ForegroundColor Yellow
+        exit 1
+    }
+    if ($Verify) {
+        Write-Host "Live profile: $path" -ForegroundColor Cyan
+        Show-Bf6Verify -Path $path
+        exit 0
+    }
+    # BF6 rewrites PROFSAVE wholesale when it exits, which would silently discard
+    # everything we just wrote. Refuse rather than produce a patch that evaporates.
+    if (Get-Process 'bf6' -ErrorAction SilentlyContinue) {
+        Write-Host "BF6 is running. Close it first - it rewrites PROFSAVE on exit and would discard this patch." -ForegroundColor Red
+        exit 1
+    }
+    Invoke-Bf6Patch -Path $path
+    Show-Bf6Verify -Path $path
 }
