@@ -202,15 +202,25 @@ function Invoke-ProfileSwitch {
         }
         # Elevated batch: VPN services always; hypervisor only on the explicit lane.
         # work always sends hv=auto-if-off so a prior -NoHypervisor session self-heals.
+        # vdisp: the SudoMaker/SuperDisplay virtual adapters are phantom displays and
+        # needless surface for a kernel anti-cheat. Off while gaming, restored on work.
         $lines = @()
         if ($Direction -eq 'gaming') {
             $lines += 'vpn=stop'
+            $lines += 'vdisp=off'
             if ($WithHypervisorOff) { $lines += 'hv=off' }
         } else {
             $lines += 'vpn=start'
+            $lines += 'vdisp=on'
             $lines += 'hv=auto-if-off'
         }
         Request-Elevated -Lines $lines
+        if ($Direction -eq 'gaming') {
+            # Dual-mode is a monitor firmware flip (OSD / DisplayWidget), not a Windows
+            # resolution change, so it cannot be scripted. Windows adopts 1920x1080 on
+            # its own once the panel re-presents its EDID.
+            Write-Host "Reminder: flip the PG32UCDP to FHD 480Hz dual-mode (OSD)." -ForegroundColor Yellow
+        }
         Set-ProfileMarker -Value $Direction
         Write-ProfileLog "-> $Direction done"
         if ($RebootAfter) {
