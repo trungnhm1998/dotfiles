@@ -125,6 +125,12 @@ $symlinks = @(
         Description = "Starship prompt"
     }
     @{
+        Source      = "$dotfilesRoot\.config\bf6\user.cfg"
+        Target      = "$HOME\Documents\Battlefield 6\settings\steam\user.cfg"
+        IsDirectory = $false
+        Description = "Battlefield 6 console cvars (FPS overlay + clarity)"
+    }
+    @{
         Source      = "$dotfilesRoot\.config\wsl\wslconfig"
         Target      = "$HOME\.wslconfig"
         IsDirectory = $false
