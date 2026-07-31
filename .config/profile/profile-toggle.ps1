@@ -228,9 +228,9 @@ function Invoke-ProfileSwitch {
             # Dual-mode is a monitor firmware flip (OSD / DisplayWidget), not a Windows
             # resolution change, so it cannot be scripted. Windows adopts 1920x1080 on
             # its own once the panel re-presents its EDID.
-            # Write-Host for the interactive path; Write-ProfileLog too so the reminder
-            # is durably recorded for the yasb/AHK/-Boot paths that discard stdout.
-            Write-Host "Reminder: flip the PG32UCDP to FHD 480Hz dual-mode (OSD)." -ForegroundColor Yellow
+            # Write-ProfileLog echoes to console AND appends to the log file, so this
+            # single call covers both the interactive path and yasb/AHK/-Boot, which
+            # discard stdout but still read the log.
             Write-ProfileLog "Reminder: flip the PG32UCDP to FHD 480Hz dual-mode (OSD)."
         }
         Set-ProfileMarker -Value $Direction
