@@ -108,7 +108,7 @@ function Invoke-Bf6Patch {
 
     $lines   = Get-Content -Path $Path
     $patched = Get-ProfsavePatch -Lines $lines -Targets $Bf6Targets
-    Set-Content -Path $Path -Value $patched -Encoding ASCII
+    Set-Content -Path $Path -Value $patched
     Write-Host "Patched $Path" -ForegroundColor Green
     Write-Host "Backup  $backup" -ForegroundColor DarkGray
 }
