@@ -188,3 +188,10 @@ cc() { ( export ANTHROPIC_BASE_URL="http://localhost:8080"; exec claude "$@" ) }
 # one. `wt-seed <path>` seeds one worktree; `wt-seed-all` re-pushes to every worktree.
 wt-seed()     { bash "$HOME/dotfiles/scripts/worktree-seed.sh" "$@"; }
 wt-seed-all() { bash "$HOME/dotfiles/scripts/worktree-seed.sh" --all; }
+
+# --- repair a garbled terminal ---
+# Same name as the Windows `fix-tui`, deliberately DIFFERENT bug: Windows repairs a wrong
+# console code page on a live pane; Unix has no such object, so this resets charset state
+# (undoes SO / ESC ( 0 from cat-ing a binary) and reports a non-UTF-8 locale it cannot fix.
+# `fix-tui --hard` does a full RIS reset, clearing scrollback.
+fix-tui() { bash "$HOME/dotfiles/scripts/fix-tui.sh" "$@"; }
