@@ -408,6 +408,17 @@ function wt-seed-all
     & bash "$HOME\dotfiles\scripts\worktree-seed.sh" --all
 }
 
+# --- Repair garbled Claude Code TUI panes (wrong console code page) ---
+# A console is a kernel object shared by every attached process, so an outside process can
+# AttachConsole(pid) and reset its code page -- fixing a live pane with no restart, no lost
+# session. Panes have been found at CP1250; Claude Code writes UTF-8, so each glyph eats ~3
+# cells and every repaint drifts. Ctrl+L can't fix it: a repaint never re-decodes bytes.
+# `fix-tui` reports, `fix-tui -Fix` repairs, then clear the pane (Orca: Ctrl+K).
+# See vault: Broken Claude Code TUI Pane Debug (2026-07-30).
+function fix-tui
+{
+    & "$HOME\dotfiles\scripts\fix-claude-tui.ps1" @args
+}
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;
