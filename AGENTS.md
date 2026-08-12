@@ -180,9 +180,10 @@ end
 | YASB (Windows status bar) | `.config/yasb/config.yaml` + `styles.css` (reload: `yasbc reload`) · `.config/yasb/yasb-toggle.ps1` (bar+offset toggle: `Hyper+B` / pwsh `bar`) |
 | Kanata (Windows) | `.config/kanata/kanata.win.kbd` (config) · `.config/kanata/kanata-toggle.ps1` (start/stop/`-State`/`-Off`) |
 | Yabai (macOS) | `.config/yabai/yabairc`; signal/helper scripts `.config/yabai/scripts/` |
+| SketchyBar (macOS) | `.config/sketchybar/` (`sketchybarrc` + `plugins/`) · `bar-toggle.sh` (bar + yabai offset toggle: `Hyper+B B`) |
 | Hammerspoon (macOS) | `.config/hammerspoon/` (→ `~/.hammerspoon`) |
 | stackline (macOS) | `.config/hammerspoon/stackline/` (vendored `poddarh` fork) + `stackline_config.lua` (Frappe overrides); notes `docs/superpowers/stackline-fork-notes.md` |
-| Kanata (macOS) | `.config/kanata/kanata.kbd` (+ `dev.kanata.kanata.plist`) |
+| Kanata (macOS) | `.config/kanata/kanata.kbd` (+ `dev.kanata.kanata.plist`) · `.config/kanata/kanata-flip.sh` (WORK/GAME flip: bar pill click or `Hyper+G`) |
 | Profile toggle (Windows) | `.config/profile/profile-toggle.ps1` (engine; `game`/`work` in pwsh) · `.config/profile/profile-elevated.ps1` (elevated task body) |
 | BF6 settings (Windows) | `.config/bf6/user.cfg` (symlinked cvars) - `.config/bf6/bf6-settings.ps1` (`-Verify` to audit, no args to patch PROFSAVE; refuses while bf6.exe runs) |
 | Zed | `zed/settings.unix.json` (mac/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
