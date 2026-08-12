@@ -50,11 +50,12 @@ Covered in SKILL.md: `orca terminal create --command "pi"`, wait tui-idle for st
 send the one-line dispatch pointer. Nothing long ever crosses the command line, so the
 shell-quoting traps below simply do not arise.
 
-## Print mode (`pi -p`) — when you want no TUI
+## Print mode (`pi -p`) — headless one-shots
 
 ```powershell
 $cmd = "pi -p --session-id $sid -n task3-worker '@.superpowers/plan/task-3-dispatch.md' 'Execute the task now.'"
 orca terminal send --terminal $handle --text $cmd --enter --json
+orca terminal wait --terminal $handle --for exit --timeout-ms 600000 --json   # -p exits when done
 ```
 
 - **PowerShell parses your command first.** `@"..."` is a here-string header in
@@ -62,7 +63,35 @@ orca terminal send --terminal $handle --text $cmd --enter --json
   `No characters are allowed after a here-string header...`. Single-quote attachments:
   `'@path/dispatch.md'`.
 - **Silent until done.** `pi -p` prints nothing while running. Use the session log
-  (above) as the live window, and the report file as the completion signal.
+  (above) as the live window, and the report file as the completion signal. `--mode json`
+  makes the final output machine-parseable if the controller wants to read it from the
+  terminal instead of a report file.
+
+## Squeezing the harness — flags worth using per role
+
+From `pi --help` (v0.84.x); combine freely with either mode:
+
+- **Brain per task**: `--provider <name> --model <pattern>` (supports `provider/id` and
+  `:<thinking>` suffix) and `--thinking off|minimal|low|medium|high|xhigh|max`. Size the
+  model and thinking to the role — mini + low for mechanical lanes, big + high for
+  review/reconciliation (see Model per role below).
+- **Tool clamps**: `-t <allowlist>` / `-xt <denylist>` over built-in (`read`, `bash`,
+  `edit`, `write`) and extension tools. `-xt write,edit` for a reviewer removes the
+  editing tools. This shrinks the accident surface; it is NOT a sandbox — `bash` can
+  still write via the shell, so keep the read-only instruction in the dispatch too.
+- **System-level constraints**: `--append-system-prompt <text-or-file>` injects standing
+  rules (worker hygiene, git safety) above the conversation — harder for a worker to
+  drift from than a user message. Repeatable.
+- **Session control**: `--session-id <id>` exact id, created if missing; `-c` continue
+  last; `--fork <id>` branch a session (e.g. reuse an implementer's context for a
+  what-if without polluting it); `--no-session` for ephemeral throwaways;
+  `--export <file>` renders a session to HTML for audit.
+- **Context slimming for cheap workers**: `--no-skills`, `--no-extensions`,
+  `--no-context-files` strip discovery when a mechanical one-shot doesn't need repo
+  conventions — smaller prompt, faster, cheaper. Default keeps them on: `AGENTS.md` and
+  `.agents/skills/` are usually why workers behave.
+- **Attachments**: positional `@file` args inline file contents into the first message —
+  fine for small inputs; the dispatch-file pattern stays better for long briefs.
 
 ## Model per role
 

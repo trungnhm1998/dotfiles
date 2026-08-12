@@ -30,6 +30,22 @@ Not every task can go to a pi worker. Route by capability, not preference:
 | MCP tools (Unity Editor, browser MCP, any `mcp__*`) | A harness with MCP (e.g. a built-in Claude subagent) — **pi has no MCP client** (verified v0.84.1); it will come back BLOCKED no matter how the dispatch is worded |
 | The controller session's conversation context | Built-in fork/subagent — pi workers start cold |
 
+## Pick the worker mode: interactive TUI or `pi -p` headless
+
+pi runs two ways, and the choice is per task, not per session:
+
+- **Interactive TUI** (`orca terminal create --command "pi"`) when the worker may need to
+  ask questions, when fix rounds are likely (a resume is one `terminal send` into intact
+  context), or when a human may watch or take over the terminal.
+- **Headless print mode** (`pi -p`) for one-shot tasks with no expected back-and-forth:
+  reviews, mechanical batches, report-only jobs, scripted pipelines. It exits when done
+  (`orca terminal wait --for exit` works), takes per-task flags — `--model`/`--thinking`
+  for role-sized brains, `-t`/`-xt` to clamp tools (e.g. strip `write,edit` from a
+  reviewer), `--mode json` for parseable output, `--no-session` for ephemeral runs — and
+  its quoting traps and monitoring live in `references/pi.md`.
+
+When in doubt: TUI for implementers, `-p` for reviewers and batch mechanics.
+
 Two rules that keep mis-routing cheap:
 
 - Put an escape hatch in every dispatch: "if you cannot do X with the sanctioned tools,
@@ -174,8 +190,9 @@ that was never its to touch. Every dispatch that commits must:
 Read `references/pi.md` before running pi in `-p` print mode, debugging a stuck or
 suspiciously fast worker, monitoring a long run, or choosing worker models. It covers:
 session-jsonl monitoring and the liveness-vs-progress two-signal rule, provider-death
-failover, print-mode quoting traps, session-id resume semantics, and the
-mini-executes/big-model-reviews split.
+failover, print-mode quoting traps, session-id resume semantics, the
+mini-executes/big-model-reviews split, and the full flag surface worth squeezing
+(tool clamps, thinking levels, json output, session forking, context slimming).
 
 ## Other worker harnesses
 
