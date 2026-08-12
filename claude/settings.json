@@ -14,7 +14,7 @@
       "C:\\ObsidianVaults"
     ]
   },
-  "model": "claude-fable-5[1m]",
+  "model": "sonnet",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -85,6 +85,15 @@
             "statusMessage": "loading vault map"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Notification": [
@@ -109,6 +118,16 @@
             "statusMessage": "test-output filter"
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -120,6 +139,16 @@
             "command": "bash ~/.claude/hooks/worktree-seed-hook.sh",
             "timeout": 15,
             "statusMessage": "seed worktree locals"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
@@ -142,6 +171,94 @@
             "command": "bash ~/.claude/hooks/vault-capture.sh",
             "timeout": 10,
             "statusMessage": "vault capture check"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
