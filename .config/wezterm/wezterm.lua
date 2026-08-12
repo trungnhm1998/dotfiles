@@ -25,6 +25,12 @@ local is_macos = (wezterm.target_triple == "aarch64-apple-darwin" or wezterm.tar
     or false
 local is_unix = not is_windows
 
+-- Master switch for the custom Claude Code notify integration (the tab-badge reconcile +
+-- toast-click focus poll in the update-status handler, section 4). false = minimal setup
+-- (2026-08-12, see docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md).
+-- Flip to true to re-enable; everything downstream is nil-safe while off.
+local claude_notify_integration = false
+
 -- ============================================================================
 -- § 2 · SHARED UI  —  all platforms; add new cross-platform UI here
 -- ============================================================================
@@ -715,6 +721,14 @@ if is_windows then
                 wezterm.GLOBAL.previous_workspace = wezterm.GLOBAL.current_workspace
                 ---@diagnostic disable-next-line: inject-field
                 wezterm.GLOBAL.current_workspace = current
+            end
+
+            -- Claude badge reconcile + toast-focus consumption disabled below this line
+            -- while claude_notify_integration is false. GLOBAL.claude_alert is then never
+            -- written, so the "claude" tabline component (nil-safe: tabline_claude_badge.lua)
+            -- renders nothing. Workspace tracking above stays live.
+            if not claude_notify_integration then
+                return
             end
 
             local paths = read_all_subdir_files(claude_alerts.dir(wezterm.home_dir, os.getenv("XDG_CACHE_HOME")))
