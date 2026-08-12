@@ -189,6 +189,23 @@ cc() { ( export ANTHROPIC_BASE_URL="http://localhost:8080"; exec claude "$@" ) }
 wt-seed()     { bash "$HOME/dotfiles/scripts/worktree-seed.sh" "$@"; }
 wt-seed-all() { bash "$HOME/dotfiles/scripts/worktree-seed.sh" --all; }
 
+# --- restart a wedged Hammerspoon (macOS) ---
+# Display switch/connect can freeze HS's main Lua thread. Its own escape hatches are on that
+# same thread, so `Hyper+; o` and `hs -c "hs.reload()"` are dead too -- only an out-of-band
+# kill works. See .config/hammerspoon/yabai.lua:50 for the blocking-shell-out freeze class.
+# The wait loop is required: `open` right after `killall` races the teardown and fails with
+# LSOpenURLsWithCompletionHandler error -600 (procNotFound), leaving HS down. SIGKILL after
+# ~3s because a wedged main thread can swallow SIGTERM.
+hsr() {
+	killall Hammerspoon 2>/dev/null
+	local i=0
+	while pgrep -x Hammerspoon >/dev/null; do
+		((i++ > 30)) && killall -9 Hammerspoon 2>/dev/null
+		sleep 0.1
+	done
+	open -a Hammerspoon
+}
+
 # --- repair a garbled terminal ---
 # Same name as the Windows `fix-tui`, deliberately DIFFERENT bug: Windows repairs a wrong
 # console code page on a live pane; Unix has no such object, so this resets charset state
