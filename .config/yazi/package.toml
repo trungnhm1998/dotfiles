@@ -1,12 +1,12 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "de33976"
-hash = "36a484acf6a0a0219c543ccb4cee218f"
+rev = "0be29a9"
+hash = "fbb53c3c04f816d737f9f4b1d29f3310"
 
 [[plugin.deps]]
 use = "AnirudhG07/rich-preview"
-rev = "573b275"
-hash = "c3e2871c9ef244fd181f203791f9b0d2"
+rev = "02597c4"
+hash = "33982a6e2d6df07619a2a0fc163a0950"
 
 [[plugin.deps]]
 use = "AnirudhG07/nbpreview"
@@ -15,5 +15,5 @@ hash = "b83919985400521dee78e1c352b5d9db"
 
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-frappe"
-rev = "ca61658"
-hash = "e25fb61c14484de843b52430a72b5196"
+rev = "be0b21d"
+hash = "ab7c71d442d3a9e16331ea0d95ab36a8"

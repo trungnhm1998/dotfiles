@@ -1,6 +1,3 @@
-# A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
-# If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
-"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # Opener Strategy:
 # - edit: Uses $EDITOR (respects user preference) or fallback to vi/code
@@ -120,18 +117,18 @@ rules = [
 #   nbpreview    -> `nbpreview`:       `pipx install nbpreview` — Jupyter .ipynb (optional)
 # Without the CLI installed, the matching file types preview blank. See EXTERNAL_DEPS.md.
 prepend_previewers = [
-    { name = "*.ipynb", run = "nbpreview" },
-    { name = "*.md", run = "rich-preview" },
-    { name = "*.csv", run = "rich-preview" },
-    { name = "*.rst", run = "rich-preview" },
+    { url = "*.ipynb", run = "nbpreview" },
+    { url = "*.md", run = "rich-preview" },
+    { url = "*.csv", run = "rich-preview" },
+    { url = "*.rst", run = "rich-preview" },
 ]
 
 [[plugin.prepend_fetchers]]
-id  = "git"
+group = "git"
 url = "*"
 run = "git"
 
 [[plugin.prepend_fetchers]]
-id  = "git"
+group = "git"
 url = "*/"
 run = "git"
