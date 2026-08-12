@@ -3,27 +3,18 @@ name: pi-workers
 description: >-
   Delegate implementation, review, and verification tasks to pi coding agents running in
   Orca terminals, so work fans out onto a separate model/quota while the controller keeps
-  its context for coordination. Use whenever the user says "delegate to pi", "pi worker",
-  "pi agent", "use pi", "fan out to agents", "external agent worker", "run this through
-  another harness", or asks to execute a plan with non-Claude workers (e.g.
-  subagent-driven development with pi implementers/reviewers). Also use when choosing
-  WHICH lane a task belongs in: pi worker vs built-in subagent. Covers the
-  dispatch-file protocol, completion detection, capability routing (pi has no MCP), and
-  live-repo git safety. The same protocol extends to other TUI harnesses (codex,
-  opencode, grok) — pi is the first-class worker.
+  its context for coordination. Use when the user says "delegate to pi", "pi worker",
+  "fan out to agents", or "run this through another harness"; when executing a plan with
+  non-Claude implementers/reviewers; or when choosing which lane a task belongs in
+  (pi worker vs built-in subagent — pi has no MCP). Extends to codex/opencode/grok.
 ---
 
 # pi Workers
 
 Drive pi (pi.dev — a minimal Read/Write/Edit/Bash harness) as a worker from a controller
 session. The worker runs on its own model and quota, in the real repo, with its own
-context window; the controller keeps its context for coordination. Proven shape: a
-controller ran 3 pi implementers + 4 pi reviewers through a 5-task plan with zero
-shell-parse failures and zero lost runs.
-
-This protocol is controller-agnostic (Claude Code, pi itself, or any harness that can run
-the Orca CLI) and worker-generalizable — codex/opencode/grok accept the same shape — but
-pi is the first-class worker and the one these notes are verified against.
+context window; the controller keeps its context for coordination. The protocol is
+controller-agnostic: any harness that can run the Orca CLI can be the controller.
 
 **Prerequisite:** the Orca CLI manages the terminals. Load the `orca-cli` skill first and
 run `orca skills get orca-cli` for the version-matched command reference — this skill only
@@ -54,11 +45,15 @@ Never send a multi-paragraph brief through `terminal send` — the text is retyp
 worker's shell and every quoting/here-string trap in that shell applies to your prose.
 Instead, the pair of files IS the protocol:
 
-1. **Controller writes** `<workspace>/task-N-dispatch.md` — everything the worker needs.
+1. **Controller writes** `task-N-dispatch.md` — everything the worker needs.
 2. **Controller sends one short line**: `Read the file <path> and execute it exactly. It
    is your task dispatch.`
-3. **Worker writes** `<workspace>/task-N-report.md` — full evidence, and prints a short
-   status in the terminal.
+3. **Worker writes** `task-N-report.md` — full evidence, and prints a short status in the
+   terminal.
+
+Use **absolute paths** for both files. In `--worktree active` the worker shares your tree;
+with `orca worktree create` the worker cannot see the controller's copy — write the
+dispatch inside the new worktree (or commit it first).
 
 A dispatch file that works contains, in order:
 
@@ -73,7 +68,7 @@ A dispatch file that works contains, in order:
 
 ```markdown
 ## Report
-Write your full report to: <workspace>/task-N-report.md
+Write your full report to: <absolute path>/task-N-report.md
 (what you did, evidence: commands + output, files changed, self-review, concerns)
 Then print in this terminal ONLY (under 15 lines):
 - Status: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
@@ -88,12 +83,16 @@ proceeding, BLOCKED/NEEDS_CONTEXT mean something must change (context, lane, or 
 
 ## Spawn, dispatch, wait
 
+Snippets are PowerShell (Orca terminals on Windows run pwsh) — on macOS/Linux substitute
+`jq -r`, `test -f`, `sleep`.
+
 ```powershell
 # same-checkout work (worker shares your working tree)
 $h = orca terminal create --worktree active --title "task3-impl" --command "pi" --json |
      ConvertFrom-Json | % { $_.result.terminal.handle }
 
 # isolated work: orca worktree create --name task3 --agent pi --prompt "..." instead
+# (then write the dispatch inside that worktree — see above)
 
 orca terminal wait --terminal $h --for tui-idle --timeout-ms 60000 --json   # startup only
 orca terminal send --terminal $h --text "Read the file <dispatch-path> and execute it exactly. It is your task dispatch." --enter --json
@@ -103,22 +102,21 @@ orca terminal send --terminal $h --text "Read the file <dispatch-path> and execu
 sending. It is unsound as a completion signal — it fires in the gap between the keystrokes
 being accepted and the run starting to stream.
 
-pi auto-loads `~/.pi/agent/AGENTS.md`, the repo's `AGENTS.md`/`CLAUDE.md`, and repo
-`.agents/skills/`, so project conventions arrive without restating them in the dispatch.
+**Fan-out:** for independent tasks, spawn all the terminals and send all the dispatches
+before waiting on any of them — keep a handle→report-path map and watch all the report
+paths in one loop. Serialize only workers whose tasks touch the same files or the same
+git index state (e.g. multiple implementers committing).
+
+pi auto-loads `~/.pi/agent/AGENTS.md`, the repo's `AGENTS.md`/`CLAUDE.md`, and the repo's
+`.agents/skills/` (visible in its startup banner), so project conventions arrive without
+restating them in the dispatch.
 
 ## Detect completion by artifact, never by terminal text
 
-Poll for the report file the worker was told to write. It is monotonic and it means "done";
-terminal text means neither.
-
-```powershell
-$deadline = (Get-Date).AddMinutes(10)
-while ((Get-Date) -lt $deadline) {
-  if (Test-Path $report) { break }
-  Start-Sleep -Seconds 20
-}
-if (-not (Test-Path $report)) { <# read terminal tail to DIAGNOSE, not to conclude #> }
-```
+Watch for the report file the worker was told to write. It is monotonic and it means
+"finished"; terminal text means neither. Don't burn your own turn sleeping in a foreground
+loop — background the watch and keep working (Claude Code: the `Monitor` tool, or a
+background `until [ -f "$report" ]; do sleep 15; done` shell), with a deadline.
 
 Why not grep the terminal for `Status: DONE`? Two lived failures:
 - The dispatch line the controller just sent contains the status vocabulary and is echoed
@@ -127,9 +125,14 @@ Why not grep the terminal for `Status: DONE`? Two lived failures:
   *previous* task's verdict. If the buffer must be read, slice it forward from this
   dispatch's unique command echo first.
 
-On timeout, read the tail (`orca terminal read --terminal $h`) to see whether the worker is
-asking a question (answer it with another `terminal send`), thinking, or wedged. For
-liveness vs progress on long runs, and pi's session-jsonl signal, see `references/pi.md`.
+On deadline, read the tail (`orca terminal read --terminal $h`) to see whether the worker
+is asking a question (answer it with another `terminal send`), thinking, or wedged. For
+liveness vs progress on long runs, see `references/pi.md` — Monitoring a running worker.
+
+**The report file means *finished*, not *correct*.** Before relaying a worker's outcome,
+check the artifact yourself — `git status`, the diff, the files on disk. A worker once
+moved every file correctly and reported "Moved: 0, every row a collision skip"; the report
+was the only thing wrong.
 
 ## Git safety in a live repo
 
@@ -169,14 +172,14 @@ that was never its to touch. Every dispatch that commits must:
 ## Deeper pi knowledge
 
 Read `references/pi.md` before running pi in `-p` print mode, debugging a stuck or
-suspiciously fast worker, or choosing worker models. It covers: print-mode quoting traps,
-session-jsonl monitoring, the liveness-vs-progress two-signal rule, provider-death
-failover, session-id resume semantics, and the mini-executes/big-model-reviews split.
+suspiciously fast worker, monitoring a long run, or choosing worker models. It covers:
+session-jsonl monitoring and the liveness-vs-progress two-signal rule, provider-death
+failover, print-mode quoting traps, session-id resume semantics, and the
+mini-executes/big-model-reviews split.
 
 ## Other worker harnesses
 
 codex, opencode, and grok accept the same spawn/dispatch/report protocol
 (`orca terminal create --command "codex"` or `orca worktree create --agent codex`). Their
 capability surfaces differ from pi's — before routing MCP- or web-dependent tasks, check
-the harness's tool surface or dispatch a cheap probe task first. First-class support notes
-for them will land here as they get the same lived verification pi has.
+the harness's tool surface or dispatch a cheap probe task first.
