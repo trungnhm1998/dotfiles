@@ -25,6 +25,7 @@ brew install \
     miniconda \
     tmux \
     jq \
+    terminal-notifier \
     fd \
     wget \
     poppler \
@@ -101,9 +102,9 @@ bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
 # Pre-warm the Claude-notify WezTerm toast icon (-contentImage thumbnail). The hook
 # self-heals if this is skipped/missing; this just avoids paying generation on the
 # first notification. Needs WezTerm (cask above) + sips (built-in).
-# DISABLED 2026-08-12: back to minimal Claude Code setup. terminal-notifier was also
-# dropped from the brew list above (it existed only for these toasts). To re-enable:
-# uncomment below and re-add terminal-notifier to the brew install list. Spec:
+# DISABLED 2026-08-12: back to minimal Claude Code setup. terminal-notifier stays in
+# the brew list above because kanata-layer-listener.sh also uses it (WORK/GAME toast);
+# only this Claude toast-icon pre-warm is disabled. To re-enable: uncomment below. Spec:
 # docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md
 # bash -c 'source "$HOME/dotfiles/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
 #     && echo "Claude-notify WezTerm toast icon cached." || true
