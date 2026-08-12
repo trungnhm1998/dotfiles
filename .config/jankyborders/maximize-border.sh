@@ -5,7 +5,7 @@
 [ -f "$HOME/.cache/yabai/wm-mode" ] && exit 0
 
 if yabai -m query --windows --window | grep '"has-fullscreen-zoom":true'; then
-  borders active_color=0xffe78284
+  borders active_color=0xffe78284 inactive_color=0xff51576d width=10.0 &
 else
-  borders active_color=0xffca9ee6
+  borders active_color=0xffca9ee6 inactive_color=0xff51576d width=10.0 &
 fi
