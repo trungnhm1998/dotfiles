@@ -28,3 +28,25 @@ describe("modifier tables", function()
     assert.is_false(has(keys.MEH, "cmd"))
   end)
 end)
+
+describe("keys.make_double_tap", function()
+  it("fires only on two presses within the window", function()
+    local fired = 0
+    local now = 0
+    local press = keys.make_double_tap(0.35, function() fired = fired + 1 end, function() return now end)
+    press()            -- t=0: first press, no fire
+    assert.are.equal(0, fired)
+    now = 0.2
+    press()            -- t=0.2: within window -> fire
+    assert.are.equal(1, fired)
+    now = 0.4
+    press()            -- t=0.4: window reset after fire, no fire
+    assert.are.equal(1, fired)
+    now = 1.0
+    press()            -- t=1.0: too slow after t=0.4 press... still no fire
+    assert.are.equal(1, fired)
+    now = 1.2
+    press()            -- t=1.2: within window of t=1.0 -> fire
+    assert.are.equal(2, fired)
+  end)
+end)

@@ -24,6 +24,22 @@ function M.warp(key)
   return { "window --warp " .. d }
 end
 
+-- double-tap detector: returns a press handler; two presses within `window`
+-- seconds fire `fn` once, then the state resets. `clock` injectable for tests.
+function M.make_double_tap(window, fn, clock)
+  clock = clock or function() return hs.timer.secondsSinceEpoch() end
+  local last = -math.huge
+  return function()
+    local now = clock()
+    if now - last < window then
+      last = -math.huge
+      fn()
+    else
+      last = now
+    end
+  end
+end
+
 -- helper: bind a Hyper/Meh chord to a single yabai command
 local function bind(mods, key, args)
   hs.hotkey.bind(mods, key, function() yabai.run(args) end)
@@ -55,6 +71,14 @@ function M.wire()
   hs.hotkey.bind(M.HYPER, "c", function() M.cycle_layout(1) end)
   bind(M.HYPER, "q", "window --close")
   bind(M.HYPER, "m", "window --minimize")
+  -- kanata WORK/GAME flip (mirrors Windows Hyper+G); pill + toast update via listener
+  hs.hotkey.bind(M.HYPER, "g", function()
+    yabai.sh(os.getenv("HOME") .. "/.config/kanata/kanata-flip.sh")
+  end)
+  -- Hyper+B B (double-tap) toggles SketchyBar + yabai external_bar offset
+  hs.hotkey.bind(M.HYPER, "b", M.make_double_tap(0.35, function()
+    yabai.sh(os.getenv("HOME") .. "/.config/sketchybar/bar-toggle.sh")
+  end))
 
   -- Meh: move / relocate
   for _, k in ipairs({ "h", "j", "k", "l" }) do bind_first(M.MEH, k, M.warp(k)) end
