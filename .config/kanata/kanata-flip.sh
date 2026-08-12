@@ -9,4 +9,6 @@ PORT="${KANATA_PORT:-10000}"
 
 cur=$(cat "$STATE" 2>/dev/null)
 [ "$cur" = "gaming" ] && next="base" || next="gaming"
-printf '{"ChangeLayer":{"new":"%s"}}\n' "$next" | nc -w1 127.0.0.1 "$PORT"
+exec 3<>"/dev/tcp/127.0.0.1/$PORT" 2>/dev/null || exit 0
+printf '{"ChangeLayer":{"new":"%s"}}\n' "$next" >&3
+exec 3<&- 3>&-
