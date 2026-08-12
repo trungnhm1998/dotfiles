@@ -44,7 +44,7 @@ $dotfilesRoot = $PSScriptRoot
 
 $powershellModules = @(
     "PSReadLine"
-    "BurntToast"   # clickable Claude toasts (claude-notify.ps1 emit mode)
+    # "BurntToast"   # clickable Claude toasts (claude-notify.ps1 emit mode) - DISABLED 2026-08-12, minimal Claude setup
     # posh-git + Terminal-Icons removed 2026-07-04 — redundant with Starship + eza --icons (see profile).
 )
 
@@ -942,30 +942,32 @@ if ($officeVal -eq 'rundll32') {
 }
 
 # --- Claude toast click → focus the waiting WezTerm pane ---
+# DISABLED 2026-08-12: back to minimal Claude Code setup. Uncomment to re-enable. If it was
+# registered on this machine, undo with: Remove-Item 'HKCU:\Software\Classes\claude-wez' -Recurse -Force
 # Registers the claude-wez:// URL protocol so a toast body-click runs claude-notify.ps1
 # in -Activate mode (drops a one-shot focus marker the WezTerm poller consumes). Per-user,
 # reversible. Undo: Remove-Item 'HKCU:\Software\Classes\claude-wez' -Recurse -Force
-$wezCmdKey   = 'HKCU:\Software\Classes\claude-wez\shell\open\command'
-$launcherVbs = "$HOME\.claude\hooks\bin\claude-wez-launch.vbs"
-# Route the click through the windowless VBS launcher: wscript has no console, so no
-# Windows-Terminal flash (the spike proved pwsh-direct flashes). The VBS runs
-# claude-notify.ps1 -Activate hidden and resolves pwsh from PATH at click time.
-# wscript.exe is always present on Windows.
-$wezCmdWant  = "wscript.exe `"$launcherVbs`" `"%1`""
-$wezCmdHave  = (Get-ItemProperty -Path $wezCmdKey -ErrorAction SilentlyContinue).'(default)'
-if ($wezCmdHave -eq $wezCmdWant) {
-    Write-Status "claude-wez toast-click handler already registered" -Type Success
-} else {
-    Write-Status "Registering claude-wez:// toast-click handler (focus the waiting pane)" -Type Info
-    if (-not $DryRun) {
-        New-Item -Path 'HKCU:\Software\Classes\claude-wez\shell\open\command' -Force | Out-Null
-        Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' '(default)'   'URL:Claude WezTerm Focus'
-        Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' 'URL Protocol' ''
-        Set-ItemProperty $wezCmdKey '(default)' $wezCmdWant
-    } else {
-        Write-Host "  [DRY RUN] Would set $wezCmdKey (default) = $wezCmdWant" -ForegroundColor DarkGray
-    }
-}
+# $wezCmdKey   = 'HKCU:\Software\Classes\claude-wez\shell\open\command'
+# $launcherVbs = "$HOME\.claude\hooks\bin\claude-wez-launch.vbs"
+# # Route the click through the windowless VBS launcher: wscript has no console, so no
+# # Windows-Terminal flash (the spike proved pwsh-direct flashes). The VBS runs
+# # claude-notify.ps1 -Activate hidden and resolves pwsh from PATH at click time.
+# # wscript.exe is always present on Windows.
+# $wezCmdWant  = "wscript.exe `"$launcherVbs`" `"%1`""
+# $wezCmdHave  = (Get-ItemProperty -Path $wezCmdKey -ErrorAction SilentlyContinue).'(default)'
+# if ($wezCmdHave -eq $wezCmdWant) {
+#     Write-Status "claude-wez toast-click handler already registered" -Type Success
+# } else {
+#     Write-Status "Registering claude-wez:// toast-click handler (focus the waiting pane)" -Type Info
+#     if (-not $DryRun) {
+#         New-Item -Path 'HKCU:\Software\Classes\claude-wez\shell\open\command' -Force | Out-Null
+#         Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' '(default)'   'URL:Claude WezTerm Focus'
+#         Set-ItemProperty 'HKCU:\Software\Classes\claude-wez' 'URL Protocol' ''
+#         Set-ItemProperty $wezCmdKey '(default)' $wezCmdWant
+#     } else {
+#         Write-Host "  [DRY RUN] Would set $wezCmdKey (default) = $wezCmdWant" -ForegroundColor DarkGray
+#     }
+# }
 
 # --- AI tool secrets + context7 MCP registration ---
 $secretsFile = "$HOME\.config\dotfiles\secrets.env"

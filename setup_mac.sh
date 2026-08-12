@@ -25,7 +25,6 @@ brew install \
     miniconda \
     tmux \
     jq \
-    terminal-notifier \
     fd \
     wget \
     poppler \
@@ -102,8 +101,12 @@ bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
 # Pre-warm the Claude-notify WezTerm toast icon (-contentImage thumbnail). The hook
 # self-heals if this is skipped/missing; this just avoids paying generation on the
 # first notification. Needs WezTerm (cask above) + sips (built-in).
-bash -c 'source "$HOME/dotfiles/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
-    && echo "Claude-notify WezTerm toast icon cached." || true
+# DISABLED 2026-08-12: back to minimal Claude Code setup. terminal-notifier was also
+# dropped from the brew list above (it existed only for these toasts). To re-enable:
+# uncomment below and re-add terminal-notifier to the brew install list. Spec:
+# docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md
+# bash -c 'source "$HOME/dotfiles/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
+#     && echo "Claude-notify WezTerm toast icon cached." || true
 
 # brew services start svim   # disabled — see svim note above
 brew services start sketchybar
