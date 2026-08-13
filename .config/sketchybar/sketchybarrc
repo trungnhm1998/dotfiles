@@ -140,6 +140,15 @@ sketchybar --add item wm_toggle right \
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
 
+##### Re-apply persisted hidden state (bar-toggle.sh) #####
+# --reload resets `hidden` to off, and yabairc fires reloads on wake/display
+# change/yabai restart (yabairc:89-92) after forcing external_bar all:25:0 —
+# without this the bar un-hides itself and the offset desyncs.
+if [[ -f "$HOME/.cache/sketchybar-hidden" ]]; then
+  sketchybar --bar hidden=on
+  yabai -m config external_bar all:0:0
+fi
+
 has_external_monitor=$(yabai -m query --displays | jq '. | length > 1')
 
 if [[ $has_external_monitor == "true" ]]; then
