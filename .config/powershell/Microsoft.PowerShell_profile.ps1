@@ -116,16 +116,33 @@ function which
 # starship/zoxide init scripts are static per binary version -- cache to files and dot-source
 # (saves the init process spawns, ~230ms/shell; starship's iex stub even spawned it twice).
 # Regenerated when the exe is newer than the cache.
-function __Update-InitCache([string]$Cache, [string]$ExePath, [string[]]$InitArgs)
+# Returns $true only if the cache is usable, so callers skip dot-sourcing when the tool is
+# missing from PATH (a not-installed/mid-install shell used to throw two errors per launch).
+function __Update-InitCache([string]$Cache, [string]$Exe, [string[]]$InitArgs)
 {
-    if (-not (Test-Path $Cache) -or (Get-Item $Cache).LastWriteTime -lt (Get-Item $ExePath).LastWriteTime)
-    {
-        & $ExePath @InitArgs | Set-Content $Cache
+    $exePath = (Get-Command $Exe -CommandType Application -ErrorAction SilentlyContinue).Source | Select-Object -First 1
+    if (-not $exePath)
+    { return (Test-Path $Cache)
     }
+    # Scoop resolves to a shim whose mtime is frozen at install (2025) and the real exe under
+    # apps\ keeps the upstream archive's date, so both can predate the cache and the check never
+    # fires -- a `scoop update` silently left us dot-sourcing the previous version's init. The
+    # sibling .shim is rewritten on every upgrade, so take whichever stamp is newest.
+    $stamp = (Get-Item $exePath).LastWriteTime
+    $shim = [IO.Path]::ChangeExtension($exePath, '.shim')
+    if ((Test-Path $shim) -and (Get-Item $shim).LastWriteTime -gt $stamp)
+    { $stamp = (Get-Item $shim).LastWriteTime
+    }
+    if (-not (Test-Path $Cache) -or (Get-Item $Cache).LastWriteTime -lt $stamp)
+    {
+        & $exePath @InitArgs | Set-Content $Cache
+    }
+    return $true
 }
 $__starshipInit = "$env:LOCALAPPDATA\starship-init.ps1"
-__Update-InitCache $__starshipInit (Get-Command starship).Source @('init', 'powershell', '--print-full-init')
-. $__starshipInit
+if (__Update-InitCache $__starshipInit 'starship' @('init', 'powershell', '--print-full-init'))
+{ . $__starshipInit
+}
 # integrate with wezterm because I use starship
 $prompt = ""
 function Invoke-Starship-PreCommand
@@ -159,8 +176,9 @@ if ($env:WEZTERM_PANE)
 # mirroring the zsh setup (`zoxide init zsh --cmd cd`). Real `cd` paths/.. still
 # work; only unknown args fall through to the zoxide database. No alias hack needed.
 $__zoxideInit = "$env:LOCALAPPDATA\zoxide-init.ps1"
-__Update-InitCache $__zoxideInit (Get-Command zoxide).Source @('init', 'powershell', '--cmd', 'cd')
-. $__zoxideInit
+if (__Update-InitCache $__zoxideInit 'zoxide' @('init', 'powershell', '--cmd', 'cd'))
+{ . $__zoxideInit
+}
 
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
 if (-not [Console]::IsInputRedirected)
