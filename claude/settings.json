@@ -14,7 +14,7 @@
       "C:\\ObsidianVaults"
     ]
   },
-  "model": "sonnet",
+  "model": "opus[1m]",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -320,7 +320,7 @@
       }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
