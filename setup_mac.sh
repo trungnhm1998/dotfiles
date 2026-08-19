@@ -75,20 +75,20 @@ brew install --cask \
     hammerspoon \
     middleclick
 
-ln -sf $HOME/dotfiles/.config/yabai $HOME/.config/yabai
+ln -sfn $HOME/dotfiles/.config/yabai $HOME/.config/yabai
 # Hammerspoon is the sole hotkey daemon (skhd retired — binary kept, service stopped)
-ln -sf "$HOME/dotfiles/.config/hammerspoon" "$HOME/.hammerspoon"
+ln -sfn "$HOME/dotfiles/.config/hammerspoon" "$HOME/.hammerspoon"
 # stackline (yabai stacking overlay) is vendored under .config/hammerspoon/stackline/ and rides
 # this symlink — no extra step. It needs the `hs` IPC CLI for signal-driven refresh; if `which hs`
 # fails, run `hs.ipc.cliInstall("/opt/homebrew")` once in the Hammerspoon console.
 skhd --stop-service 2>/dev/null || true
 echo "⚠️  Grant Hammerspoon Accessibility permission: System Settings → Privacy & Security → Accessibility (one-time)."
 echo "⚠️  MiddleClick (3-finger tap = middle click): launch it + grant Accessibility permission, then enable Start at Login (one-time)."
-ln -sf $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
-ln -sf $HOME/dotfiles/.config/sketchybar $HOME/.config/sketchybar
+ln -sfn $HOME/dotfiles/.config/jankyborders $HOME/.config/jankyborders
+ln -sfn $HOME/dotfiles/.config/sketchybar $HOME/.config/sketchybar
 ln -s $(which sketchybar) $(dirname $(which sketchybar))/external_bar # to use multiple bars
-ln -sf $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
-ln -sf $HOME/dotfiles/.config/kanata $HOME/.config/kanata
+ln -sfn $HOME/dotfiles/.config/external_bar $HOME/.config/external_bar
+ln -sfn $HOME/dotfiles/.config/kanata $HOME/.config/kanata
 # svim — disabled 2026-06-20 (unused). To re-enable: add "svim" back to the brew
 # install list above, then uncomment this symlink and the "brew services start svim" below.
 # ln -sf $HOME/dotfiles/.config/svim $HOME/.config/svim
