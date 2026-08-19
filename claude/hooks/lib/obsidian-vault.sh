@@ -22,6 +22,7 @@ resolve_obsidian_vault() {
 
   local candidates=(
     "$HOME/obsidian-vault/main"   # macOS / Linux (this machine)
+    "/mnt/c/ObsidianVaults"       # WSL2, Windows-side vault
     "/c/ObsidianVaults"           # Windows, Git-Bash path form
     "C:/ObsidianVaults"           # Windows, drive-letter form
   )

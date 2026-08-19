@@ -39,6 +39,13 @@ export CLAUDE_CODE_TMUX_TRUECOLOR=1
 # --- secrets (gitignored; see secrets.env.example) ---
 [ -f "$HOME/.config/dotfiles/secrets.env" ] && source "$HOME/.config/dotfiles/secrets.env"
 
+# --- Obsidian vault (WSL: Windows-side vault; guard keeps other machines clean) ---
+[ -d "/mnt/c/ObsidianVaults" ] && export OBSIDIAN_VAULT="/mnt/c/ObsidianVaults"
+
+# --- uapi: extract FF (Neopets FH) API responses from the Unity Editor log ---
+# Real tool lives in ~/tools (own repo); usage: uapi <api_pattern> [-n N] [-r] [-m]
+[ -x "$HOME/tools/extract_api_response.sh" ] && alias uapi="$HOME/tools/extract_api_response.sh"
+
 # install https://github.com/sharkdp/vivid/releases for using vivid below
 if [ -x "$(command -v vivid)" ]; then
 	export LS_COLORS=$LS_COLORS:"$(vivid generate catppuccin-frappe)"

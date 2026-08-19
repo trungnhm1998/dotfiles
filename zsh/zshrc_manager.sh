@@ -41,3 +41,6 @@ source "$HOME/dotfiles/zsh/zshrc.sh"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Pi
+export PATH="/home/mint/.local/share/pi-node/node-v22.23.2-linux-x64/bin:$PATH"
