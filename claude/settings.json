@@ -94,6 +94,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/home/mint/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Notification": [
@@ -266,7 +276,11 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/hooks/statusline.sh"
+    "command": "node \"/home/mint/.claude/hooks/statusline.js\""
+  },
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "node \"/home/mint/.claude/hooks/statusline.js\" subagent"
   },
   "enabledPlugins": {
     "claude-mem@thedotmack": false,
