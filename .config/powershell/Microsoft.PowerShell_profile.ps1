@@ -71,40 +71,40 @@ if ($__vivid)
 # default alias ls->Get-ChildItem outranks functions in pwsh; drop it so the wrapper below runs
 Remove-Alias ls -Force -ErrorAction SilentlyContinue
 function ls
-{ eza --icons $args 
+{ eza --icons=auto $args 
 }
 function l
-{ eza --icons $args 
+{ eza --icons=auto $args 
 }
 function ll
-{ eza -lg --icons $args 
+{ eza -lg --icons=auto $args 
 }
 function la
-{ eza -lag --icons $args 
+{ eza -lag --icons=auto $args 
 }
 function lt
-{ eza -lTg --icons $args 
+{ eza -lTg --icons=auto $args 
 }
 function lt1
-{ eza -lTg --level=1 --icons $args 
+{ eza -lTg --level=1 --icons=auto $args 
 }
 function lt2
-{ eza -lTg --level=2 --icons $args 
+{ eza -lTg --level=2 --icons=auto $args 
 }
 function lt3
-{ eza -lTg --level=3 --icons $args 
+{ eza -lTg --level=3 --icons=auto $args 
 }
 function lta
-{ eza -lTag --icons $args 
+{ eza -lTag --icons=auto $args 
 }
 function lta1
-{ eza -lTag --level=1 --icons $args 
+{ eza -lTag --level=1 --icons=auto $args 
 }
 function lta2
-{ eza -lTag --level=2 --icons $args 
+{ eza -lTag --level=2 --icons=auto $args 
 }
 function lta3
-{ eza -lTag --level=3 --icons $args
+{ eza -lTag --level=3 --icons=auto $args
 }
 
 # --- unix tools (Microsoft.Coreutils; interactive rewrite shim at end of this file) ---

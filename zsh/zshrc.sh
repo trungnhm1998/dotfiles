@@ -166,19 +166,21 @@ export _ZO_DOCTOR=0
 command -v zoxide >/dev/null && eval "$(zoxide init zsh --cmd cd)"
 
 # --- eza --- (guard so missing eza doesn't shadow/break core ls/ll/la)
+# Keep --icons=auto, never a bare --icons: since eza 0.20 the flag takes an optional
+# WHEN value, so `eza --icons <path>` parses the path AS the value and errors out.
 if command -v eza >/dev/null 2>&1; then
-	alias ls="eza --icons"
-	alias l="eza --icons"
-	alias ll="eza -lg --icons"
-	alias la="eza -lag --icons"
-	alias lt="eza -lTg --icons"
-	alias lt1="eza -lTg --level=1 --icons"
-	alias lt2="eza -lTg --level=2 --icons"
-	alias lt3="eza -lTg --level=3 --icons"
-	alias lta="eza -lTag --icons"
-	alias lta1="eza -lTag --level=1 --icons"
-	alias lta2="eza -lTag --level=2 --icons"
-	alias lta3="eza -lTag --level=3 --icons"
+	alias ls="eza --icons=auto"
+	alias l="eza --icons=auto"
+	alias ll="eza -lg --icons=auto"
+	alias la="eza -lag --icons=auto"
+	alias lt="eza -lTg --icons=auto"
+	alias lt1="eza -lTg --level=1 --icons=auto"
+	alias lt2="eza -lTg --level=2 --icons=auto"
+	alias lt3="eza -lTg --level=3 --icons=auto"
+	alias lta="eza -lTag --icons=auto"
+	alias lta1="eza -lTag --level=1 --icons=auto"
+	alias lta2="eza -lTag --level=2 --icons=auto"
+	alias lta3="eza -lTag --level=3 --icons=auto"
 fi
 
 # eval $(thefuck --alias)
