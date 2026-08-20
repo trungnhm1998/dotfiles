@@ -152,3 +152,6 @@ defaults write com.microsoft.VSCodeInsiders ApplePressAndHoldEnabled -bool false
 defaults write com.vscodium ApplePressAndHoldEnabled -bool false                      # For VS Codium
 defaults write com.microsoft.VSCodeExploration ApplePressAndHoldEnabled -bool false   # For VS Codium Exploration users
 defaults write com.exafunction.windsurf ApplePressAndHoldEnabled -bool false          # For Windsurf
+
+# --- refresh every tool to its latest upstream release ---
+bash "$HOME/dotfiles/scripts/update-tools.sh"

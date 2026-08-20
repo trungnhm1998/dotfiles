@@ -293,16 +293,6 @@ echo
 install_package yazi - - yazi
 echo
 
-install_lazygit() {
-	echo "Installing latest Lazygit..."
-	LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-	curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-	tar xf lazygit.tar.gz lazygit
-	sudo install lazygit /usr/local/bin
-	rm lazygit lazygit.tar.gz
-}
-install_package lazygit - lazygit lazygit install_lazygit
-echo
 install_package lazygit - lazygit lazygit install_lazygit_binary
 echo
 install_package nvim - neovim neovim install_neovim_tarball
@@ -412,6 +402,9 @@ bash "$HOME/dotfiles/scripts/sync-ai-configs.sh"
 
 # --- pyenv + Python 3 (shared with setup_mac.sh; py2 is opt-in, see setup-python2.sh) ---
 bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
+
+# --- refresh every tool to its latest upstream release (see scripts/update-tools.sh) ---
+bash "$HOME/dotfiles/scripts/update-tools.sh"
 
 check_default_shell
 

@@ -34,6 +34,18 @@ There is **no build/test system** — it's a configuration repo. "Validation" me
 
 Deploy scripts are **idempotent** — safe to re-run; they back up existing configs and support `-DryRun` where available. Never hardcode absolute paths; use `$HOME`, `$XDG_CONFIG_HOME`, `$env:APPDATA`.
 
+**Update tools (Linux/macOS):**
+
+```bash
+./scripts/update-tools.sh            # binaries + fzf/zsh/tmux/Neovim plugins
+./scripts/update-tools.sh --check    # report what is stale, change nothing
+./scripts/update-tools.sh --bins     # binaries only
+./scripts/update-tools.sh --plugins  # plugin managers only
+```
+
+Also runs at the end of `deploy.sh` / `setup_mac.sh`. Idempotent — anything already at
+the latest upstream tag is skipped.
+
 **Validate changes:**
 
 ```bash
@@ -191,6 +203,7 @@ end
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | Claude Code | `claude/` → `~/.claude/` |
 | Ad-hoc MCP configs | `claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name> [<name>…]` function (`claude --mcp-config`) |
+| Tool updater (mac/Linux) | `scripts/update-tools.sh` — pulls the latest upstream release binaries into `~/.local/bin` (ahead of `/usr/bin` and `/usr/local/bin` in PATH, so no sudo and no fighting dpkg), then updates fzf, oh-my-zsh, tmux and Neovim plugins. apt pins these years back (ripgrep 14 vs 15, eza 0.18 vs 0.23), so Linux takes GitHub releases; macOS defers to `brew upgrade` scoped to just these formulae. Add a tool by appending one row to its `TOOLS` table. |
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
 | Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows) |
 | opencode | `.config/opencode/opencode.jsonc` |
