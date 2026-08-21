@@ -1,6 +1,6 @@
 ---
 name: frappe-deck
-description: Use when Max asks for a slide deck, presentation, report artifact, or HTML/CSS/JS deck to present findings — architecture studies, research results, audits, retros. Triggers on "slide deck", "slides", "present me", "report artifact", "presentation".
+description: Use when presenting a result, finding, or explanation back to Max as a visual deck instead of chat prose — architecture studies, root-cause writeups, audits, research results, retros, or teaching how something works. Triggers on "slide deck", "slides", "present me", "walk me through", "explain this visually", "report artifact", "presentation". Covers both Claude artifacts and standalone local HTML for agents that cannot publish artifacts.
 ---
 
 # frappe-deck
@@ -11,7 +11,7 @@ HTML slide-deck artifacts in Max's preferred style: Catppuccin Frappe (dark, sin
 
 ## Workflow
 
-1. Copy `template.html` (same dir as this file) to scratchpad as `<topic>-deck.html`.
+1. Copy `template.html` (same dir as this file) to `<topic>-deck.html`. Publishing as an artifact? Scratchpad is fine. Delivering locally? Write it somewhere Max can reopen it, not a temp dir that gets swept.
 2. Set `<title>`. Replace everything between `SLIDES START` / `SLIDES END` markers with your `<section class="slide">` slides. Touch nothing else — CSS tokens, nav bar, and the `<script>` engine stay verbatim.
 3. Update the nav-bar `.title` text (deck name) inside `<div id="nav">`.
 4. Validate every mermaid block. Extract + unescape in one go (run from the deck's dir):
@@ -20,7 +20,21 @@ HTML slide-deck artifacts in Max's preferred style: Catppuccin Frappe (dark, sin
    ```
    then `node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs dN.mmd --check` per file. mmdc "valid" is the gate; the ASCII previewer failing on sequenceDiagram after an init header is a known false alarm. Delete the `.mmd` files after.
 5. Sanity check the HTML: `grep -c "<section" | grep -c "</section>"` counts match, `<div` count == `</div>` count.
-6. Publish with the Artifact tool (favicon stable per topic). Redeploying the same file path updates in place — but only within the conversation that first published it. From a later session you must pass the artifact `url` (find it via `action: "list"`), or you publish a duplicate instead of updating.
+6. Deliver it — pick the lane your runtime supports (see Delivery below).
+
+## Delivery
+
+**Artifact (Claude Code).** Publish with the Artifact tool, favicon stable per topic. That runtime renders `<pre class="mermaid">` natively and its CSP blocks CDNs — leave the template's fallback loader alone, it detects this case and stays out of the way. Redeploying the same file path updates in place, but only within the conversation that first published it. From a later session pass the artifact `url` (find it via `action: "list"`), or you publish a duplicate instead of updating.
+
+**Local file (pi, Cursor, any runtime without artifacts).** Two things change:
+
+- Prepend a doctype when writing the standalone file, or the browser drops into quirks mode and `html,body{height:100%}` collapses the slide layout. The Artifact tool injects this itself, which is why the template omits it:
+  ```html
+  <!doctype html><meta charset="utf-8">
+  ```
+- Mermaid is fetched once from jsdelivr by the fallback loader at the end of the template, so the first open needs network. If the CDN is unreachable each diagram degrades to a visible red note rather than silent raw text. For a guaranteed-offline deck, pre-render with `mermaid.mjs` and paste the resulting `<svg>` into the `.stage` in place of `<pre class="mermaid">` — pan/zoom attaches to whatever SVG it finds.
+
+Open it with `start <deck>.html` (Windows) · `open` (macOS) · `xdg-open` (Linux), then tell Max the path so he can reopen it later.
 
 ## Slide vocabulary (all styled already)
 

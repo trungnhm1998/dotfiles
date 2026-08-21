@@ -243,3 +243,29 @@ flowchart TD
   deckOnSlideChange=fitVisible;
 })();
 </script>
+
+<script>
+// ── local-mode mermaid fallback ───────────────────────────────
+// Claude artifacts render <pre class="mermaid"> natively (and their CSP blocks
+// CDNs, so we must NOT load one there). Opened as a plain file:// deck there is
+// no such runtime. Wait, then load mermaid only if nothing rendered itself.
+setTimeout(function(){
+  var pending=[].slice.call(document.querySelectorAll('pre.mermaid'))
+                .filter(function(p){return !p.querySelector('svg')});
+  if(!pending.length)return;                    // artifact runtime already did it
+  var s=document.createElement('script');       // classic UMD build: no CORS/module
+  s.src='https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload=function(){
+    mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'loose'});
+    mermaid.run({nodes:pending});               // pan/zoom poller picks the SVGs up
+  };
+  s.onerror=function(){
+    pending.forEach(function(p){
+      p.insertAdjacentHTML('beforebegin',
+        '<p class="sub" style="color:var(--red)">Diagram needs network on first load '+
+        '(mermaid CDN unreachable). Pre-render to inline SVG for offline use.</p>');
+    });
+  };
+  document.head.appendChild(s);
+},1200);
+</script>
