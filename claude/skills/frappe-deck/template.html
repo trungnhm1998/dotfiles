@@ -1,0 +1,245 @@
+<title>TITLE_HERE</title>
+<style>
+:root{
+  --base:#303446;--mantle:#292c3c;--crust:#232634;
+  --s0:#414559;--s1:#51576d;--s2:#626880;
+  --ov0:#737994;--ov1:#838ba7;
+  --text:#c6d0f5;--sub1:#b5bfe2;--sub0:#a5adce;
+  --blue:#8caaee;--lavender:#babbf1;--mauve:#ca9ee6;--peach:#ef9f76;
+  --green:#a6d189;--red:#e78284;--yellow:#e5c890;--teal:#81c8be;--sky:#99d1db;--pink:#f4b8e4;
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,ui-monospace,monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+/* deliberate single-theme commit: Catppuccin Frappe regardless of viewer toggle */
+:root[data-theme="light"],:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--base);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.55;overflow:hidden}
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--mauve));width:0;z-index:50;transition:width .25s ease}
+.slide{display:none;position:absolute;inset:0;padding:44px 64px 76px;overflow-y:auto;flex-direction:column;gap:18px}
+.slide.active{display:flex;animation:in .3s ease}
+@keyframes in{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide.active{animation:none}}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+h1{font-size:44px;line-height:1.12;text-wrap:balance;font-weight:650}
+h2{font-size:30px;line-height:1.15;text-wrap:balance;font-weight:650}
+h2 .n{color:var(--ov0);font-family:var(--mono);font-size:20px;margin-right:10px}
+.sub{color:var(--sub0);max-width:62ch}
+.big{font-size:34px;line-height:1.25;font-weight:600;max-width:26ch;text-wrap:balance}
+.big em{color:var(--red);font-style:normal}
+ul{list-style:none;display:flex;flex-direction:column;gap:9px;max-width:78ch}
+ul li{padding-left:20px;position:relative}
+ul li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:2px;background:var(--blue)}
+li b{color:var(--lavender);font-weight:600}
+code{font-family:var(--mono);font-size:.88em;background:var(--mantle);border:1px solid var(--s0);border-radius:4px;padding:1px 6px;color:var(--peach);white-space:nowrap}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.card{background:var(--mantle);border:1px solid var(--s0);border-radius:10px;padding:18px 20px}
+.card h3{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.card.bad h3{color:var(--red)}.card.good h3{color:var(--green)}.card.warn h3{color:var(--peach)}.card.info h3{color:var(--sky)}
+.callout{border-left:3px solid var(--peach);background:var(--mantle);border-radius:0 8px 8px 0;padding:12px 16px;color:var(--sub1);max-width:80ch}
+.callout.red{border-color:var(--red)}.callout.green{border-color:var(--green)}.callout.blue{border-color:var(--blue)}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov1);text-align:left;padding:8px 14px;border-bottom:1px solid var(--s1)}
+td{padding:7px 14px;border-bottom:1px solid var(--s0);vertical-align:top}
+td.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:color-mix(in srgb,var(--red) 12%,transparent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--s0);border-radius:10px;background:var(--mantle)}
+.chip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:2px 10px;border:1px solid}
+.chip.blocker{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,transparent)}
+.chip.major{color:var(--peach);border-color:var(--peach);background:color-mix(in srgb,var(--peach) 12%,transparent)}
+.chip.minor{color:var(--yellow);border-color:var(--yellow);background:color-mix(in srgb,var(--yellow) 12%,transparent)}
+.chip.soft{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.chip.hard{color:var(--mauve);border-color:var(--mauve);background:color-mix(in srgb,var(--mauve) 12%,transparent)}
+pre.code{background:var(--crust);border:1px solid var(--s0);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6}
+pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov0);margin-bottom:8px}
+.tok-kw{color:var(--mauve)}.tok-str{color:var(--green)}.tok-num{color:var(--peach)}.tok-com{color:var(--ov0);font-style:italic}.tok-typ{color:var(--yellow)}.tok-fn{color:var(--blue)}
+.diagram{position:relative;flex:1;min-height:340px;background:var(--mantle);border:1px solid var(--s0);border-radius:12px;overflow:hidden;touch-action:none}
+.diagram .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab}
+.diagram .stage.dragging{cursor:grabbing}
+.diagram .stage :is(svg){transform-origin:0 0;max-width:none!important;max-height:none!important}
+.dctl{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:5}
+.dctl button{width:32px;height:32px;border-radius:8px;border:1px solid var(--s1);background:var(--crust);color:var(--sub1);font-family:var(--mono);font-size:15px;cursor:pointer}
+.dctl button:hover{color:var(--text);border-color:var(--blue)}
+.dhint{position:absolute;left:14px;bottom:10px;font-family:var(--mono);font-size:11px;color:var(--ov0);z-index:5}
+#nav{position:fixed;bottom:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:color-mix(in srgb,var(--crust) 88%,transparent);border-top:1px solid var(--s0);backdrop-filter:blur(6px);z-index:40}
+#nav .title{font-family:var(--mono);font-size:12px;color:var(--ov1);letter-spacing:.08em}
+#nav .ctr{display:flex;gap:10px;align-items:center}
+#nav button{background:var(--s0);border:1px solid var(--s1);color:var(--text);border-radius:8px;padding:6px 16px;font-family:var(--mono);font-size:14px;cursor:pointer}
+#nav button:hover{border-color:var(--blue)}
+#count{font-family:var(--mono);font-size:13px;color:var(--sub0);font-variant-numeric:tabular-nums;min-width:64px;text-align:center}
+button:focus-visible,.dctl button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.kicker{color:var(--ov1);font-size:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:900px){.cols,.grid3{grid-template-columns:1fr}.slide{padding:28px 24px 76px}h1{font-size:32px}h2{font-size:24px}}
+</style>
+
+<div id="progress"></div>
+
+<!-- ══ SLIDES START — replace everything between START/END with your slides ══ -->
+
+<!-- Slide: title (keep one first) -->
+<section class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">
+    <div class="eyebrow">EYEBROW · CONTEXT</div>
+    <h1>Deck Title</h1>
+    <p class="sub">One-paragraph framing: scope, question, what this deck answers.</p>
+    <div class="kicker mono">meta · counts · sources</div>
+  </div>
+</section>
+
+<!-- Slide: content (bullets + card + code) -->
+<section class="slide">
+  <div class="eyebrow">Section Label</div>
+  <h2><span class="n">02</span>Slide headline</h2>
+  <div class="cols">
+    <ul>
+      <li>Bullet with <b>emphasis</b> and <code>inline.code:12</code>.</li>
+      <li>Second bullet.</li>
+    </ul>
+    <div class="card warn">
+      <h3>Card title</h3>
+      <p class="sub">Card body. Variants: card good | bad | warn | info.</p>
+    </div>
+  </div>
+  <pre class="code"><span class="cap">C# — path/File.cs:42 · caption</span><code data-lang="csharp">// data-lang: csharp | lua
+if (thing.IsReady) return thing.Value;</code></pre>
+  <p class="callout">Callout. Variants: callout | callout red | green | blue.</p>
+</section>
+
+<!-- Slide: mermaid diagram (pan/zoom attaches automatically) -->
+<section class="slide">
+  <div class="eyebrow">Diagram</div>
+  <h2><span class="n">03</span>Diagram headline</h2>
+  <div class="diagram">
+    <div class="dctl"><button data-z="in">+</button><button data-z="out">−</button><button data-z="reset">⌂</button></div>
+    <div class="dhint">wheel = zoom · drag = pan · ⌂ = reset</div>
+    <div class="stage"><pre class="mermaid">%%{init:{'theme':'dark','themeVariables':{'primaryColor':'#414559','primaryTextColor':'#c6d0f5','primaryBorderColor':'#8caaee','lineColor':'#838ba7','secondaryColor':'#292c3c','tertiaryColor':'#232634','fontFamily':'Consolas,monospace','fontSize':'14px'}}}%%
+flowchart TD
+    A[Node label&lt;br/&gt;second line] --> B{{Alert node}}
+    style B fill:#3b2b33,stroke:#e78284</pre></div>
+  </div>
+  <p class="sub">Optional caption under the diagram.</p>
+</section>
+
+<!-- Also available: .tablewrap>table (th/td, td.num for numbers, tr.hl to highlight),
+     .grid3 for three cards, .chip blocker|major|minor|soft|hard, .big for hero statements -->
+
+<!-- ══ SLIDES END ══ -->
+
+
+<div id="nav">
+  <span class="title">DECK NAME · SUBTITLE</span>
+  <div class="ctr">
+    <button id="prev" aria-label="Previous slide">←</button>
+    <span id="count">1 / 20</span>
+    <button id="next" aria-label="Next slide">→</button>
+  </div>
+  <span class="title mono">← → · Home / End</span>
+</div>
+
+
+<script>
+(function(){
+  // ── deck engine ──────────────────────────────────────────────
+  const slides=[...document.querySelectorAll('.slide')];
+  let cur=0,deckOnSlideChange=null;
+  function go(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach((s,j)=>s.classList.toggle('active',j===cur));
+    document.getElementById('count').textContent=(cur+1)+' / '+slides.length;
+    document.getElementById('progress').style.width=((cur+1)/slides.length*100)+'%';
+    history.replaceState(null,'','#'+(cur+1));
+    if(deckOnSlideChange)deckOnSlideChange();
+  }
+  document.getElementById('prev').onclick=()=>go(cur-1);
+  document.getElementById('next').onclick=()=>go(cur+1);
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')go(cur+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
+    else if(e.key==='Home')go(0);
+    else if(e.key==='End')go(slides.length-1);
+  });
+  go(parseInt(location.hash.slice(1),10)-1||0);
+
+  // ── tiny syntax highlighter (no CDN allowed under artifact CSP) ──
+  const LANGS={
+    csharp:{
+      com:/\/\/[^\n]*/,
+      str:/\$?"(?:[^"\\\n]|\\.)*"/,
+      kw:/\b(?:public|private|protected|internal|static|readonly|class|struct|interface|enum|void|int|bool|string|float|double|var|new|return|if|else|foreach|for|while|in|out|ref|using|namespace|abstract|override|virtual|null|true|false|this|throw|sealed|const|get|set)\b/,
+      num:/\b\d[\d._f]*\b/
+    },
+    lua:{
+      com:/--[^\n]*/,
+      str:/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/,
+      kw:/\b(?:local|function|end|if|then|else|elseif|return|for|while|do|nil|true|false|and|or|not|in|repeat|until|break)\b/,
+      num:/\b\d[\d.]*\b/
+    }
+  };
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.querySelectorAll('pre.code code[data-lang]').forEach(el=>{
+    const L=LANGS[el.dataset.lang];if(!L)return;
+    const re=new RegExp(`(${L.com.source})|(${L.str.source})|(${L.num.source})|(${L.kw.source})`,'g');
+    el.innerHTML=el.textContent.replace(re,(m,c,s,n,k)=>{
+      const cls=c?'tok-com':s?'tok-str':n?'tok-num':'tok-kw';
+      return `<span class="${cls}">${esc(m)}</span>`;
+    });
+  });
+
+  // ── mermaid pan/zoom: wait for the artifact runtime to render SVG ──
+  // Slides are display:none until active, so clientWidth/getBoundingClientRect
+  // are 0 at render time. Intrinsic size comes from the viewBox (valid while
+  // hidden); fitting is deferred until the slide is first shown (fitVisible).
+  function attach(box){
+    const stage=box.querySelector('.stage');
+    const svg=stage.querySelector('svg');
+    if(!svg||svg.dataset.pz)return false;
+    svg.dataset.pz='1';
+    const vb=svg.viewBox&&svg.viewBox.baseVal;
+    const bw=(vb&&vb.width)||svg.getBoundingClientRect().width||800;
+    const bh=(vb&&vb.height)||svg.getBoundingClientRect().height||600;
+    svg.style.position='absolute';svg.style.left='0';svg.style.top='0';
+    svg.setAttribute('width',bw);svg.setAttribute('height',bh);
+    let x=0,y=0,k=1;
+    const apply=()=>svg.style.transform=`translate(${x}px,${y}px) scale(${k})`;
+    const fit=()=>{                       // scale down to fit, never up; center
+      const vw=stage.clientWidth,vh=stage.clientHeight;
+      if(!vw||!vh){box.dataset.needsFit='1';return;}
+      delete box.dataset.needsFit;
+      k=Math.max(.2,Math.min(1,(vw-32)/bw,(vh-32)/bh));
+      x=(vw-bw*k)/2;y=(vh-bh*k)/2;apply();
+    };
+    box._fit=fit;
+    fit();
+    stage.addEventListener('wheel',e=>{
+      e.preventDefault();
+      const r=stage.getBoundingClientRect();
+      const mx=e.clientX-r.left,my=e.clientY-r.top;
+      const nk=Math.max(.2,Math.min(6,k*(e.deltaY<0?1.15:1/1.15)));
+      x=mx-(mx-x)*nk/k; y=my-(my-y)*nk/k; k=nk; apply();
+    },{passive:false});
+    let drag=null;
+    stage.addEventListener('pointerdown',e=>{drag={x:e.clientX-x,y:e.clientY-y};stage.classList.add('dragging');stage.setPointerCapture(e.pointerId);});
+    stage.addEventListener('pointermove',e=>{if(!drag)return;x=e.clientX-drag.x;y=e.clientY-drag.y;apply();});
+    stage.addEventListener('pointerup',()=>{drag=null;stage.classList.remove('dragging');});
+    box.querySelectorAll('.dctl button').forEach(b=>b.onclick=()=>{
+      const z=b.dataset.z;
+      if(z==='reset')fit();
+      else{k=Math.max(.2,Math.min(6,k*(z==='in'?1.25:.8)));apply();}
+    });
+    return true;
+  }
+  function fitVisible(){
+    slides[cur].querySelectorAll('.diagram').forEach(b=>{if(b._fit&&b.dataset.needsFit)b._fit();});
+  }
+  const boxes=[...document.querySelectorAll('.diagram')];
+  const t=setInterval(()=>{
+    boxes.forEach(attach);
+    fitVisible();
+    if(boxes.every(b=>b.querySelector('svg[data-pz]')))clearInterval(t);
+  },400);
+  setTimeout(()=>clearInterval(t),30000);
+  deckOnSlideChange=fitVisible;
+})();
+</script>
