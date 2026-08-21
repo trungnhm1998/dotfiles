@@ -1,6 +1,6 @@
 ---
 name: unity-worktree-setup
-description: Use when creating, listing, recycling, or removing git worktrees for a Unity project, when a second checkout of a Unity repo is needed (parallel branches, agent sessions, multiple editors), or when opening a new Unity checkout would trigger a full Library reimport. Also use to audit a Unity repo before its first worktree (Library gitignore, tracked symlinks, file: package deps, cache server reachability).
+description: 'Use when creating, listing, recycling, or removing git worktrees for a Unity project, when a second checkout of a Unity repo is needed (parallel branches, agent sessions, multiple editors), or when opening a new Unity checkout would trigger a full Library reimport. Also use to audit a Unity repo before its first worktree (Library gitignore, tracked symlinks, file: package deps, cache server reachability).'
 ---
 
 # Unity Worktree Setup
