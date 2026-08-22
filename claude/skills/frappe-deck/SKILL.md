@@ -14,25 +14,27 @@ HTML slide-deck artifacts in Max's preferred style: Catppuccin Frappe (dark, sin
 1. Copy `template.html` (same dir as this file) to `<topic>-deck.html`. Publishing as an artifact? Scratchpad is fine. Delivering locally? Write it somewhere Max can reopen it, not a temp dir that gets swept.
 2. Set `<title>`. Replace everything between `SLIDES START` / `SLIDES END` markers with your `<section class="slide">` slides. Touch nothing else — CSS tokens, nav bar, and the `<script>` engine stay verbatim.
 3. Update the nav-bar `.title` text (deck name) inside `<div id="nav">`.
-4. Validate every mermaid block. Extract + unescape in one go (run from the deck's dir):
+4. **Pre-render the diagrams to inline SVG. This is mandatory, not an optimization:**
    ```bash
-   node -e "const fs=require('fs'),h=fs.readFileSync(process.argv[1],'utf8');let m,i=0,re=/<pre class=\"mermaid\">([\s\S]*?)<\/pre>/g;while(m=re.exec(h))fs.writeFileSync('d'+(++i)+'.mmd',m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'));console.log(i)" <deck>.html
+   node ~/.claude/skills/frappe-deck/scripts/prerender.mjs <deck>.html
    ```
-   then `node ~/.claude/skills/beautiful-mermaid/scripts/mermaid.mjs dN.mmd --check` per file. mmdc "valid" is the gate; the ASCII previewer failing on sequenceDiagram after an init header is a known false alarm. Delete the `.mmd` files after.
+   Rendering **is** validation — `mmdc` only emits an SVG if the source parsed, so this replaces the old extract-then-`--check` dance. On any parse error it prints mermaid's real error with line and column, exits `2`, and **leaves the file untouched**; fix the source and re-run. On success every `<pre class="mermaid">` becomes an `<svg>` with a unique id, preceded by its source stashed in a hidden `<pre class="mermaid-src">`. Re-runnable: a second run restores each stash and renders again, so to fix a label or the theme you edit the stash and re-run — no hand-editing SVG. (The stash is a hidden escaped `<pre>`, not an HTML comment, because a `-->` arrow closes a comment early and spills the rest of the source onto the page.)
 5. Sanity check the HTML: `grep -c "<section" | grep -c "</section>"` counts match, `<div` count == `</div>` count.
 6. Deliver it — pick the lane your runtime supports (see Delivery below).
 
+Why mandatory: a deck whose diagrams are still `<pre class="mermaid">` depends on a mermaid runtime being available *at view time* — the artifact runtime's, or a CDN fetch. Neither is guaranteed, and when both miss, the viewer gets a red "needs network on first load" note where the diagram should be. Pre-rendered SVG has no runtime dependency at all: it works offline, under a strict CSP, in an artifact, and in a `file://` tab.
+
 ## Delivery
 
-**Artifact (Claude Code).** Publish with the Artifact tool, favicon stable per topic. That runtime renders `<pre class="mermaid">` natively and its CSP blocks CDNs — leave the template's fallback loader alone, it detects this case and stays out of the way. Redeploying the same file path updates in place, but only within the conversation that first published it. From a later session pass the artifact `url` (find it via `action: "list"`), or you publish a duplicate instead of updating.
+Step 4 makes both lanes identical as far as diagrams go — the SVG is already in the file, and the template's pan/zoom attaches to whatever SVG it finds in a `.stage`. The CDN fallback loader at the end of the template stays, but on a pre-rendered deck it finds no pending `<pre class="mermaid">` and no-ops. Leave it there as the safety net for a deck that skipped step 4.
 
-**Local file (pi, Cursor, any runtime without artifacts).** Two things change:
+**Artifact (Claude Code).** Publish with the Artifact tool, favicon stable per topic. Redeploying the same file path updates in place, but only within the conversation that first published it. From a later session pass the artifact `url` (find it via `action: "list"`), or you publish a duplicate instead of updating.
 
-- Prepend a doctype when writing the standalone file, or the browser drops into quirks mode and `html,body{height:100%}` collapses the slide layout. The Artifact tool injects this itself, which is why the template omits it:
-  ```html
-  <!doctype html><meta charset="utf-8">
-  ```
-- Mermaid is fetched once from jsdelivr by the fallback loader at the end of the template, so the first open needs network. If the CDN is unreachable each diagram degrades to a visible red note rather than silent raw text. For a guaranteed-offline deck, pre-render with `mermaid.mjs` and paste the resulting `<svg>` into the `.stage` in place of `<pre class="mermaid">` — pan/zoom attaches to whatever SVG it finds.
+**Local file (pi, Cursor, any runtime without artifacts).** One thing changes: prepend a doctype when writing the standalone file, or the browser drops into quirks mode and `html,body{height:100%}` collapses the slide layout. The Artifact tool injects this itself, which is why the template omits it:
+
+```html
+<!doctype html><meta charset="utf-8">
+```
 
 Open it with `start <deck>.html` (Windows) · `open` (macOS) · `xdg-open` (Linux), then tell Max the path so he can reopen it later.
 
@@ -53,7 +55,7 @@ Open it with `start <deck>.html` (Windows) · `open` (macOS) · `xdg-open` (Linu
 
 ## Mermaid rules
 
-- Keep the `%%{init:...}%%` theme line from the template (Frappe-matched colors).
+- Keep the `%%{init:...}%%` theme line from the template **verbatim** — it must stay `'theme':'base'`. Mermaid's prebaked themes (`dark`, `default`, `forest`, `neutral`) ignore most `themeVariables`; only `base` is driven by them. A deck on `'theme':'dark'` silently renders stock mermaid grey (`#1f2020` nodes, `#ccc` text) no matter what Frappe values follow it, and step 4 then bakes that in permanently. Verify after rendering: `grep -c 414559 <deck>.html` should be non-zero.
 - Inside `pre.mermaid`, escape line breaks as `&lt;br/&gt;` (a literal `<br/>` becomes an HTML tag and vanishes from textContent). Arrows `-->`, `->>`, `-.->`, `-->|label|` stay LITERAL — `-->` is only special inside an already-open HTML comment, so it is safe in a `<pre>`. Do not entity-escape arrows.
 - No parentheses, quotes, or `--` inside node labels.
 - Accent nodes: `style X fill:#3b2b33,stroke:#e78284` (red) · `#2f3a34/#a6d189` (green) · `#3a382e/#e5c890` (yellow).
@@ -70,5 +72,16 @@ Open it with `start <deck>.html` (Windows) · `open` (macOS) · `xdg-open` (Linu
 
 - Regenerating the engine "to tweak one color" — edit the token in `:root` instead.
 - Literal `<br/>` inside mermaid pre → diagram silently loses line breaks.
-- Skipping `--check` because "the agent validated earlier" — any label edit can break parsing.
+- **Publishing before step 4.** A deck that still contains `<pre class="mermaid">` is a deck whose diagrams may not render for the viewer. `grep -c 'class="mermaid"'` should find only the one occurrence inside the fallback loader's own comment.
+- Skipping step 4 because "the agent validated earlier" — any label edit can break parsing, and validation and rendering are now the same pass anyway.
 - Numbering slides in `h2 .n` but forgetting to renumber after reordering.
+
+## Setup (per machine)
+
+Step 4 needs mermaid-cli (MIT, <https://github.com/mermaid-js/mermaid-cli>), which bundles its own headless Chromium:
+
+```bash
+npm i -g @mermaid-js/mermaid-cli      # provides mmdc
+```
+
+`mmdc --version` should print 11.x. Same binary the `beautiful-mermaid` skill uses for `--check`, so if that skill works here, this does too.
