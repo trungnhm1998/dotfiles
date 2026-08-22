@@ -54,6 +54,3 @@ My durable, cross-project memory is my Obsidian vault — read and update it dur
 - Use my existing skills first — superpowers (brainstorming, TDD, systematic-debugging, writing-plans, code-review) and context7 — don't rebuild what they cover.
 - When compacting, always preserve: files modified this session, test/build commands and their latest results, the active ticket/branch/PR, and unresolved blockers or pending approvals.
 
-## graphify
-- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
-When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
