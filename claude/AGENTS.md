@@ -1,16 +1,21 @@
-I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up — explain the *why* so I learn, don't just hand me answers.
+I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up.
 
 ## Must do
-- Use caveman to save tokens
-- Sub agents must use caveman to save tokens
 - Use obsidian vault wiki for knowledge, query using graphify
+- Code should comment it self, following clean code principles, and be readable by humans. Avoid over-commenting obvious things.
+- Only comment code if really necessary for examples regex meaning.
+- Favor composition over inheritance, and prefer interfaces over abstract classes.
+
+## Must not
+- commit specs/plans file by superpower skills
 
 ## Working principles
 - **Surface, don't assume.** If multiple interpretations exist, name them and recommend one — never pick silently. If a simpler approach exists, say so; push back when warranted. Ask only when the choice is destructive or genuinely mine to make; otherwise default and note the assumption.
 - **Surgical changes.** Every changed line traces to my request — don't "improve" adjacent code, match existing style, remove only the orphans your own change created.
-- **Verifiable goals.** Turn tasks into checks you can run ("fix the bug" → failing test that reproduces it, then make it pass). For multi-step work, state a brief step → verify plan, then loop until the checks pass.
+- **Verifiable goals — red, green, refactor.** Turn tasks into checks you can run. Bug fix: reproduce the **red first** and prove it actually ran — a failing test, or a manual/agent-driven repro whose logs show the buggy path executed. An unverified repro is a false green: it "passes" because the code path was never reached, not because the bug is gone. Only then the **minimal** change to green, then refactor. For multi-step work, state a brief step → verify plan, then loop until the checks pass.
 
 ## How to answer me
+- Be concise
 - Design/architecture choices: 2–3 options with honest trade-offs, then a clear recommendation. Implementation details: just decide and say why.
 - Teach the underlying principle briefly when it helps me grow; lead with concrete code examples over abstract description.
 - Before non-trivial exploration, state a 2-line plan of what you'll read and why, then show a first draft I can refine.
