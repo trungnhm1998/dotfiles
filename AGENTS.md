@@ -51,7 +51,12 @@ the latest upstream tag is skipped.
 ```bash
 bash -n script.sh && shellcheck script.sh    # shell scripts
 nvim -c ':Lazy sync' -c ':checkhealth'        # Neovim plugins + health
+bash scripts/sync-ai-configs.sh --check       # agent-config symlinks: MISSING/DRIFT, exit 1 on failure
 ```
+
+`--check` is the cross-OS drift check for the AI-tool symlinks (works under git bash on
+Windows, no Administrator needed — `deploy_windows.ps1` refuses to run unelevated even with
+`-DryRun`). It reports only; run the script without flags to repair.
 
 ```powershell
 Get-Command -Syntax .\deploy_windows.ps1      # PowerShell syntax
@@ -83,7 +88,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
-| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.claude\AGENTS.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`) |
+| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`). No `$HOME\.claude\AGENTS.md`: [Claude Code reads `CLAUDE.md`, not `AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md). **Cursor gets nothing** — its User Rules live in a settings DB with no file to link (`~/.cursor/rules/*.mdc` is an [unimplemented feature request](https://forum.cursor.com/t/support-for-cursor-rules-for-global-mdc-rules/144819)), so Cursor is synced by hand with `ccrules` / `scripts/copy-agents-rules.sh` and drifts silently until you re-run it. |
 | `claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
@@ -205,7 +210,7 @@ end
 | Ad-hoc MCP configs | `claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name> [<name>…]` function (`claude --mcp-config`) |
 | Tool updater (mac/Linux) | `scripts/update-tools.sh` — pulls the latest upstream release binaries into `~/.local/bin` (ahead of `/usr/bin` and `/usr/local/bin` in PATH, so no sudo and no fighting dpkg), then updates fzf, oh-my-zsh, tmux and Neovim plugins. apt pins these years back (ripgrep 14 vs 15, eza 0.18 vs 0.23), so Linux takes GitHub releases; macOS defers to `brew upgrade` scoped to just these formulae. Add a tool by appending one row to its `TOOLS` table. |
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
-| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/{CLAUDE,AGENTS}.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows) |
+| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows). Verify with `bash scripts/sync-ai-configs.sh --check` |
 | opencode | `.config/opencode/opencode.jsonc` |
 | Winget install manifests | `packages/winget-{core,dev,gamedev,comfort,optional}.json` (imported by `deploy_windows.ps1` via `-Manifests`/`-IncludeOptional`) |
 | Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |

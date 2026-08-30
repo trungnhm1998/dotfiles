@@ -6,7 +6,7 @@
 #
 # Works on macOS (pbcopy), Wayland (wl-copy), X11 (xclip/xsel), and Windows-with-bash
 # (clip.exe). On native PowerShell, instead run:
-#   Get-Content $HOME\.claude\AGENTS.md -Raw | Set-Clipboard
+#   Get-Content $HOME\dotfiles\claude\AGENTS.md -Raw | Set-Clipboard
 
 set -euo pipefail
 

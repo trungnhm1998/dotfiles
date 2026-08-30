@@ -482,7 +482,7 @@ function ccmcp
 # Windows twin of scripts/copy-agents-rules.sh. Re-run after editing AGENTS.md.
 function Copy-AgentsRules
 {
-    Get-Content "$HOME\.claude\AGENTS.md" -Raw | Set-Clipboard
+    Get-Content "$HOME\dotfiles\claude\AGENTS.md" -Raw | Set-Clipboard
     Write-Host "Copied AGENTS.md -> paste into Cursor -> Settings -> Rules -> User Rules."
 }
 Set-Alias ccrules Copy-AgentsRules

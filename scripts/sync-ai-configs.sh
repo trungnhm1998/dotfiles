@@ -2,16 +2,41 @@
 # Sync authored AI-tool configs (Claude Code + opencode) into place.
 # Sourced/called by deploy.sh and setup_mac.sh so both entry points stay in sync.
 # Idempotent: safe to re-run.
+#
+#   sync-ai-configs.sh           create/repair the symlinks
+#   sync-ai-configs.sh --check   verify only: report MISSING/DRIFT, change nothing, exit 1 on failure
+#
+# --check is the cross-platform drift check. It works under git bash on Windows too, where
+# `-ef` resolves native symlinks correctly, so all three OSes verify with the same command
+# and without Administrator (deploy_windows.ps1 refuses to run unelevated, even -DryRun).
 
 # Resolve the dotfiles repo root as the parent of this script's directory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES="$(dirname "$SCRIPT_DIR")"
 
+CHECK=0
+[ "${1:-}" = "--check" ] && CHECK=1
+FAILED=0
+
 # Symlink a repo config into place. If the target is a real file/dir, back it up first.
 # Uses -n so a directory symlink never gets created *inside* an existing dir.
+# Under --check, report instead of link: -ef compares device+inode through the symlink,
+# which sidesteps git bash's /c/... vs C:\... path spelling on Windows.
 # Usage: link_config <source-in-repo> <target>
 link_config() {
 	local src="$1" target="$2"
+	if [ "$CHECK" = 1 ]; then
+		if [ ! -e "$target" ]; then
+			echo "MISSING  ${target#"$HOME"/}"
+			FAILED=1
+		elif [ ! "$target" -ef "$src" ]; then
+			echo "DRIFT    ${target#"$HOME"/} (expected -> $src)"
+			FAILED=1
+		else
+			echo "ok       ${target#"$HOME"/}"
+		fi
+		return
+	fi
 	if [ -L "$target" ]; then
 		ln -sfn "$src" "$target"
 		return
@@ -28,19 +53,33 @@ link_config() {
 # Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot. Claude
 # Code reads it as CLAUDE.md; Codex/opencode/pi read it as AGENTS.md; Copilot reads it as
 # copilot-instructions.md — each at its own path.
+# Deliberately NO ~/.claude/AGENTS.md: Claude Code reads CLAUDE.md and never AGENTS.md, so
+# that link was dead weight. https://code.claude.com/docs/en/memory#agents-md
 # (Cursor has no global rules file — paste it into User Rules via scripts/copy-agents-rules.sh.)
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/CLAUDE.md"
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.codex/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
 link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.copilot/copilot-instructions.md"
 
 # --- Other Claude Code authored config ---
+link_config "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
+link_config "$DOTFILES/.config/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
+
+# --check stops here, and checks ONLY the targets above -- the ones that are byte-identical
+# on all three OSes. Everything below is either state-mutating or deliberately
+# platform-divergent: deploy_windows.ps1 keeps ~/.claude/{agents,commands,hooks,rules,themes}
+# as REAL directories with per-item links inside (see its New-PerItemLinks calls), so
+# whole-dir checking them would report false DRIFT on Windows and train you to ignore output.
+if [ "$CHECK" = 1 ]; then
+	[ "$FAILED" = 0 ] && echo "All tracked links OK."
+	exit "$FAILED"
+fi
+
 # NOTE: `skills` is deliberately NOT in this whole-dir loop. ~/.claude/skills must stay a
 # REAL directory so `npx skills` public installs and Claude Code plugin dirs live beside our
 # repo skills. It is linked per-item below. Mirrors deploy_windows.ps1's skills loop.
-for item in settings.json agents commands hooks rules themes; do
+for item in agents commands hooks rules themes; do
 	link_config "$DOTFILES/claude/$item" "$HOME/.claude/$item"
 done
 
@@ -50,7 +89,6 @@ link_skills "$DOTFILES/claude/skills" "$HOME/.claude/skills"
 
 # opencode: track only opencode.jsonc; remove stale opencode.json (loaded first, would shadow/merge)
 rm -f "$HOME/.config/opencode/opencode.json"
-link_config "$DOTFILES/.config/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
 
 # Bootstrap the gitignored secrets file from the template if it's missing
 if [ ! -f "$HOME/.config/dotfiles/secrets.env" ]; then

@@ -168,9 +168,19 @@ agent picks it up on next launch. The deploy scripts (`deploy_windows.ps1` on Wi
 | Symlink | → Target |
 |---------|----------|
 | `~/.claude/CLAUDE.md` | `claude/AGENTS.md` (Claude Code) |
-| `~/.claude/AGENTS.md` | `claude/AGENTS.md` |
 | `~/.codex/AGENTS.md` | `claude/AGENTS.md` (Codex) |
 | `~/.config/opencode/AGENTS.md` | `claude/AGENTS.md` (opencode) |
+| `~/.pi/agent/AGENTS.md` | `claude/AGENTS.md` (pi — its documented global path) |
+| `~/.copilot/copilot-instructions.md` | `claude/AGENTS.md` (Copilot CLI — native filename, not `AGENTS.md`) |
+
+There is deliberately **no** `~/.claude/AGENTS.md`: [Claude Code reads `CLAUDE.md`, not
+`AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md), so that link was dead weight.
+
+Verify the fan-out on any machine (works under Git Bash on Windows, no Administrator needed):
+
+```bash
+bash scripts/sync-ai-configs.sh --check   # reports MISSING/DRIFT, exits 1 on failure
+```
 
 ### Cursor (manual, one-time)
 
@@ -179,7 +189,7 @@ synced settings, not on disk. To give Cursor the same instructions:
 
 1. Copy `claude/AGENTS.md` to your clipboard:
    - macOS/Linux/Git-Bash: `bash scripts/copy-agents-rules.sh`
-   - PowerShell: `Get-Content $HOME\.claude\AGENTS.md -Raw | Set-Clipboard`
+   - PowerShell: `ccrules` (alias for `Copy-AgentsRules`)
 2. In Cursor: **Settings → Rules → User Rules** → paste → save.
 
 Re-run after editing `AGENTS.md` to resync Cursor. (Per-project alternative: drop an

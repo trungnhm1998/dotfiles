@@ -183,17 +183,13 @@ $symlinks = @(
     # Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot.
     # Claude Code reads it under the CLAUDE.md name; Codex/opencode/pi read it as
     # AGENTS.md; Copilot reads it as copilot-instructions.md (see below).
+    # Deliberately NO ~\.claude\AGENTS.md: Claude Code reads CLAUDE.md and never AGENTS.md,
+    # so that link was dead weight. https://code.claude.com/docs/en/memory#agents-md
     @{
         Source      = "$dotfilesRoot\claude\AGENTS.md"
         Target      = "$HOME\.claude\CLAUDE.md"
         IsDirectory = $false
         Description = "Claude Code global instructions (canonical claude\AGENTS.md)"
-    }
-    @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
-        Target      = "$HOME\.claude\AGENTS.md"
-        IsDirectory = $false
-        Description = "Global agent instructions (~\.claude\AGENTS.md)"
     }
 
     # --- Claude Code (other authored config) ---
