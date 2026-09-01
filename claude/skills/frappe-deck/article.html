@@ -331,13 +331,13 @@ a[role="doc-backlink"]{text-decoration:none;margin-left:6px}
   }
   function showPeek(a){
     const txt=peekText(a.getAttribute('href').slice(1));if(!txt)return;
-    peek.textContent=txt;peek.showPopover();
+    peek.textContent=txt;if(!peek.matches(':popover-open'))peek.showPopover();
     const r=a.getBoundingClientRect(),pw=peek.offsetWidth,ph=peek.offsetHeight;
     let y=r.bottom+8;if(y+ph>innerHeight-8)y=r.top-ph-8;
     peek.style.left=Math.min(Math.max(8,r.left),innerWidth-pw-8)+'px';
     peek.style.top=Math.max(8,y)+'px';
   }
-  function hidePeek(){clearTimeout(showT);hideT=setTimeout(()=>{if(!overPeek)peek.hidePopover()},200)}
+  function hidePeek(){clearTimeout(showT);hideT=setTimeout(()=>{if(!overPeek&&peek.matches(':popover-open'))peek.hidePopover()},200)}
   document.addEventListener('pointerover',e=>{
     if(e.pointerType&&e.pointerType!=='mouse')return;
     const a=e.target.closest('article a[href^="#"]');if(!a)return;
@@ -348,7 +348,7 @@ a[role="doc-backlink"]{text-decoration:none;margin-left:6px}
   document.addEventListener('focusout',e=>{if(e.target.closest('article a[href^="#"]'))hidePeek()});
   peek.addEventListener('pointerenter',()=>{overPeek=true;clearTimeout(hideT)});
   peek.addEventListener('pointerleave',()=>{overPeek=false;hidePeek()});
-  addEventListener('keydown',e=>{if(e.key==='Escape'&&peek.matches(':popover-open'))peek.hidePopover()});
+  addEventListener('keydown',e=>{if(e.key==='Escape'){clearTimeout(showT);if(peek.matches(':popover-open'))peek.hidePopover()}});
 
 // ==JS:END==
 })();
