@@ -108,6 +108,10 @@ config.keys = {
     { key = "Enter", mods = "SHIFT", action = wezterm.action.SendKey({ key = "Enter", mods = "ALT" }) },
     { key = "u", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
     { key = "d", mods = "CTRL|ALT", action = wezterm.action.DisableDefaultAssignment },
+    -- Ctrl+L is consumed by smart-splits (pane-navigate-right, Windows only -- see
+    -- vim_smart_splits.apply_to_config below), so it never reaches the pane and Claude
+    -- Code's clear/repaint is unreachable. Re-emit the literal Ctrl+L (0x0C) here.
+    { key = "l", mods = "CTRL|ALT", action = wezterm.action.SendKey({ key = "l", mods = "CTRL" }) },
     -- emoji??
     { key = "u", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
     { key = "n", mods = "CTRL|SHIFT", action = wezterm.action.DisableDefaultAssignment },
