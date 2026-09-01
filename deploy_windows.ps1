@@ -203,7 +203,7 @@ $symlinks = @(
     # NOT whole-dir symlinked. Each of these ~\.claude\<dir> folders must stay a REAL
     # directory so plugins/tools (e.g. oh-my-claudecode) can drop their own files
     # alongside ours — a directory symlink would either clobber that content or route
-    # their writes into this repo (the failure that once emptied claude\agents). They
+    # their writes into this repo (the failure that once emptied ai\claude\agents). They
     # are linked per-item below (see the New-PerItemLinks calls and "Claude skills" loop).
 
     # --- Codex (global instructions at ~\.codex\AGENTS.md) ---

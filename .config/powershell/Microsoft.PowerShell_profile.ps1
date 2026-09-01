@@ -457,12 +457,12 @@ function Show-UnityWindow
 Set-Alias suw Show-UnityWindow
 
 # --- Ad-hoc MCP servers (rare-use, not registered globally/per-project) ---
-# Configs live in dotfiles\claude\mcp\<name>.json; `ccmcp figma jira` starts Claude with
+# Configs live in dotfiles\ai\claude\mcp\<name>.json; `ccmcp figma jira` starts Claude with
 # those servers for this session only. Leading args naming a config are consumed as
 # servers; everything after passes to claude (e.g. `ccmcp figma -p "hi"`).
 function ccmcp
 {
-    $mcpDir = "$HOME\dotfiles\claude\mcp"
+    $mcpDir = "$HOME\dotfiles\ai\claude\mcp"
     $cfgs = @(); $rest = @($args)
     while ($rest.Count -and (Test-Path "$mcpDir\$($rest[0]).json"))
     {
@@ -478,12 +478,12 @@ function ccmcp
 }
 
 # --- Cursor global rules -> clipboard (Cursor has no global file to symlink) ---
-# Cursor's User Rules live in a synced settings DB, so claude\AGENTS.md can't be symlinked
+# Cursor's User Rules live in a synced settings DB, so ai\AGENTS.md can't be symlinked
 # in. Copy it to the clipboard, then paste into Cursor -> Settings -> Rules -> User Rules.
 # Windows twin of scripts/copy-agents-rules.sh. Re-run after editing AGENTS.md.
 function Copy-AgentsRules
 {
-    Get-Content "$HOME\dotfiles\claude\AGENTS.md" -Raw | Set-Clipboard
+    Get-Content "$HOME\dotfiles\ai\AGENTS.md" -Raw | Set-Clipboard
     Write-Host "Copied AGENTS.md -> paste into Cursor -> Settings -> Rules -> User Rules."
 }
 Set-Alias ccrules Copy-AgentsRules

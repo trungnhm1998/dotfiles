@@ -88,9 +88,9 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `.ideavimrc` | `$HOME\.ideavimrc` |
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
-| `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`). No `$HOME\.claude\AGENTS.md`: [Claude Code reads `CLAUDE.md`, not `AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md). **Cursor gets nothing** — its User Rules live in a settings DB with no file to link (`~/.cursor/rules/*.mdc` is an [unimplemented feature request](https://forum.cursor.com/t/support-for-cursor-rules-for-global-mdc-rules/144819)), so Cursor is synced by hand with `ccrules` / `scripts/copy-agents-rules.sh` and drifts silently until you re-run it. |
-| `claude\pi\extensions\windows-powershell-bash.ts` | `$HOME\.pi\agent\extensions\windows-powershell-bash.ts` (Windows: PowerShell-first pi shell; requires `npm:pi-powershell` in pi settings) |
-| `claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
+| `ai/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`). No `$HOME\.claude\AGENTS.md`: [Claude Code reads `CLAUDE.md`, not `AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md). **Cursor gets nothing** — its User Rules live in a settings DB with no file to link (`~/.cursor/rules/*.mdc` is an [unimplemented feature request](https://forum.cursor.com/t/support-for-cursor-rules-for-global-mdc-rules/144819)), so Cursor is synced by hand with `ccrules` / `scripts/copy-agents-rules.sh` and drifts silently until you re-run it. |
+| `ai\pi\extensions\windows-powershell-bash.ts` | `$HOME\.pi\agent\extensions\windows-powershell-bash.ts` (Windows: PowerShell-first pi shell; requires `npm:pi-powershell` in pi settings) |
+| `ai/claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
 **Environment Variables (set by deploy script):** `XDG_CONFIG_HOME` → `$HOME\.config`; `KOMOREBI_CONFIG_HOME` → `$HOME\.config\komorebi`.
@@ -121,7 +121,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 
 - **Neovim:** LazyVim framework with Lazy.nvim plugin manager. `.config/nvim/init.lua` bootstraps LazyVim; plugins in `.config/nvim/lua/plugins/` (one file per plugin group); run `:Lazy sync` after install.
 - **Wezterm:** Primary terminal, Lua config at `.config/wezterm/wezterm.lua`
-- **Claude Code skills:** `~/.claude/skills` is a **real directory**, not a whole-dir symlink. Repo skills under `claude/skills/` are linked in **per-item** by `scripts/lib/link-skills.sh` (called from `scripts/sync-ai-configs.sh`; Windows does the same in `deploy_windows.ps1`). This leaves room to install public skills with `npx skills add -g <github-repo>` — they land in `~/.claude/skills/<name>` outside the dotfiles repo. Edit your own skills in `claude/skills/`; they're live via the symlink. A public skill that shares a repo skill's name wins (the repo skill is skipped).
+- **Claude Code skills:** `~/.claude/skills` is a **real directory**, not a whole-dir symlink. Repo skills under `ai/skills/` are linked in **per-item** by `scripts/lib/link-skills.sh` (called from `scripts/sync-ai-configs.sh`; Windows does the same in `deploy_windows.ps1`). This leaves room to install public skills with `npx skills add -g <github-repo>` — they land in `~/.claude/skills/<name>` outside the dotfiles repo. Edit your own skills in `ai/skills/`; they're live via the symlink. A public skill that shares a repo skill's name wins (the repo skill is skipped).
 
 ### Shell Configuration
 
@@ -138,27 +138,27 @@ Key aliases: `y` (yazi with cd-on-exit), `cd` (aliased to zoxide `z`), `ls/ll/la
 - **Navigation:** Ctrl+hjkl works across tmux/wezterm panes and vim splits
 - **Theme:** Catppuccin Frappe used consistently (wezterm, tmux, yazi, komorebi)
 - **Font:** JetBrains Mono Nerd Font
-- **Notifications (Windows):** DISABLED 2026-08-12 (minimal Claude setup, see docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md); machinery kept in place, described below as-built. Clicking a Claude Code desktop toast focuses the exact WezTerm window/workspace/tab/pane that fired it. The `claude-wez://` URL-protocol handler drops a one-shot focus-request file (`~/.cache/claude-notify/wezterm-focus/<mux>/<pane>`, UTC-epoch body, 60s TTL) that `wezterm.lua` consumes on its next status tick and raises natively — `wezterm cli` cannot focus across windows on Windows, so the GUI Lua API is the only reliable path. `deploy_windows.ps1` installs the `BurntToast` module and registers the handler as `wscript.exe → claude/hooks/bin/claude-wez-launch.vbs` (windowless, so clicking never flashes Windows Terminal). Distinct from the tab-badge alert channel (`wezterm-alerts/`).
+- **Notifications (Windows):** DISABLED 2026-08-12 (minimal Claude setup, see docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md); machinery kept in place, described below as-built. Clicking a Claude Code desktop toast focuses the exact WezTerm window/workspace/tab/pane that fired it. The `claude-wez://` URL-protocol handler drops a one-shot focus-request file (`~/.cache/claude-notify/wezterm-focus/<mux>/<pane>`, UTC-epoch body, 60s TTL) that `wezterm.lua` consumes on its next status tick and raises natively — `wezterm cli` cannot focus across windows on Windows, so the GUI Lua API is the only reliable path. `deploy_windows.ps1` installs the `BurntToast` module and registers the handler as `wscript.exe → ai/claude/hooks/bin/claude-wez-launch.vbs` (windowless, so clicking never flashes Windows Terminal). Distinct from the tab-badge alert channel (`wezterm-alerts/`).
 
 | Toast-click focus file | Purpose |
 |------------------------|---------|
-| `claude/hooks/bin/claude-notify.ps1` | Toast emit + `-Activate` URI handler (writes the focus-request file). URI guard: pane `^\d+$`, mux `^[A-Za-z0-9_-]+$` (blocks path traversal). |
-| `claude/hooks/bin/claude-wez-launch.vbs` | Windowless launcher (`wscript` → hidden pwsh; avoids a terminal flash) |
+| `ai/claude/hooks/bin/claude-notify.ps1` | Toast emit + `-Activate` URI handler (writes the focus-request file). URI guard: pane `^\d+$`, mux `^[A-Za-z0-9_-]+$` (blocks path traversal). |
+| `ai/claude/hooks/bin/claude-wez-launch.vbs` | Windowless launcher (`wscript` → hidden pwsh; avoids a terminal flash) |
 | `.config/wezterm/wezterm_claude_focus.lua` | Pure focus module (`dir`/`mux_tag`/`pending` helpers, unit-tested) |
 | `.config/wezterm/wezterm.lua` | Focus consumption (status-tick poll → `set_active_workspace`/`activate`/`focus`) |
 
 ## Vault RAG-lite (Obsidian wiki recall)
 
-Two hooks ground every session in Max's Obsidian vault (per-machine path resolved by `claude/hooks/lib/obsidian-vault.sh`; override with `$OBSIDIAN_VAULT`). Expected absence (no vault/index on a machine) is silent; if the vault resolves but injection breaks, `vault-map.sh` injects a ⚠ warning — never silence.
+Two hooks ground every session in Max's Obsidian vault (per-machine path resolved by `ai/claude/hooks/lib/obsidian-vault.sh`; override with `$OBSIDIAN_VAULT`). Expected absence (no vault/index on a machine) is silent; if the vault resolves but injection breaks, `vault-map.sh` injects a ⚠ warning — never silence.
 
 | Purpose | Path |
 |---------|------|
-| SessionStart **slim map** — derives a titles-only catalog from `05.Wiki/index.md` (Maps hubs keep summaries; ~3K tokens) and injects it. Content streams through `jq -Rs`, never argv (a 101KB index once blew the ~32KB MSYS limit silently). | `claude/hooks/vault-map.sh` |
-| UserPromptSubmit **recall** — on recall-shaped prompts ("what did I…", "I/we tried/built/set up…"), ripgrep-searches the vault and injects ranked note titles as leads (title matches outrank body matches; sensitive-looking files excluded). | `claude/hooks/vault-recall.sh` |
+| SessionStart **slim map** — derives a titles-only catalog from `05.Wiki/index.md` (Maps hubs keep summaries; ~3K tokens) and injects it. Content streams through `jq -Rs`, never argv (a 101KB index once blew the ~32KB MSYS limit silently). | `ai/claude/hooks/vault-map.sh` |
+| UserPromptSubmit **recall** — on recall-shaped prompts ("what did I…", "I/we tried/built/set up…"), ripgrep-searches the vault and injects ranked note titles as leads (title matches outrank body matches; sensitive-looking files excluded). | `ai/claude/hooks/vault-recall.sh` |
 
-Tests: `claude/hooks/tests/test-vault-{map,recall}.sh`; run all with `bash claude/hooks/tests/run-tests.sh`.
+Tests: `ai/claude/hooks/tests/test-vault-{map,recall}.sh`; run all with `bash ai/claude/hooks/tests/run-tests.sh`.
 
-Capture is manual: `/wiki-capture` (`claude/commands/wiki-capture.md`) files durable knowledge from a session into `05.Wiki/`. (The automated Session Memory Protocol — `/close`, session ledger, continuity read-back — was retired 2026-07-02; see git history if resurrecting.)
+Capture is manual: `/wiki-capture` (`ai/claude/commands/wiki-capture.md`) files durable knowledge from a session into `05.Wiki/`. (The automated Session Memory Protocol — `/close`, session ledger, continuity read-back — was retired 2026-07-02; see git history if resurrecting.)
 
 ## Code Style
 
@@ -207,11 +207,11 @@ end
 | Zed | `zed/settings.unix.json` (mac/Linux), `zed/settings.windows.json` (Windows), `zed/keymap.json` |
 | IdeaVim | `.ideavimrc` |
 | PowerShell | `.config/powershell/Microsoft.PowerShell_profile.ps1` |
-| Claude Code | `claude/` → `~/.claude/` |
-| Ad-hoc MCP configs | `claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name> [<name>…]` function (`claude --mcp-config`) |
+| Claude Code | `ai/claude/` → `~/.claude/` |
+| Ad-hoc MCP configs | `ai/claude/mcp/<name>.json` — rare-use servers (e.g. figma), launched per-session via the pwsh `ccmcp <name> [<name>…]` function (`claude --mcp-config`) |
 | Tool updater (mac/Linux) | `scripts/update-tools.sh` — pulls the latest upstream release binaries into `~/.local/bin` (ahead of `/usr/bin` and `/usr/local/bin` in PATH, so no sudo and no fighting dpkg), then updates fzf, oh-my-zsh, tmux and Neovim plugins. apt pins these years back (ripgrep 14 vs 15, eza 0.18 vs 0.23), so Linux takes GitHub releases; macOS defers to `brew upgrade` scoped to just these formulae. Add a tool by appending one row to its `TOOLS` table. |
 | Claude skills linker (mac/Linux) | `scripts/lib/link-skills.sh` (called by `scripts/sync-ai-configs.sh`) |
-| Global agent instructions | `claude/AGENTS.md` (distinct from this repo-root file) → `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows). Verify with `bash scripts/sync-ai-configs.sh --check` |
+| Global agent instructions | `ai/AGENTS.md` (distinct from this repo-root file) → `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.pi/agent/AGENTS.md`, `~/.copilot/copilot-instructions.md` (Cursor: `scripts/copy-agents-rules.sh`, or `Copy-AgentsRules`/`ccrules` on Windows). Verify with `bash scripts/sync-ai-configs.sh --check` |
 | opencode | `.config/opencode/opencode.jsonc` |
 | Winget install manifests | `packages/winget-{core,dev,gamedev,comfort,optional}.json` (imported by `deploy_windows.ps1` via `-Manifests`/`-IncludeOptional`) |
 | Secrets (gitignored) | `~/.config/dotfiles/secrets.env` (template: `secrets.env.example`) |

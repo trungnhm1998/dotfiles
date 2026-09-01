@@ -113,15 +113,14 @@ The MacBook built-in keyboard is remapped with [Kanata](https://github.com/jtroo
 | Yazi | File Manager | `.config/yazi/` |
 | Starship | Prompt | `.config/starship.toml` |
 | IdeaVim | Vim for JetBrains | `.ideavimrc` |
-| Claude Code | AI agent config + skills | `claude/` |
+| Claude Code | AI agent config + skills | `ai/` |
 | Kanata | Keyboard remap (macOS built-in kbd) | `.config/kanata/kanata.kbd` |
 
 ## Claude Code Skills
 
-Canonical store: `claude/skills/<name>/` - one directory per skill, linked into `~/.claude/skills/`:
+Canonical store: `ai/skills/<name>/` - one directory per skill, linked into `~/.claude/skills/`:
 
-- **Windows** (`deploy_windows.ps1`): per-item symlinks, so plugin-managed junctions in `~/.claude/skills/` are never clobbered. New repo skills get linked on the next deploy; existing names are left as-is.
-- **macOS/Linux** (`scripts/sync-ai-configs.sh`, called by `deploy.sh`): whole-dir symlink `~/.claude/skills -> claude/skills`, so new repo skills are live immediately after pull.
+- **Windows** (`deploy_windows.ps1`) and **macOS/Linux** (`scripts/sync-ai-configs.sh`, called by `deploy.sh` / `setup_mac.sh`): per-item symlinks into a real `~/.claude/skills/`, so plugin-managed and `npx skills` installs are never clobbered. New repo skills get linked on the next deploy/sync; existing names are left as-is.
 
 Current skills: `game-feel`, `game-marketing`, `gamedev-art`, `gamedev-audio`, `handoff`, `indie-production`, `level-design`, `unity-engineering`, `unity-shaders`, `unity-worktree-setup`.
 

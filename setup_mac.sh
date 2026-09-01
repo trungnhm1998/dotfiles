@@ -106,7 +106,7 @@ bash "$HOME/dotfiles/scripts/setup-pyenv.sh"
 # the brew list above because kanata-layer-listener.sh also uses it (WORK/GAME toast);
 # only this Claude toast-icon pre-warm is disabled. To re-enable: uncomment below. Spec:
 # docs/superpowers/specs/2026-08-12-claude-notify-minimal-design.md
-# bash -c 'source "$HOME/dotfiles/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
+# bash -c 'source "$HOME/dotfiles/ai/claude/hooks/lib/notify-lib.sh"; _cc_wezterm_icon >/dev/null' 2>/dev/null \
 #     && echo "Claude-notify WezTerm toast icon cached." || true
 
 # brew services start svim   # disabled — see svim note above

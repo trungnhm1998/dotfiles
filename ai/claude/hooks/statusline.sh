@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Minimal Claude Code status line: <dir> · <model> · <effort> · <context%>
 # Reads session JSON on stdin (see code.claude.com/docs/en/statusline).
-# Not a hook, but lives here because claude/hooks/ is per-item symlinked into
+# Not a hook, but lives here because ai/claude/hooks/ is per-item symlinked into
 # ~/.claude/hooks/ by deploy_windows.ps1 / sync-ai-configs.sh on every platform.
 input=$(cat)
 IFS=$'\t' read -r cwd model effort pct < <(
