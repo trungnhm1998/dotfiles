@@ -76,7 +76,6 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
 .dhint{position:absolute;left:14px;bottom:10px;font-family:var(--mono);font-size:11px;color:var(--ov0);z-index:5}
 .kicker{color:var(--ov1);font-size:14px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.diagram{min-height:340px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 @media (max-width:899px){.wrap{display:block}#moc{position:static;max-height:none;margin-bottom:24px}}
 @media (min-width:900px){#moc summary{pointer-events:none}}
@@ -87,6 +86,7 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
  a{color:#000}
  a[href^="http"]::after{content:" (" attr(href) ")";font-size:.8em}
  pre.code{white-space:pre-wrap;break-inside:avoid;background:#f4f4f4;border-color:#ccc;color:#000}
+ pre.code.hl-on .ln{opacity:1}
  h2,h3{break-after:avoid}
 }
 pre.code{position:relative}
@@ -108,10 +108,10 @@ pre.code .ln[data-d="del"] .gut{color:var(--red)}
 sup.sn-ref{color:var(--peach);font-family:var(--mono);font-size:.75em}
 .snb{font-size:.85em;color:var(--sub0);line-height:1.45}
 .snb .snn{color:var(--peach);font-family:var(--mono);font-size:.8em;margin-right:4px}
-@media (min-width:1180px){
+@media (min-width:1250px){
  .snb{display:block;float:right;clear:right;width:250px;margin-right:-290px}
 }
-@media (max-width:1179.9px){
+@media (max-width:1249.9px){
  .snb{display:block;margin:.7em 0 .7em 1.2em;border-left:2px solid var(--s1);padding-left:.9em}
 }
 section[role="doc-endnotes"]{border-top:1px solid var(--s0);margin-top:3em;padding-top:1em;font-size:.9em;color:var(--sub1)}
@@ -129,6 +129,7 @@ details.predict{border-left:3px solid var(--mauve)}
 details.check{border-left:3px solid var(--green)}
 @media (prefers-reduced-motion:reduce){details.check summary::before,details.predict summary::before{transition:none}}
 .callout .ctitle{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.callout .ctitle{color:var(--peach)}
 .callout.def{border-color:var(--blue)}.callout.def .ctitle{color:var(--blue)}
 .callout.tip{border-color:var(--green)}.callout.tip .ctitle{color:var(--green)}
 .callout.bug{border-color:var(--red)}.callout.bug .ctitle{color:var(--red)}
@@ -157,6 +158,24 @@ details.check{border-left:3px solid var(--green)}
 
 <h2>First section</h2>
 <p>Body text.</p>
+
+<h2>Diagram example</h2>
+<!-- Placeholder — replace with your own diagram, or delete this whole block.
+     Pan/zoom attaches to every .diagram automatically; keep all four parts:
+     .diagram > .dctl (zoom buttons) + .dhint + .stage > pre.mermaid.
+     Copy the %%{init}%% themeVariables block verbatim into every diagram — it is
+     what makes mermaid match Frappe. Add class="wide" to the .diagram for a
+     wider-than-prose figure. Then pre-render to inline SVG before shipping:
+       node ~/.claude/skills/frappe-deck/scripts/prerender.mjs <file.html> -->
+<div class="diagram">
+  <div class="dctl"><button data-z="in">+</button><button data-z="out">−</button><button data-z="reset">⌂</button></div>
+  <div class="dhint">ctrl+wheel = zoom · drag = pan · ⌂ = reset</div>
+  <div class="stage"><pre class="mermaid">%%{init:{'theme':'base','themeVariables':{'darkMode':true,'background':'#292c3c','primaryColor':'#414559','primaryTextColor':'#c6d0f5','primaryBorderColor':'#8caaee','lineColor':'#838ba7','secondaryColor':'#51576d','tertiaryColor':'#232634','mainBkg':'#414559','nodeBorder':'#8caaee','textColor':'#c6d0f5','clusterBkg':'#292c3c','clusterBorder':'#51576d','edgeLabelBackground':'#292c3c','labelBackground':'#292c3c','fontFamily':'Consolas,monospace','fontSize':'14px'}}}%%
+flowchart TD
+    A[Node label&lt;br/&gt;second line] --> B{{Alert node}}
+    style B fill:#3b2b33,stroke:#e78284</pre></div>
+</div>
+<p class="kicker">Optional caption under the diagram.</p>
 
 <!-- ══ ARTICLE END ══ -->
 
@@ -229,11 +248,14 @@ details.check{border-left:3px solid var(--green)}
     const a=e.target.closest('a');if(!a)return;
     setActive(items.findIndex(li=>li.contains(a)));
     hold=true;clearTimeout(spy._t);
-    const done=()=>{hold=false;spy._done=null;spy()};
+    const done=()=>{clearTimeout(spy._t);hold=false;spy()};
     if('onscrollend' in window){
       const h=()=>{removeEventListener('scrollend',h);done()};
       addEventListener('scrollend',h);
-    } else spy._t=setTimeout(done,600);
+    }
+    // fallback arms in BOTH paths: a click that scrolls nowhere never fires scrollend,
+    // which would leave the spy held forever. done() is idempotent.
+    spy._t=setTimeout(done,600);
   });
 
   // ── highlighter + line split ──────────────────────────────────
@@ -256,7 +278,7 @@ details.check{border-left:3px solid var(--green)}
   document.querySelectorAll('pre.code code[data-lang]').forEach(el=>{
     const L=LANGS[el.dataset.lang];if(!L)return;
     const re=new RegExp(`(${L.com.source})|(${L.str.source})|(${L.num.source})|(${L.kw.source})`,'g');
-    const txt=el.textContent.replace(/\n$/,'');
+    const txt=el.textContent.replace(/^\n/,'').replace(/\n$/,'');
     // data-diff: record +/- per line, strip the sign before tokenizing
     const diff=el.closest('pre.code').hasAttribute('data-diff');
     let signs=null;
@@ -289,11 +311,12 @@ details.check{border-left:3px solid var(--green)}
   function parseRanges(s){
     const set=new Set();
     s.split(',').forEach(r=>{const[a,b]=r.split('-').map(Number);for(let i=a;i<=(b||a);i++)set.add(i)});
+    if(s&&set.size===0)console.warn('data-hl/steps: no lines matched in "'+s+'"');
     return set;
   }
   function applyHl(pre,spec){
     const set=spec?parseRanges(spec):null;
-    pre.classList.toggle('hl-on',!!set);
+    pre.classList.toggle('hl-on',!!set&&set.size>0);
     pre.querySelectorAll('.ln').forEach(ln=>ln.classList.toggle('on',!!set&&set.has(+ln.dataset.n)));
   }
   document.querySelectorAll('pre.code[data-hl]:not([data-steps])').forEach(p=>applyHl(p,p.dataset.hl));
@@ -375,7 +398,7 @@ details.check{border-left:3px solid var(--green)}
   document.querySelectorAll('.lab').forEach(lab=>{
     const ins=[...lab.querySelectorAll('input[name]')];
     const names=ins.map(i=>i.name);
-    const compile=x=>{try{return new Function(...names,'return('+x+')')}catch(e){return null}};
+    const compile=x=>{try{return new Function(...names,'return('+x+')')}catch(e){console.warn('lab expression failed to compile: '+x);return null}};
     const binds=[...lab.querySelectorAll('[data-out],[data-attr],[data-class],[data-style]')].map(el=>{
       const b={el};
       if(el.dataset.out)b.out=compile(el.dataset.out);
@@ -393,19 +416,19 @@ details.check{border-left:3px solid var(--green)}
       binds.forEach(b=>{try{
         if(b.out)b.el.textContent=b.out(...v);
         if(b.attr)b.el.setAttribute(b.attrName,b.attr(...v));
-        if(b.cls)b.el.className=b.cls(...v);
+        if(b.cls)b.el.setAttribute('class',b.cls(...v));
         if(b.sty)b.el.style.cssText=b.sty(...v);
       }catch(e){}});
     };
     ins.forEach(i=>i.addEventListener('input',run));
     lab.querySelectorAll('[data-scrub]').forEach(el=>{
-      const inp=lab.querySelector('input[name="'+el.dataset.scrub+'"]');if(!inp)return;
+      const inp=lab.querySelector('input[name="'+el.dataset.scrub+'"]');if(!inp){console.warn('data-scrub="'+el.dataset.scrub+'" has no matching input[name] in this .lab');return}
       el.classList.add('scrub');
       const sync=()=>el.textContent=inp.value;
       inp.addEventListener('input',sync);sync();
       el.addEventListener('pointerdown',e=>{
         e.preventDefault();el.setPointerCapture(e.pointerId);
-        const step=+inp.step||1;
+        const step=(+inp.max-+inp.min)/240||+inp.step||1;
         const move=ev=>{
           inp.value=Math.min(+inp.max,Math.max(+inp.min,+inp.value+ev.movementX*step));
           sync();run();
@@ -418,10 +441,13 @@ details.check{border-left:3px solid var(--green)}
   });
 
   // ── diagram pan/zoom ──────────────────────────────────────────
-  /* attach(): VERBATIM COPY of template.html lines 204-242 (the whole function).
+  /* attach(): copied from template.html lines 204-242, with two deliberate
+     article-side deviations, both marked below: a missing-.stage guard, and
+     ctrl-gated wheel zoom (a long article must keep plain wheel = page scroll).
      The needsFit deferral never triggers here (nothing is display:none) — harmless. */
   function attach(box){
     const stage=box.querySelector('.stage');
+    if(!stage)return false;             // article deviation: authored .diagram may lack .stage
     const svg=stage.querySelector('svg');
     if(!svg||svg.dataset.pz)return false;
     svg.dataset.pz='1';
@@ -442,6 +468,7 @@ details.check{border-left:3px solid var(--green)}
     box._fit=fit;
     fit();
     stage.addEventListener('wheel',e=>{
+      if(!e.ctrlKey)return;             // article deviation: plain wheel scrolls the page
       e.preventDefault();
       const r=stage.getBoundingClientRect();
       const mx=e.clientX-r.left,my=e.clientY-r.top;
