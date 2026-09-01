@@ -95,6 +95,16 @@ pre.code.hl-on .ln{opacity:.38;transition:opacity .18s}
 pre.code.hl-on .ln.on{opacity:1}
 pre.code.hl-on .ln.on::before{content:"";position:absolute;left:-18px;top:0;bottom:0;width:2px;background:var(--blue)}
 @media (prefers-reduced-motion:reduce){pre.code.hl-on .ln{transition:none}}
+.steps{display:flex;align-items:center;gap:12px;margin-top:8px;max-width:66ch}
+.steps button{background:var(--s0);border:1px solid var(--s1);color:var(--text);border-radius:8px;padding:4px 14px;font-family:var(--mono);font-size:13px;cursor:pointer}
+.steps button:hover{border-color:var(--blue)}
+.steps .scap{flex:1;color:var(--sub1);font-size:14px}
+.steps .snum{font-family:var(--mono);font-size:12px;color:var(--ov0);font-variant-numeric:tabular-nums}
+pre.code .gut{display:inline-block;width:1.2em;color:var(--ov0);user-select:none}
+pre.code .ln[data-d="add"]{background:color-mix(in srgb,var(--green) 10%,transparent)}
+pre.code .ln[data-d="add"] .gut{color:var(--green)}
+pre.code .ln[data-d="del"]{background:color-mix(in srgb,var(--red) 10%,transparent)}
+pre.code .ln[data-d="del"] .gut{color:var(--red)}
 /* ==CSS:END== */
 </style>
 
@@ -214,18 +224,34 @@ pre.code.hl-on .ln.on::before{content:"";position:absolute;left:-18px;top:0;bott
     const L=LANGS[el.dataset.lang];if(!L)return;
     const re=new RegExp(`(${L.com.source})|(${L.str.source})|(${L.num.source})|(${L.kw.source})`,'g');
     const txt=el.textContent.replace(/\n$/,'');
+    // data-diff: record +/- per line, strip the sign before tokenizing
+    const diff=el.closest('pre.code').hasAttribute('data-diff');
+    let signs=null;
+    let src=txt;
+    if(diff){
+      signs=[];
+      src=txt.split('\n').map(l=>{
+        if(/^\+ ?/.test(l)){signs.push('add');return l.replace(/^\+ ?/,'')}
+        if(/^- ?/.test(l)){signs.push('del');return l.replace(/^- ?/,'')}
+        signs.push('');return l;
+      }).join('\n');
+    }
     let out='',last=0,m;
-    while((m=re.exec(txt))!==null){
-      out+=esc(txt.slice(last,m.index));
+    while((m=re.exec(src))!==null){
+      out+=esc(src.slice(last,m.index));
       const cls=m[1]?'tok-com':m[2]?'tok-str':m[3]?'tok-num':'tok-kw';
       out+=`<span class="${cls}">${esc(m[0])}</span>`;
       last=re.lastIndex;
     }
-    out+=esc(txt.slice(last));
+    out+=esc(src.slice(last));
     // NOTE: safe to split rendered HTML on \n only because every LANGS token is
     // single-line today. A future multi-line token (/* */, --[[ ]], @"...") must be
     // split at newlines with its class reopened per row.
-    el.innerHTML=out.split('\n').map((l,i)=>`<span class="ln" data-n="${i+1}">${l||' '}</span>`).join('');
+    el.innerHTML=out.split('\n').map((l,i)=>{
+      const d=signs&&signs[i]?` data-d="${signs[i]}"`:'';
+      const g=signs?`<span class="gut"${signs[i]?` aria-label="${signs[i]==='add'?'added':'removed'} line"`:' aria-hidden="true"'}>${signs[i]==='add'?'+':signs[i]==='del'?'-':' '}</span>`:'';
+      return `<span class="ln" data-n="${i+1}"${d}>${g}${l||' '}</span>`;
+    }).join('');
   });
   function parseRanges(s){
     const set=new Set();
@@ -238,6 +264,32 @@ pre.code.hl-on .ln.on::before{content:"";position:absolute;left:-18px;top:0;bott
     pre.querySelectorAll('.ln').forEach(ln=>ln.classList.toggle('on',!!set&&set.has(+ln.dataset.n)));
   }
   document.querySelectorAll('pre.code[data-hl]:not([data-steps])').forEach(p=>applyHl(p,p.dataset.hl));
+
+  // ── step-through walkthroughs ─────────────────────────────────
+  document.querySelectorAll('pre.code[data-steps]').forEach(pre=>{
+    const steps=pre.dataset.steps.split('|');
+    const caps=(pre.dataset.captions||'').split('|');
+    let i=0;
+    const bar=document.createElement('div');bar.className='steps';
+    bar.innerHTML='<button class="sp" aria-label="Previous step">&#8592;</button>'
+      +'<span class="scap"></span><span class="snum"></span>'
+      +'<button class="sx" aria-label="Next step">&#8594;</button>';
+    pre.after(bar);
+    const go=n=>{
+      i=Math.max(0,Math.min(steps.length-1,n));
+      applyHl(pre,steps[i]);
+      bar.querySelector('.scap').textContent=caps[i]||'';
+      bar.querySelector('.snum').textContent=(i+1)+' / '+steps.length;
+    };
+    bar.querySelector('.sp').onclick=()=>go(i-1);
+    bar.querySelector('.sx').onclick=()=>go(i+1);
+    pre.tabIndex=0;
+    pre.addEventListener('keydown',e=>{
+      if(e.key===']'||e.key==='ArrowRight'){go(i+1);e.preventDefault()}
+      else if(e.key==='['||e.key==='ArrowLeft'){go(i-1);e.preventDefault()}
+    });
+    go(0);
+  });
 
 // ==JS:END==
 })();
