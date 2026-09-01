@@ -15,7 +15,9 @@
       "AskUserQuestion"
     ],
     "defaultMode": "bypassPermissions",
-    "additionalDirectories": ["C:\\ObsidianVaults"]
+    "additionalDirectories": [
+      "C:\\ObsidianVaults"
+    ]
   },
   "model": "opus[1m]",
   "skillOverrides": {
@@ -93,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/home/mint/.claude/hooks/herdr-agent-state.sh' session",
+            "command": "bash ~/.claude/hooks/herdr-agent-state.sh session",
             "timeout": 10
           }
         ]
@@ -267,13 +269,9 @@
       }
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "node \"/home/mint/.claude/hooks/statusline.js\""
-  },
   "subagentStatusLine": {
     "type": "command",
-    "command": "node \"/home/mint/.claude/hooks/statusline.js\" subagent"
+    "command": "node \"$HOME/.claude/hooks/statusline.js\" subagent"
   },
   "enabledPlugins": {
     "claude-mem@thedotmack": false,
@@ -330,5 +328,11 @@
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0,
+    "refreshInterval": 10
+  }
 }
