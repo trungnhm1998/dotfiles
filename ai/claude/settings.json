@@ -19,7 +19,7 @@
       "C:\\ObsidianVaults"
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "skillOverrides": {
     "keel": "off",
     "level-design": "off",
@@ -269,6 +269,12 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0,
+    "refreshInterval": 10
+  },
   "subagentStatusLine": {
     "type": "command",
     "command": "node \"$HOME/.claude/hooks/statusline.js\" subagent"
@@ -328,11 +334,5 @@
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "statusLine": {
-    "type": "command",
-    "command": "bunx -y ccstatusline@latest",
-    "padding": 0,
-    "refreshInterval": 10
-  }
+  "skipAutoPermissionPrompt": true
 }
