@@ -235,6 +235,12 @@ $symlinks = @(
         IsDirectory = $false
         Description = "pi global instructions (canonical claude\AGENTS.md)"
     }
+    @{
+        Source      = "$dotfilesRoot\claude\pi\extensions\windows-powershell-bash.ts"
+        Target      = "$HOME\.pi\agent\extensions\windows-powershell-bash.ts"
+        IsDirectory = $false
+        Description = "pi Windows extension: PowerShell-first shell with bash fallback"
+    }
 
     # --- GitHub Copilot CLI (native personal-instructions file; NOT named AGENTS.md) ---
     @{

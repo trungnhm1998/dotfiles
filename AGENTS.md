@@ -89,6 +89,7 @@ After editing: test the actual symlink creation, source shell configs to confirm
 | `zed/settings.windows.json` | `$env:APPDATA\Zed\settings.json` |
 | `zed/keymap.json` | `$env:APPDATA\Zed\keymap.json` |
 | `claude/AGENTS.md` (canonical global agent instructions) | `$HOME\.claude\CLAUDE.md`, `$HOME\.codex\AGENTS.md`, `$HOME\.config\opencode\AGENTS.md`, `$HOME\.pi\agent\AGENTS.md`, `$HOME\.copilot\copilot-instructions.md` (Copilot's native personal-instructions filename — not `AGENTS.md`). No `$HOME\.claude\AGENTS.md`: [Claude Code reads `CLAUDE.md`, not `AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md). **Cursor gets nothing** — its User Rules live in a settings DB with no file to link (`~/.cursor/rules/*.mdc` is an [unimplemented feature request](https://forum.cursor.com/t/support-for-cursor-rules-for-global-mdc-rules/144819)), so Cursor is synced by hand with `ccrules` / `scripts/copy-agents-rules.sh` and drifts silently until you re-run it. |
+| `claude\pi\extensions\windows-powershell-bash.ts` | `$HOME\.pi\agent\extensions\windows-powershell-bash.ts` (Windows: PowerShell-first pi shell; requires `npm:pi-powershell` in pi settings) |
 | `claude/` (settings.json, agents, commands, hooks, skills, themes) | `$HOME\.claude\…` |
 | `.config/opencode/opencode.jsonc` | `$HOME\.config\opencode\opencode.jsonc` |
 
