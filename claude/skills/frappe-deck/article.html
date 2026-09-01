@@ -89,6 +89,12 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
  pre.code{white-space:pre-wrap;break-inside:avoid;background:#f4f4f4;border-color:#ccc;color:#000}
  h2,h3{break-after:avoid}
 }
+pre.code{position:relative}
+pre.code .ln{display:block;position:relative;padding-left:2px}
+pre.code.hl-on .ln{opacity:.38;transition:opacity .18s}
+pre.code.hl-on .ln.on{opacity:1}
+pre.code.hl-on .ln.on::before{content:"";position:absolute;left:-18px;top:0;bottom:0;width:2px;background:var(--blue)}
+@media (prefers-reduced-motion:reduce){pre.code.hl-on .ln{transition:none}}
 /* ==CSS:END== */
 </style>
 
@@ -186,6 +192,52 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
       addEventListener('scrollend',h);
     } else spy._t=setTimeout(done,600);
   });
+
+  // ── highlighter + line split ──────────────────────────────────
+  /* LANGS + esc: VERBATIM COPY of template.html lines 169-183 */
+  const LANGS={
+    csharp:{
+      com:/\/\/[^\n]*/,
+      str:/\$?"(?:[^"\\\n]|\\.)*"/,
+      kw:/\b(?:public|private|protected|internal|static|readonly|class|struct|interface|enum|void|int|bool|string|float|double|var|new|return|if|else|foreach|for|while|in|out|ref|using|namespace|abstract|override|virtual|null|true|false|this|throw|sealed|const|get|set)\b/,
+      num:/\b\d[\d._f]*\b/
+    },
+    lua:{
+      com:/--[^\n]*/,
+      str:/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/,
+      kw:/\b(?:local|function|end|if|then|else|elseif|return|for|while|do|nil|true|false|and|or|not|in|repeat|until|break)\b/,
+      num:/\b\d[\d.]*\b/
+    }
+  };
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.querySelectorAll('pre.code code[data-lang]').forEach(el=>{
+    const L=LANGS[el.dataset.lang];if(!L)return;
+    const re=new RegExp(`(${L.com.source})|(${L.str.source})|(${L.num.source})|(${L.kw.source})`,'g');
+    const txt=el.textContent.replace(/\n$/,'');
+    let out='',last=0,m;
+    while((m=re.exec(txt))!==null){
+      out+=esc(txt.slice(last,m.index));
+      const cls=m[1]?'tok-com':m[2]?'tok-str':m[3]?'tok-num':'tok-kw';
+      out+=`<span class="${cls}">${esc(m[0])}</span>`;
+      last=re.lastIndex;
+    }
+    out+=esc(txt.slice(last));
+    // NOTE: safe to split rendered HTML on \n only because every LANGS token is
+    // single-line today. A future multi-line token (/* */, --[[ ]], @"...") must be
+    // split at newlines with its class reopened per row.
+    el.innerHTML=out.split('\n').map((l,i)=>`<span class="ln" data-n="${i+1}">${l||' '}</span>`).join('');
+  });
+  function parseRanges(s){
+    const set=new Set();
+    s.split(',').forEach(r=>{const[a,b]=r.split('-').map(Number);for(let i=a;i<=(b||a);i++)set.add(i)});
+    return set;
+  }
+  function applyHl(pre,spec){
+    const set=spec?parseRanges(spec):null;
+    pre.classList.toggle('hl-on',!!set);
+    pre.querySelectorAll('.ln').forEach(ln=>ln.classList.toggle('on',!!set&&set.has(+ln.dataset.n)));
+  }
+  document.querySelectorAll('pre.code[data-hl]:not([data-steps])').forEach(p=>applyHl(p,p.dataset.hl));
 
 // ==JS:END==
 })();
