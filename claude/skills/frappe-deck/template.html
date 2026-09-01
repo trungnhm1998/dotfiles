@@ -32,7 +32,10 @@ ul{list-style:none;display:flex;flex-direction:column;gap:9px;max-width:78ch}
 ul li{padding-left:20px;position:relative}
 ul li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:2px;background:var(--blue)}
 li b{color:var(--lavender);font-weight:600}
-code{font-family:var(--mono);font-size:.88em;background:var(--mantle);border:1px solid var(--s0);border-radius:4px;padding:1px 6px;color:var(--peach);white-space:nowrap}
+/* inline code CHIPS only. A bare `code{}` also hits the block code inside pre.code,
+   where white-space:nowrap collapses every newline and indent run into one space. */
+:not(pre) > code{font-family:var(--mono);font-size:.88em;background:var(--mantle);border:1px solid var(--s0);border-radius:4px;padding:1px 6px;color:var(--peach);white-space:nowrap}
+pre.code > code{white-space:pre;font:inherit;color:inherit;background:none;border:0;padding:0;display:block}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
 .card{background:var(--mantle);border:1px solid var(--s0);border-radius:10px;padding:18px 20px}
 .card h3{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
@@ -181,10 +184,17 @@ flowchart TD
   document.querySelectorAll('pre.code code[data-lang]').forEach(el=>{
     const L=LANGS[el.dataset.lang];if(!L)return;
     const re=new RegExp(`(${L.com.source})|(${L.str.source})|(${L.num.source})|(${L.kw.source})`,'g');
-    el.innerHTML=el.textContent.replace(re,(m,c,s,n,k)=>{
-      const cls=c?'tok-com':s?'tok-str':n?'tok-num':'tok-kw';
-      return `<span class="${cls}">${esc(m)}</span>`;
-    });
+    // Escape the GAPS between tokens too, not just the tokens. textContent is raw,
+    // so an unescaped `List<T>` or `NetworkVariable<sbyte>` goes into innerHTML as a
+    // TAG and the generic argument silently disappears from the rendered code.
+    const txt=el.textContent;let out='',last=0,m;
+    while((m=re.exec(txt))!==null){
+      out+=esc(txt.slice(last,m.index));
+      const cls=m[1]?'tok-com':m[2]?'tok-str':m[3]?'tok-num':'tok-kw';
+      out+=`<span class="${cls}">${esc(m[0])}</span>`;
+      last=re.lastIndex;
+    }
+    el.innerHTML=out+esc(txt.slice(last));
   });
 
   // ── mermaid pan/zoom: wait for the artifact runtime to render SVG ──
