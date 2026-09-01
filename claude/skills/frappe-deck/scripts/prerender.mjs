@@ -121,8 +121,8 @@ html = html.replace(BLOCK, () => rendered[n++]);
   }
   if (dups.size) {
     console.error(
-      `\n✗ duplicate SVG id(s) across diagrams: ${[...dups].join(", ")}\n` +
-        "  Later diagrams would render with the first diagram's defs. File left untouched."
+      `\n✗ duplicate id(s) across inline SVGs: ${[...dups].join(", ")}\n` +
+        "  Later SVGs would resolve refs against the first occurrence's defs. File left untouched."
     );
     process.exit(2);
   }
