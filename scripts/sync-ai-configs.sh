@@ -49,21 +49,21 @@ link_config() {
 	ln -sfn "$src" "$target"
 }
 
-# --- Global agent instructions: one canonical file (claude/AGENTS.md) ---
+# --- Global agent instructions: one canonical file (ai/AGENTS.md) ---
 # Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot. Claude
 # Code reads it as CLAUDE.md; Codex/opencode/pi read it as AGENTS.md; Copilot reads it as
 # copilot-instructions.md — each at its own path.
 # Deliberately NO ~/.claude/AGENTS.md: Claude Code reads CLAUDE.md and never AGENTS.md, so
 # that link was dead weight. https://code.claude.com/docs/en/memory#agents-md
 # (Cursor has no global rules file — paste it into User Rules via scripts/copy-agents-rules.sh.)
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.claude/CLAUDE.md"
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.codex/AGENTS.md"
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
-link_config "$DOTFILES/claude/AGENTS.md" "$HOME/.copilot/copilot-instructions.md"
+link_config "$DOTFILES/ai/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+link_config "$DOTFILES/ai/AGENTS.md" "$HOME/.codex/AGENTS.md"
+link_config "$DOTFILES/ai/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
+link_config "$DOTFILES/ai/AGENTS.md" "$HOME/.pi/agent/AGENTS.md"
+link_config "$DOTFILES/ai/AGENTS.md" "$HOME/.copilot/copilot-instructions.md"
 
 # --- Other Claude Code authored config ---
-link_config "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
+link_config "$DOTFILES/ai/claude/settings.json" "$HOME/.claude/settings.json"
 link_config "$DOTFILES/.config/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
 
 # --check stops here, and checks ONLY the targets above -- the ones that are byte-identical
@@ -80,12 +80,12 @@ fi
 # REAL directory so `npx skills` public installs and Claude Code plugin dirs live beside our
 # repo skills. It is linked per-item below. Mirrors deploy_windows.ps1's skills loop.
 for item in agents commands hooks rules themes; do
-	link_config "$DOTFILES/claude/$item" "$HOME/.claude/$item"
+	link_config "$DOTFILES/ai/claude/$item" "$HOME/.claude/$item"
 done
 
 # Claude skills: per-item symlinks into a real ~/.claude/skills (see scripts/lib/link-skills.sh).
 source "$SCRIPT_DIR/lib/link-skills.sh"
-link_skills "$DOTFILES/claude/skills" "$HOME/.claude/skills"
+link_skills "$DOTFILES/ai/skills" "$HOME/.claude/skills"
 
 # opencode: track only opencode.jsonc; remove stale opencode.json (loaded first, would shadow/merge)
 rm -f "$HOME/.config/opencode/opencode.json"

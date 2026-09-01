@@ -1,18 +1,18 @@
 #!/bin/bash
-# Copy the canonical global agent instructions (claude/AGENTS.md) to the clipboard so you
+# Copy the canonical global agent instructions (ai/AGENTS.md) to the clipboard so you
 # can paste them into Cursor -> Settings -> Rules -> User Rules. Cursor has no global rules
 # file to symlink (User Rules live in its synced settings DB), so this is the supported way
 # to give Cursor the same instructions the CLI agents get. Re-run after editing AGENTS.md.
 #
 # Works on macOS (pbcopy), Wayland (wl-copy), X11 (xclip/xsel), and Windows-with-bash
 # (clip.exe). On native PowerShell, instead run:
-#   Get-Content $HOME\dotfiles\claude\AGENTS.md -Raw | Set-Clipboard
+#   Get-Content $HOME\dotfiles\ai\AGENTS.md -Raw | Set-Clipboard
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES="$(dirname "$SCRIPT_DIR")"
-AGENTS="$DOTFILES/claude/AGENTS.md"
+AGENTS="$DOTFILES/ai/AGENTS.md"
 
 if [ ! -f "$AGENTS" ]; then
 	echo "Not found: $AGENTS" >&2
@@ -35,5 +35,5 @@ else
 	exit 1
 fi
 
-echo "Copied claude/AGENTS.md to the clipboard."
+echo "Copied ai/AGENTS.md to the clipboard."
 echo "Paste into Cursor -> Settings -> Rules -> User Rules."
