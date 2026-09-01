@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 . "$(dirname "$0")/_harness.sh"
-. "$(dirname "$0")/../../../scripts/lib/link-skills.sh"
+. "$(dirname "$0")/../../../../scripts/lib/link-skills.sh"
 
 # Fixture: a fake repo skills dir with two skills, and a dst that starts as a legacy
 # whole-dir symlink pointing at the repo (the pre-migration state on a real machine).

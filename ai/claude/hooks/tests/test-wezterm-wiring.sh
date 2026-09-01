@@ -3,7 +3,7 @@
 # be executed outside WezTerm, so we assert structure and that the file still parses.
 . "$(dirname "$0")/_harness.sh"
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"   # tests -> hooks -> claude -> repo root
+repo_root="$(cd "$(dirname "$0")/../../../.." && pwd)"   # tests -> hooks -> claude -> ai -> repo root
 WT="$repo_root/.config/wezterm/wezterm.lua"
 
 grep -q 'require("wezterm_claude_alerts")' "$WT"; assert_exit "$?" "0" "wezterm.lua requires the reconcile module"

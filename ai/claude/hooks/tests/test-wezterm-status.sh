@@ -9,7 +9,7 @@ if ! command -v lua >/dev/null 2>&1; then
   finish; exit 0
 fi
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"   # tests -> hooks -> claude -> repo root
+repo_root="$(cd "$(dirname "$0")/../../../.." && pwd)"   # tests -> hooks -> claude -> ai -> repo root
 lua "$repo_root/.config/wezterm/wezterm_status_test.lua"
 assert_exit "$?" "0" "wezterm_status.lua unit tests pass"
 finish

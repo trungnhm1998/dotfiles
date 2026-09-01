@@ -7,7 +7,7 @@ if ! command -v lua >/dev/null 2>&1; then
   finish; exit 0
 fi
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"   # tests -> hooks -> claude -> repo root
+repo_root="$(cd "$(dirname "$0")/../../../.." && pwd)"   # tests -> hooks -> claude -> ai -> repo root
 module="$repo_root/.config/wezterm/tabline_claude_badge.lua"
 lua "$(dirname "$0")/test-tabline-claude-badge.lua" "$module"
 assert_exit "$?" "0" "tabline_claude_badge.lua unit tests pass"
