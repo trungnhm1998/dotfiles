@@ -11,6 +11,9 @@
 [wsl2]
 memory=24GB
 processors=12
+# WSLg's msrdc.exe steals OS foreground every ~2min (invisible TscShellContainerClass);
+# no WSL GUI apps in use, so disable WSLg entirely (2026-08-17).
+guiApplications=false
 
 [experimental]
 autoMemoryReclaim=dropcache
