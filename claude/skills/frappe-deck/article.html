@@ -1,0 +1,165 @@
+<title>TITLE_HERE</title>
+<style>
+:root{
+  --base:#303446;--mantle:#292c3c;--crust:#232634;
+  --s0:#414559;--s1:#51576d;--s2:#626880;
+  --ov0:#737994;--ov1:#838ba7;
+  --text:#c6d0f5;--sub1:#b5bfe2;--sub0:#a5adce;
+  --blue:#8caaee;--lavender:#babbf1;--mauve:#ca9ee6;--peach:#ef9f76;
+  --green:#a6d189;--red:#e78284;--yellow:#e5c890;--teal:#81c8be;--sky:#99d1db;--pink:#f4b8e4;
+  --mono:"Cascadia Code","Cascadia Mono",Consolas,ui-monospace,monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+/* deliberate single-theme commit: Catppuccin Frappe regardless of viewer toggle */
+:root[data-theme="light"],:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--base);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--mauve));width:0;z-index:50}
+.wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0 48px;max-width:1280px;margin:0 auto;padding:24px 32px 96px}
+#moc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:24px 0;font-size:14px}
+#moc summary{cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov1);margin-bottom:10px;list-style:none}
+#moc ol{list-style:none;display:flex;flex-direction:column;gap:2px}
+#moc li[data-d="3"]{padding-left:14px}
+#moc a{display:block;color:var(--sub0);text-decoration:none;padding:3px 10px;border-left:2px solid var(--s0);line-height:1.35}
+#moc a:hover{color:var(--text)}
+#moc li.on>a{color:var(--lavender);border-left-color:var(--mauve);background:color-mix(in srgb,var(--mauve) 8%,transparent)}
+#moc li.trail>a{color:var(--sub1);border-left-color:var(--s2)}
+article{min-width:0;position:relative}
+article>*{max-width:66ch}
+article>.wide,article>.tablewrap{max-width:calc(66ch + 280px)}
+article>.full{max-width:none}
+article>*+*{margin-top:1em}
+article h2{font-size:28px;line-height:1.2;text-wrap:balance;font-weight:650;margin-top:2.2em}
+article h3{font-size:20px;font-weight:650;margin-top:1.6em}
+h2,h3{scroll-margin-top:5rem}
+header.art h1{font-size:40px;line-height:1.12;text-wrap:balance;font-weight:650}
+header.art .standfirst{color:var(--sub0);font-size:19px;max-width:62ch;margin-top:12px}
+header.art .meta{font-family:var(--mono);font-size:12px;color:var(--ov0);letter-spacing:.08em;margin-top:14px}
+a{color:var(--blue)}
+article ul,article ol{padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+/* inline code CHIPS only. A bare `code{}` also hits the block code inside pre.code,
+   where white-space:nowrap collapses every newline and indent run into one space. */
+:not(pre) > code{font-family:var(--mono);font-size:.88em;background:var(--mantle);border:1px solid var(--s0);border-radius:4px;padding:1px 6px;color:var(--peach);white-space:nowrap}
+pre.code > code{white-space:pre;font:inherit;color:inherit;background:none;border:0;padding:0;display:block}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.card{background:var(--mantle);border:1px solid var(--s0);border-radius:10px;padding:18px 20px}
+.card h3{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.card.bad h3{color:var(--red)}.card.good h3{color:var(--green)}.card.warn h3{color:var(--peach)}.card.info h3{color:var(--sky)}
+.callout{border-left:3px solid var(--peach);background:var(--mantle);border-radius:0 8px 8px 0;padding:12px 16px;color:var(--sub1);max-width:80ch}
+.callout.red{border-color:var(--red)}.callout.green{border-color:var(--green)}.callout.blue{border-color:var(--blue)}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov1);text-align:left;padding:8px 14px;border-bottom:1px solid var(--s1)}
+td{padding:7px 14px;border-bottom:1px solid var(--s0);vertical-align:top}
+td.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hl td{background:color-mix(in srgb,var(--red) 12%,transparent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--s0);border-radius:10px;background:var(--mantle)}
+.chip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:2px 10px;border:1px solid}
+.chip.blocker{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,transparent)}
+.chip.major{color:var(--peach);border-color:var(--peach);background:color-mix(in srgb,var(--peach) 12%,transparent)}
+.chip.minor{color:var(--yellow);border-color:var(--yellow);background:color-mix(in srgb,var(--yellow) 12%,transparent)}
+.chip.soft{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.chip.hard{color:var(--mauve);border-color:var(--mauve);background:color-mix(in srgb,var(--mauve) 12%,transparent)}
+pre.code{background:var(--crust);border:1px solid var(--s0);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6}
+pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov0);margin-bottom:8px}
+.tok-kw{color:var(--mauve)}.tok-str{color:var(--green)}.tok-num{color:var(--peach)}.tok-com{color:var(--ov0);font-style:italic}.tok-typ{color:var(--yellow)}.tok-fn{color:var(--blue)}
+.diagram{position:relative;flex:1;min-height:340px;background:var(--mantle);border:1px solid var(--s0);border-radius:12px;overflow:hidden;touch-action:none}
+.diagram .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab}
+.diagram .stage.dragging{cursor:grabbing}
+.diagram .stage :is(svg){transform-origin:0 0;max-width:none!important;max-height:none!important}
+.dctl{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:5}
+.dctl button{width:32px;height:32px;border-radius:8px;border:1px solid var(--s1);background:var(--crust);color:var(--sub1);font-family:var(--mono);font-size:15px;cursor:pointer}
+.dctl button:hover{color:var(--text);border-color:var(--blue)}
+.dhint{position:absolute;left:14px;bottom:10px;font-family:var(--mono);font-size:11px;color:var(--ov0);z-index:5}
+.kicker{color:var(--ov1);font-size:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.diagram{min-height:340px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+@media (max-width:899px){.wrap{display:block}#moc{position:static;max-height:none;margin-bottom:24px}}
+@media (min-width:900px){#moc summary{pointer-events:none}}
+@media print{
+ html,body{overflow:visible;background:#fff;color:#000}
+ #progress,#moc,.dctl,.dhint,.steps{display:none}
+ article>*{max-width:none}
+ a{color:#000}
+ a[href^="http"]::after{content:" (" attr(href) ")";font-size:.8em}
+ pre.code{white-space:pre-wrap;break-inside:avoid;background:#f4f4f4;border-color:#ccc;color:#000}
+ h2,h3{break-after:avoid}
+}
+/* ==CSS:END== */
+</style>
+
+<div id="progress"></div>
+<div class="wrap">
+<nav id="moc"><details class="toc" open><summary>Contents</summary><ol id="toclist"></ol></details></nav>
+<article>
+
+<!-- ══ ARTICLE START — replace everything between START/END with your content ══ -->
+
+<header class="art">
+  <div class="eyebrow">EYEBROW · CONTEXT</div>
+  <h1>Article Title</h1>
+  <p class="standfirst">Standfirst: what this teaches and why it matters.</p>
+  <div class="meta"><span id="rtime"></span> · sources cited · <span class="mono">meta</span></div>
+</header>
+
+<h2>First section</h2>
+<p>Body text.</p>
+
+<!-- ══ ARTICLE END ══ -->
+
+</article>
+</div>
+<div id="peek" popover="manual"></div>
+
+<script>
+(function(){
+  const art=document.querySelector('article');
+
+  // reading time: technical prose reads ~220wpm; code and diagrams cost extra
+  const words=art.textContent.trim().split(/\s+/).length;
+  const mins=Math.max(1,Math.round(words/220
+    +document.querySelectorAll('pre.code').length*0.2
+    +document.querySelectorAll('.diagram').length*0.3));
+  const rt=document.getElementById('rtime');if(rt)rt.textContent=mins+' min read';
+
+  const prog=document.getElementById('progress');
+  addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100||0)+'%';
+  },{passive:true});
+
+  // print: CSS cannot open <details>; collapsed answers would print blank
+  addEventListener('beforeprint',()=>document.querySelectorAll('details').forEach(d=>{d.dataset.was=d.open;d.open=true}));
+  addEventListener('afterprint',()=>document.querySelectorAll('details').forEach(d=>d.open=d.dataset.was==='true'));
+
+// ==JS:END==
+})();
+</script>
+
+<script>
+// ── local-mode mermaid fallback ───────────────────────────────
+// Claude artifacts render <pre class="mermaid"> natively (and their CSP blocks
+// CDNs, so we must NOT load one there). Opened as a plain file:// deck there is
+// no such runtime. Wait, then load mermaid only if nothing rendered itself.
+setTimeout(function(){
+  var pending=[].slice.call(document.querySelectorAll('pre.mermaid'))
+                .filter(function(p){return !p.querySelector('svg')});
+  if(!pending.length)return;                    // artifact runtime already did it
+  var s=document.createElement('script');       // classic UMD build: no CORS/module
+  s.src='https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload=function(){
+    mermaid.initialize({startOnLoad:false,theme:'dark',securityLevel:'loose'});
+    mermaid.run({nodes:pending});               // pan/zoom poller picks the SVGs up
+  };
+  s.onerror=function(){
+    pending.forEach(function(p){
+      p.insertAdjacentHTML('beforebegin',
+        '<p class="sub" style="color:var(--red)">Diagram needs network on first load '+
+        '(mermaid CDN unreachable). Pre-render to inline SVG for offline use.</p>');
+    });
+  };
+  document.head.appendChild(s);
+},1200);
+</script>
