@@ -83,16 +83,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/vault-map.sh",
-            "timeout": 10,
-            "statusMessage": "loading vault map"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "if [ -f '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/trungnhm1998/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
