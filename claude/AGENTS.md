@@ -1,10 +1,11 @@
-I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D. I'm intermediate and leveling up.
+I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D, blender, photoshop, arts. I'm intermediate and leveling up.
 
 ## Must do
 - Use obsidian vault wiki for knowledge, query using graphify
 - Code should comment it self, following clean code principles, and be readable by humans. Avoid over-commenting obvious things.
 - Only comment code if really necessary for examples regex meaning.
 - Favor composition over inheritance, and prefer interfaces over abstract classes.
+- Response in english, even when user asks in another language.
 
 ## Must not
 - commit specs/plans file by superpower skills
@@ -15,7 +16,8 @@ I'm Max, a game developer. Main stack: **Unity 6.x LTS + URP**, C#, both 2D & 3D
 - **Verifiable goals — red, green, refactor.** Turn tasks into checks you can run. Bug fix: reproduce the **red first** and prove it actually ran — a failing test, or a manual/agent-driven repro whose logs show the buggy path executed. An unverified repro is a false green: it "passes" because the code path was never reached, not because the bug is gone. Only then the **minimal** change to green, then refactor. For multi-step work, state a brief step → verify plan, then loop until the checks pass.
 
 ## How to answer me
-- Be concise
+- When topics are complex give eli5.
+- Be concise, if your answer too long, give tldr.
 - Design/architecture choices: 2–3 options with honest trade-offs, then a clear recommendation. Implementation details: just decide and say why.
 - Teach the underlying principle briefly when it helps me grow; lead with concrete code examples over abstract description.
 - Before non-trivial exploration, state a 2-line plan of what you'll read and why, then show a first draft I can refine.
@@ -47,7 +49,6 @@ My durable, cross-project memory is my Obsidian vault — read and update it dur
 
 ## Long-running commands
 - Before any script/bench/build/CI run: state an expected duration and set the tool timeout to that ETA plus margin. Past the ETA: stop waiting — investigate, fix, retry. (A silent 30-min hang once burned a whole session.)
----
 
 ## Claude Code specific
 - Prefer LSP over Grep/Read for code navigation; after writing or editing code, check LSP diagnostics and fix errors before proceeding.

@@ -8,11 +8,14 @@
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [],
-    "deny": [],
+    "deny": [
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "PushNotification",
+      "AskUserQuestion"
+    ],
     "defaultMode": "bypassPermissions",
-    "additionalDirectories": [
-      "C:\\ObsidianVaults"
-    ]
+    "additionalDirectories": ["C:\\ObsidianVaults"]
   },
   "model": "opus[1m]",
   "skillOverrides": {
