@@ -153,7 +153,7 @@ Two hooks ground every session in Max's Obsidian vault (per-machine path resolve
 
 | Purpose | Path |
 |---------|------|
-| SessionStart **slim map** — derives a titles-only catalog from `05.Wiki/index.md` (Maps hubs keep summaries; ~3K tokens) and injects it. Content streams through `jq -Rs`, never argv (a 101KB index once blew the ~32KB MSYS limit silently). | `ai/claude/hooks/vault-map.sh` |
+| SessionStart **slim map** — derives a titles-only catalog from `05.Wiki/index.md` (Maps hubs keep summaries; ~3K tokens) and injects it. Content streams through `jq -Rs`, never argv (a 101KB index once blew the ~32KB MSYS limit silently). **Temporarily disabled** (commit 12c49a8 — its `~/.claude` symlink dangled after the `claude/` → `ai/` move and errored every session start); run `/vault-map` to inject the map on demand until it's re-wired. | `ai/claude/hooks/vault-map.sh` |
 | UserPromptSubmit **recall** — on recall-shaped prompts ("what did I…", "I/we tried/built/set up…"), ripgrep-searches the vault and injects ranked note titles as leads (title matches outrank body matches; sensitive-looking files excluded). | `ai/claude/hooks/vault-recall.sh` |
 
 Tests: `ai/claude/hooks/tests/test-vault-{map,recall}.sh`; run all with `bash ai/claude/hooks/tests/run-tests.sh`.

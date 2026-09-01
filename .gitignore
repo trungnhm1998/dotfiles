@@ -16,7 +16,7 @@ desktop.ini
 .opencode/
 .superpowers/
 # Per-machine state populated by the unity-mcp-skill-sync tool (not authored config)
-claude/skills/unity-mcp-skill/
+ai/skills/unity-mcp-skill/
 
 # Build and Dependencies
 node_modules/

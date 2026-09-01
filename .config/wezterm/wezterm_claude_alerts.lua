@@ -3,7 +3,7 @@
 -- No `require('wezterm')`: all I/O is injected by the caller.
 local M = {}
 
--- Shared directory contract with claude/hooks/lib/notify-lib.sh.
+-- Shared directory contract with ai/claude/hooks/lib/notify-lib.sh.
 function M.dir(home, xdg_cache)
   return (xdg_cache or (home .. '/.cache')) .. '/claude-notify/wezterm-alerts'
 end

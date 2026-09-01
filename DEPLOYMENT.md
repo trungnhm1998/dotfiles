@@ -161,17 +161,17 @@ chmod +x deploy.sh
 
 ## AI Tool Configs (Claude Code, Codex, opencode, Cursor)
 
-All the CLI agents share **one canonical file**: `claude/AGENTS.md`. Edit it once and every
+All the CLI agents share **one canonical file**: `ai/AGENTS.md`. Edit it once and every
 agent picks it up on next launch. The deploy scripts (`deploy_windows.ps1` on Windows,
 `scripts/sync-ai-configs.sh` on macOS/Linux) symlink it into each tool's global location:
 
 | Symlink | → Target |
 |---------|----------|
-| `~/.claude/CLAUDE.md` | `claude/AGENTS.md` (Claude Code) |
-| `~/.codex/AGENTS.md` | `claude/AGENTS.md` (Codex) |
-| `~/.config/opencode/AGENTS.md` | `claude/AGENTS.md` (opencode) |
-| `~/.pi/agent/AGENTS.md` | `claude/AGENTS.md` (pi — its documented global path) |
-| `~/.copilot/copilot-instructions.md` | `claude/AGENTS.md` (Copilot CLI — native filename, not `AGENTS.md`) |
+| `~/.claude/CLAUDE.md` | `ai/AGENTS.md` (Claude Code) |
+| `~/.codex/AGENTS.md` | `ai/AGENTS.md` (Codex) |
+| `~/.config/opencode/AGENTS.md` | `ai/AGENTS.md` (opencode) |
+| `~/.pi/agent/AGENTS.md` | `ai/AGENTS.md` (pi — its documented global path) |
+| `~/.copilot/copilot-instructions.md` | `ai/AGENTS.md` (Copilot CLI — native filename, not `AGENTS.md`) |
 
 There is deliberately **no** `~/.claude/AGENTS.md`: [Claude Code reads `CLAUDE.md`, not
 `AGENTS.md`](https://code.claude.com/docs/en/memory#agents-md), so that link was dead weight.
@@ -187,7 +187,7 @@ bash scripts/sync-ai-configs.sh --check   # reports MISSING/DRIFT, exits 1 on fa
 Cursor has **no global rules file** to symlink — its global "User Rules" live in Cursor's
 synced settings, not on disk. To give Cursor the same instructions:
 
-1. Copy `claude/AGENTS.md` to your clipboard:
+1. Copy `ai/AGENTS.md` to your clipboard:
    - macOS/Linux/Git-Bash: `bash scripts/copy-agents-rules.sh`
    - PowerShell: `ccrules` (alias for `Copy-AgentsRules`)
 2. In Cursor: **Settings → Rules → User Rules** → paste → save.
@@ -199,11 +199,11 @@ Re-run after editing `AGENTS.md` to resync Cursor. (Per-project alternative: dro
 
 Claude Code's durable memory is the Obsidian vault, which sits at a **different absolute path
 on each machine** (`~/obsidian-vault/main` on macOS, `C:\ObsidianVaults` on Windows). The
-shared `claude/` config carries no hardcoded path — each machine points at its own vault two
+shared `ai/claude/` config carries no hardcoded path — each machine points at its own vault two
 ways:
 
 1. **Hooks** (`vault-map`, `vault-recall`) resolve it through
-   `claude/hooks/lib/obsidian-vault.sh`, which honors `$OBSIDIAN_VAULT` and otherwise probes a
+   `ai/claude/hooks/lib/obsidian-vault.sh`, which honors `$OBSIDIAN_VAULT` and otherwise probes a
    known-locations list. Export `OBSIDIAN_VAULT` in your shell rc, or add your path to that
    list — zero config if your vault already sits at a known location.
 2. **Claude's own Read/Write tools** reach the vault (it lives outside the repo) via

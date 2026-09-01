@@ -346,12 +346,17 @@ function Backup-ExistingConfig {
     Write-Status "Backed up: $Path -> $backupPath" -Type Warning
 }
 
-# A dangling symlink (its target moved or deleted) fails Test-Path, so the
-# exists-checks below fall through to New-Item on top of a leftover reparse
-# point. Detect and remove such links so relinking is self-healing.
+# On modern PowerShell (7.4+), Test-Path returns True for a dangling symlink
+# (its target moved or deleted), so the exists-checks below would treat a
+# dangling link as "already present" and never relink it. This helper checks
+# the link's TARGET instead of the link path itself, and removes the link
+# when the target is gone, so relinking is self-healing.
+# Note: in a dry run the dangling link is not actually removed, so the
+# subsequent exists-check will still print "already present" for the same
+# path - expected.
 function Remove-DanglingLink([string]$Path) {
     $item = Get-Item $Path -Force -ErrorAction SilentlyContinue
-    if ($item -and $item.LinkType -and -not (Test-Path $Path)) {
+    if ($item -and $item.LinkType -and $item.Target -and -not (Test-Path $item.Target)) {
         if ($DryRun) { Write-Host "  [DRY RUN] Would remove dangling link: $Path" -ForegroundColor DarkGray }
         else { $item.Delete(); Write-Status "Removed dangling link: $Path" -Type Info }
     }
