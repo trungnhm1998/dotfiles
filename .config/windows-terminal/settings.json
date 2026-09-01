@@ -111,26 +111,23 @@
         "list":
         [
             {
-                "closeOnExit": "graceful",
-                "commandline": "cmd.exe /k \"%cmder_root%/vendor/init.bat\"",
+                "commandline": "pwsh.exe -NoLogo",
                 "font":
                 {
-                    "colorGlyphs": true
+                    "size": 10
                 },
-                "guid": "{00000000-0000-0000-ba54-000000000132}",
+                "guid": "{9d2c6897-dcbc-4d63-8a80-cf4bffaadb6c}",
                 "hidden": false,
-                "icon": "%cmder_root%/icons/cmder.ico",
-                "name": "Cmder",
-                "startingDirectory": "%USERPROFILE%",
-                "useAcrylic": false
+                "icon": "ms-appx:///ProfileIcons/pwsh.png",
+                "name": "PowerShell 7",
+                "startingDirectory": "%USERPROFILE%"
             },
             {
-                "commandline": "%SystemRoot%/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -NoExit -Command \"Invoke-Expression '. ''%cmder_root%/vendor/profile.ps1'''\"",
-                "guid": "{00000000-0000-0000-ba54-000000000127}",
+                "commandline": "wsl.exe -d Ubuntu-24.04 --cd ~",
+                "guid": "{85320631-5779-4b99-9c49-6d9feaa57dbe}",
                 "hidden": false,
-                "icon": "%cmder_root%/icons/cmder.ico",
-                "name": "Cmder :: Powershell",
-                "startingDirectory": "%USERPROFILE%"
+                "icon": "ms-appx:///ProfileIcons/{9acb9455-ca41-5af7-950f-6bca1bc9722f}.png",
+                "name": "Ubuntu (WSL)"
             },
             {
                 "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -143,18 +140,6 @@
                 "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
                 "hidden": false,
                 "name": "Command Prompt"
-            },
-            {
-                "commandline": "pwsh.exe -NoLogo",
-                "font":
-                {
-                    "size": 10
-                },
-                "guid": "{9d2c6897-dcbc-4d63-8a80-cf4bffaadb6c}",
-                "hidden": false,
-                "icon": "ms-appx:///ProfileIcons/pwsh.png",
-                "name": "PowerShell 7",
-                "startingDirectory": "%USERPROFILE%"
             },
             {
                 "font":
@@ -209,13 +194,6 @@
                 "source": "Windows.Terminal.SSH"
             },
             {
-                "commandline": "wsl.exe -d Ubuntu-24.04 --cd ~",
-                "guid": "{85320631-5779-4b99-9c49-6d9feaa57dbe}",
-                "hidden": false,
-                "icon": "ms-appx:///ProfileIcons/{9acb9455-ca41-5af7-950f-6bca1bc9722f}.png",
-                "name": "Ubuntu (WSL)"
-            },
-            {
                 "guid": "{3c4615e6-7d0a-5f83-85fc-ee65209483d5}",
                 "hidden": true,
                 "name": "Ubuntu-24.04",
@@ -223,7 +201,7 @@
             },
             {
                 "guid": "{c3953419-a63c-5857-a3ec-6a45a56430e7}",
-                "hidden": false,
+                "hidden": true,
                 "name": "Ubuntu",
                 "source": "Microsoft.WSL"
             },
@@ -262,6 +240,28 @@
                 "hidden": false,
                 "name": "wsl-vpnkit",
                 "source": "Microsoft.WSL"
+            },
+            {
+                "closeOnExit": "graceful",
+                "commandline": "cmd.exe /k \"%cmder_root%/vendor/init.bat\"",
+                "font":
+                {
+                    "colorGlyphs": true
+                },
+                "guid": "{00000000-0000-0000-ba54-000000000132}",
+                "hidden": false,
+                "icon": "%cmder_root%/icons/cmder.ico",
+                "name": "Cmder",
+                "startingDirectory": "%USERPROFILE%",
+                "useAcrylic": false
+            },
+            {
+                "commandline": "%SystemRoot%/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -NoExit -Command \"Invoke-Expression '. ''%cmder_root%/vendor/profile.ps1'''\"",
+                "guid": "{00000000-0000-0000-ba54-000000000127}",
+                "hidden": false,
+                "icon": "%cmder_root%/icons/cmder.ico",
+                "name": "Cmder :: Powershell",
+                "startingDirectory": "%USERPROFILE%"
             }
         ]
     },
