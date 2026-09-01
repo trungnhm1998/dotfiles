@@ -136,6 +136,57 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
   addEventListener('beforeprint',()=>document.querySelectorAll('details').forEach(d=>{d.dataset.was=d.open;d.open=true}));
   addEventListener('afterprint',()=>document.querySelectorAll('details').forEach(d=>d.open=d.dataset.was==='true'));
 
+  // ── MoC + scroll-spy ── position-based, not IntersectionObserver: IO scrollspy
+  // is asymmetric on up-scroll and misfires on short final sections.
+  const hs=[...art.querySelectorAll('h2,h3')];
+  const seen={};
+  hs.forEach(h=>{
+    if(h.id)return;
+    let s=h.textContent.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'s';
+    const n=(seen[s]||0)+1;seen[s]=n;if(n>1)s+='-'+n;
+    h.id=s;
+  });
+  const ol=document.getElementById('toclist');
+  hs.forEach(h=>{
+    const li=document.createElement('li');li.dataset.d=h.tagName[1];
+    const a=document.createElement('a');a.href='#'+h.id;a.textContent=h.textContent;
+    li.appendChild(a);ol.appendChild(li);
+  });
+  const items=[...ol.children];
+  let hold=false;
+  function setActive(i){
+    items.forEach((li,j)=>{
+      li.classList.toggle('on',j===i);li.classList.remove('trail');
+      if(j===i)li.firstChild.setAttribute('aria-current','location');
+      else li.firstChild.removeAttribute('aria-current');
+    });
+    if(i>=0&&items[i].dataset.d==='3')
+      for(let j=i-1;j>=0;j--)if(items[j].dataset.d==='2'){items[j].classList.add('trail');break}
+  }
+  function spy(){
+    if(hold)return;
+    const de=document.documentElement;
+    const atEnd=de.scrollTop+de.clientHeight>=de.scrollHeight-2;
+    let i=hs.length-1;
+    if(!atEnd){i=-1;for(let j=0;j<hs.length;j++){if(hs[j].getBoundingClientRect().top<=96)i=j;else break}}
+    setActive(i);
+  }
+  let q=false;
+  addEventListener('scroll',()=>{if(!q){q=true;requestAnimationFrame(()=>{q=false;spy()})}},{passive:true});
+  spy();
+  // clicking a link: activate immediately and hold the spy until the smooth scroll
+  // lands, or it flickers through every intermediate entry
+  ol.addEventListener('click',e=>{
+    const a=e.target.closest('a');if(!a)return;
+    setActive(items.findIndex(li=>li.contains(a)));
+    hold=true;clearTimeout(spy._t);
+    const done=()=>{hold=false;spy._done=null;spy()};
+    if('onscrollend' in window){
+      const h=()=>{removeEventListener('scrollend',h);done()};
+      addEventListener('scrollend',h);
+    } else spy._t=setTimeout(done,600);
+  });
+
 // ==JS:END==
 })();
 </script>
