@@ -134,6 +134,10 @@ details.check{border-left:3px solid var(--green)}
 .callout.bug{border-color:var(--red)}.callout.bug .ctitle{color:var(--red)}
 .c1{color:var(--blue)}.c2{color:var(--green)}.c3{color:var(--peach)}.c4{color:var(--mauve)}
 .c1,.c2,.c3,.c4{font-weight:600}
+.lab{background:var(--mantle);border:1px solid var(--s0);border-radius:10px;padding:16px 18px;max-width:66ch}
+.lab label{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--sub1);margin-right:18px}
+.lab input[type="range"]{accent-color:var(--mauve)}
+.lab .scrub{cursor:ew-resize;border-bottom:1px dashed var(--peach);color:var(--peach);font-variant-numeric:tabular-nums}
 /* ==CSS:END== */
 </style>
 
@@ -365,6 +369,102 @@ details.check{border-left:3px solid var(--green)}
   peek.addEventListener('pointerenter',()=>{overPeek=true;clearTimeout(hideT)});
   peek.addEventListener('pointerleave',()=>{overPeek=false;hidePeek()});
   addEventListener('keydown',e=>{if(e.key==='Escape'){clearTimeout(showT);if(peek.matches(':popover-open'))peek.hidePopover()}});
+
+  // ── Tangle-lite labs: sliders/scrubs drive SVG attrs + prose values ──
+  // unsafe-eval is allowed by the artifact CSP and file:// has none; no network either way
+  document.querySelectorAll('.lab').forEach(lab=>{
+    const ins=[...lab.querySelectorAll('input[name]')];
+    const names=ins.map(i=>i.name);
+    const compile=x=>{try{return new Function(...names,'return('+x+')')}catch(e){return null}};
+    const binds=[...lab.querySelectorAll('[data-out],[data-attr],[data-class],[data-style]')].map(el=>{
+      const b={el};
+      if(el.dataset.out)b.out=compile(el.dataset.out);
+      if(el.dataset.class)b.cls=compile(el.dataset.class);
+      if(el.dataset.style)b.sty=compile(el.dataset.style);
+      if(el.dataset.attr){
+        const i=el.dataset.attr.indexOf(':');
+        b.attrName=el.dataset.attr.slice(0,i).trim();
+        b.attr=compile(el.dataset.attr.slice(i+1));
+      }
+      return b;
+    });
+    const run=()=>{
+      const v=ins.map(i=>+i.value);
+      binds.forEach(b=>{try{
+        if(b.out)b.el.textContent=b.out(...v);
+        if(b.attr)b.el.setAttribute(b.attrName,b.attr(...v));
+        if(b.cls)b.el.className=b.cls(...v);
+        if(b.sty)b.el.style.cssText=b.sty(...v);
+      }catch(e){}});
+    };
+    ins.forEach(i=>i.addEventListener('input',run));
+    lab.querySelectorAll('[data-scrub]').forEach(el=>{
+      const inp=lab.querySelector('input[name="'+el.dataset.scrub+'"]');if(!inp)return;
+      el.classList.add('scrub');
+      const sync=()=>el.textContent=inp.value;
+      inp.addEventListener('input',sync);sync();
+      el.addEventListener('pointerdown',e=>{
+        e.preventDefault();el.setPointerCapture(e.pointerId);
+        const step=+inp.step||1;
+        const move=ev=>{
+          inp.value=Math.min(+inp.max,Math.max(+inp.min,+inp.value+ev.movementX*step));
+          sync();run();
+        };
+        const up=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up)};
+        el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);
+      });
+    });
+    run();
+  });
+
+  // ── diagram pan/zoom ──────────────────────────────────────────
+  /* attach(): VERBATIM COPY of template.html lines 204-242 (the whole function).
+     The needsFit deferral never triggers here (nothing is display:none) — harmless. */
+  function attach(box){
+    const stage=box.querySelector('.stage');
+    const svg=stage.querySelector('svg');
+    if(!svg||svg.dataset.pz)return false;
+    svg.dataset.pz='1';
+    const vb=svg.viewBox&&svg.viewBox.baseVal;
+    const bw=(vb&&vb.width)||svg.getBoundingClientRect().width||800;
+    const bh=(vb&&vb.height)||svg.getBoundingClientRect().height||600;
+    svg.style.position='absolute';svg.style.left='0';svg.style.top='0';
+    svg.setAttribute('width',bw);svg.setAttribute('height',bh);
+    let x=0,y=0,k=1;
+    const apply=()=>svg.style.transform=`translate(${x}px,${y}px) scale(${k})`;
+    const fit=()=>{                       // scale down to fit, never up; center
+      const vw=stage.clientWidth,vh=stage.clientHeight;
+      if(!vw||!vh){box.dataset.needsFit='1';return;}
+      delete box.dataset.needsFit;
+      k=Math.max(.2,Math.min(1,(vw-32)/bw,(vh-32)/bh));
+      x=(vw-bw*k)/2;y=(vh-bh*k)/2;apply();
+    };
+    box._fit=fit;
+    fit();
+    stage.addEventListener('wheel',e=>{
+      e.preventDefault();
+      const r=stage.getBoundingClientRect();
+      const mx=e.clientX-r.left,my=e.clientY-r.top;
+      const nk=Math.max(.2,Math.min(6,k*(e.deltaY<0?1.15:1/1.15)));
+      x=mx-(mx-x)*nk/k; y=my-(my-y)*nk/k; k=nk; apply();
+    },{passive:false});
+    let drag=null;
+    stage.addEventListener('pointerdown',e=>{drag={x:e.clientX-x,y:e.clientY-y};stage.classList.add('dragging');stage.setPointerCapture(e.pointerId);});
+    stage.addEventListener('pointermove',e=>{if(!drag)return;x=e.clientX-drag.x;y=e.clientY-drag.y;apply();});
+    stage.addEventListener('pointerup',()=>{drag=null;stage.classList.remove('dragging');});
+    box.querySelectorAll('.dctl button').forEach(b=>b.onclick=()=>{
+      const z=b.dataset.z;
+      if(z==='reset')fit();
+      else{k=Math.max(.2,Math.min(6,k*(z==='in'?1.25:.8)));apply();}
+    });
+    return true;
+  }
+  const boxes=[...document.querySelectorAll('.diagram')];
+  const pz=setInterval(()=>{
+    boxes.forEach(attach);
+    if(boxes.every(b=>b.querySelector('svg[data-pz]')))clearInterval(pz);
+  },400);
+  setTimeout(()=>clearInterval(pz),30000);
 
 // ==JS:END==
 })();
