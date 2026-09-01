@@ -179,22 +179,22 @@ $symlinks = @(
         Description = "Windows Terminal (Preview) settings"
     }
 
-    # --- Global agent instructions: one canonical file (claude\AGENTS.md) ---
+    # --- Global agent instructions: one canonical file (ai\AGENTS.md) ---
     # Single source of truth shared by Claude Code, Codex, opencode, pi, and Copilot.
     # Claude Code reads it under the CLAUDE.md name; Codex/opencode/pi read it as
     # AGENTS.md; Copilot reads it as copilot-instructions.md (see below).
     # Deliberately NO ~\.claude\AGENTS.md: Claude Code reads CLAUDE.md and never AGENTS.md,
     # so that link was dead weight. https://code.claude.com/docs/en/memory#agents-md
     @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Source      = "$dotfilesRoot\ai\AGENTS.md"
         Target      = "$HOME\.claude\CLAUDE.md"
         IsDirectory = $false
-        Description = "Claude Code global instructions (canonical claude\AGENTS.md)"
+        Description = "Claude Code global instructions (canonical ai\AGENTS.md)"
     }
 
     # --- Claude Code (other authored config) ---
     @{
-        Source      = "$dotfilesRoot\claude\settings.json"
+        Source      = "$dotfilesRoot\ai\claude\settings.json"
         Target      = "$HOME\.claude\settings.json"
         IsDirectory = $false
         Description = "Claude Code settings"
@@ -208,10 +208,10 @@ $symlinks = @(
 
     # --- Codex (global instructions at ~\.codex\AGENTS.md) ---
     @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Source      = "$dotfilesRoot\ai\AGENTS.md"
         Target      = "$HOME\.codex\AGENTS.md"
         IsDirectory = $false
-        Description = "Codex global instructions (canonical claude\AGENTS.md)"
+        Description = "Codex global instructions (canonical ai\AGENTS.md)"
     }
 
     # --- opencode (XDG path on Windows: ~\.config\opencode) ---
@@ -222,21 +222,21 @@ $symlinks = @(
         Description = "opencode configuration"
     }
     @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Source      = "$dotfilesRoot\ai\AGENTS.md"
         Target      = "$HOME\.config\opencode\AGENTS.md"
         IsDirectory = $false
-        Description = "opencode global instructions (canonical claude\AGENTS.md)"
+        Description = "opencode global instructions (canonical ai\AGENTS.md)"
     }
 
     # --- pi (global instructions at ~\.pi\agent\AGENTS.md) ---
     @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Source      = "$dotfilesRoot\ai\AGENTS.md"
         Target      = "$HOME\.pi\agent\AGENTS.md"
         IsDirectory = $false
-        Description = "pi global instructions (canonical claude\AGENTS.md)"
+        Description = "pi global instructions (canonical ai\AGENTS.md)"
     }
     @{
-        Source      = "$dotfilesRoot\claude\pi\extensions\windows-powershell-bash.ts"
+        Source      = "$dotfilesRoot\ai\pi\extensions\windows-powershell-bash.ts"
         Target      = "$HOME\.pi\agent\extensions\windows-powershell-bash.ts"
         IsDirectory = $false
         Description = "pi Windows extension: PowerShell-first shell with bash fallback"
@@ -244,10 +244,10 @@ $symlinks = @(
 
     # --- GitHub Copilot CLI (native personal-instructions file; NOT named AGENTS.md) ---
     @{
-        Source      = "$dotfilesRoot\claude\AGENTS.md"
+        Source      = "$dotfilesRoot\ai\AGENTS.md"
         Target      = "$HOME\.copilot\copilot-instructions.md"
         IsDirectory = $false
-        Description = "Copilot CLI global instructions (canonical claude\AGENTS.md)"
+        Description = "Copilot CLI global instructions (canonical ai\AGENTS.md)"
     }
 )
 
@@ -346,6 +346,17 @@ function Backup-ExistingConfig {
     Write-Status "Backed up: $Path -> $backupPath" -Type Warning
 }
 
+# A dangling symlink (its target moved or deleted) fails Test-Path, so the
+# exists-checks below fall through to New-Item on top of a leftover reparse
+# point. Detect and remove such links so relinking is self-healing.
+function Remove-DanglingLink([string]$Path) {
+    $item = Get-Item $Path -Force -ErrorAction SilentlyContinue
+    if ($item -and $item.LinkType -and -not (Test-Path $Path)) {
+        if ($DryRun) { Write-Host "  [DRY RUN] Would remove dangling link: $Path" -ForegroundColor DarkGray }
+        else { $item.Delete(); Write-Status "Removed dangling link: $Path" -Type Info }
+    }
+}
+
 function New-SafeSymlink {
     param(
         [string]$Source,
@@ -358,6 +369,8 @@ function New-SafeSymlink {
         Write-Status "Source does not exist: $Source" -Type Error
         return $false
     }
+
+    Remove-DanglingLink $Target
 
     # Check if target already exists and is correct symlink
     if (Test-Path $Target) {
@@ -659,7 +672,7 @@ if (-not $SkipSymlinks) {
     # Claude skills: per-item symlinks so we never clobber plugin-managed junctions.
     # Link each repo skill into ~/.claude/skills/<name> ONLY if that name is free.
     Write-Host "`nLinking: Claude Code skills (per-item, preserving plugin junctions)" -ForegroundColor Cyan
-    $skillsSrcDir = "$dotfilesRoot\claude\skills"
+    $skillsSrcDir = "$dotfilesRoot\ai\skills"
     $skillsDstDir = "$HOME\.claude\skills"
     if (Test-Path $skillsSrcDir) {
         if (-not (Test-Path $skillsDstDir)) {
@@ -668,6 +681,7 @@ if (-not $SkipSymlinks) {
         }
         foreach ($skill in Get-ChildItem -Path $skillsSrcDir -Directory) {
             $dst = Join-Path $skillsDstDir $skill.Name
+            Remove-DanglingLink $dst
             if (Test-Path $dst) {
                 Write-Status "Skill '$($skill.Name)' already present (left as-is)" -Type Success
                 continue
@@ -700,6 +714,7 @@ if (-not $SkipSymlinks) {
         }
         foreach ($child in Get-ChildItem -Path $srcDir -Force) {
             $dst = Join-Path $dstDir $child.Name
+            Remove-DanglingLink $dst
             if (Test-Path $dst) {
                 Write-Status "'$($child.Name)' already present (left as-is)" -Type Success
                 continue
@@ -713,11 +728,11 @@ if (-not $SkipSymlinks) {
         }
     }
 
-    New-PerItemLinks "$dotfilesRoot\claude\agents"   "$HOME\.claude\agents"   "Claude Code agents"
-    New-PerItemLinks "$dotfilesRoot\claude\commands" "$HOME\.claude\commands" "Claude Code commands"
-    New-PerItemLinks "$dotfilesRoot\claude\hooks"    "$HOME\.claude\hooks"    "Claude Code hooks"
-    New-PerItemLinks "$dotfilesRoot\claude\rules"    "$HOME\.claude\rules"    "Claude Code path-scoped rules"
-    New-PerItemLinks "$dotfilesRoot\claude\themes"   "$HOME\.claude\themes"   "Claude Code custom themes (catppuccin-frappe)"
+    New-PerItemLinks "$dotfilesRoot\ai\claude\agents"   "$HOME\.claude\agents"   "Claude Code agents"
+    New-PerItemLinks "$dotfilesRoot\ai\claude\commands" "$HOME\.claude\commands" "Claude Code commands"
+    New-PerItemLinks "$dotfilesRoot\ai\claude\hooks"    "$HOME\.claude\hooks"    "Claude Code hooks"
+    New-PerItemLinks "$dotfilesRoot\ai\claude\rules"    "$HOME\.claude\rules"    "Claude Code path-scoped rules"
+    New-PerItemLinks "$dotfilesRoot\ai\claude\themes"   "$HOME\.claude\themes"   "Claude Code custom themes (catppuccin-frappe)"
 }
 
 # =============================================================================
