@@ -104,6 +104,30 @@ try {
 
 let n = 0;
 html = html.replace(BLOCK, () => rendered[n++]);
+
+// Inline SVGs share one DOM id namespace: a duplicate <marker>/<gradient> id makes
+// later diagrams silently borrow the first diagram's defs. -I should prevent this;
+// guard anyway.
+{
+  const svgIds = (html.match(/<svg[\s\S]*?<\/svg>/g) || [])
+    .join("")
+    .match(/(?<![\w-])id="([^"]+)"/g) || [];
+  const seenIds = new Set();
+  const dups = new Set();
+  for (const raw of svgIds) {
+    const id = raw.slice(4, -1);
+    if (seenIds.has(id)) dups.add(id);
+    else seenIds.add(id);
+  }
+  if (dups.size) {
+    console.error(
+      `\n✗ duplicate SVG id(s) across diagrams: ${[...dups].join(", ")}\n` +
+        "  Later diagrams would render with the first diagram's defs. File left untouched."
+    );
+    process.exit(2);
+  }
+}
+
 writeFileSync(out, html, "utf8");
 
 // The Frappe palette only lands when the source header says 'theme':'base' —
