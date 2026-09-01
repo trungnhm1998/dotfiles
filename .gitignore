@@ -25,6 +25,7 @@ node_modules/
 # Backup Files
 *.backup
 *.backup_*
+*.bak
 *.old
 
 # Platform-specific Trash

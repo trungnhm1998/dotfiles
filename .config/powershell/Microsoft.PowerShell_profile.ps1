@@ -437,6 +437,7 @@ function fix-tui
 {
     & "$HOME\dotfiles\scripts\fix-claude-tui.ps1" @args
 }
+
 # Snapshot WezTerm's redraw-freeze state to a log -- run THIS the instant the screen stops
 # repainting (it won't redraw until you mouse over it). Records Responding/renderer/injected-hook
 # DLLs to ~/.cache/wezterm-freeze-probe.log. The real stall cause was an injected RTSS present-hook;

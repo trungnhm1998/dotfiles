@@ -102,7 +102,7 @@
     "continueThemeAcrossLines": true
   },
   "installation": {
-    "method": "auto-update",
-    "packageManager": "bun"
+    "method": "pinned",
+    "installedVersion": "2.2.27"
   }
 }

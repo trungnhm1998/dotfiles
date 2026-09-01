@@ -6,6 +6,9 @@
 //
 // Zed configuration docs: https://zed.dev/docs/configuring-zed
 {
+  "edit_predictions": {
+    "provider": "copilot"
+  },
   "cli_default_open_behavior": "new_window",
   "agent_servers": {
     "opencode": {
@@ -31,9 +34,6 @@
   },
   "project_panel": {
     "dock": "right",
-  },
-  "features": {
-    "edit_prediction_provider": "copilot",
   },
   "icon_theme": "Catppuccin Frappé",
   "terminal": {
