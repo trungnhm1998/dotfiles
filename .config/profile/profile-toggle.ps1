@@ -227,9 +227,9 @@ function Invoke-ProfileSwitch {
         Set-ProfileMarker -Value $Direction
         Write-ProfileLog "-> $Direction done"
         if ($RebootAfter) {
-            # The elevated task (cold pwsh start + stopping 2 VPN services + bcdedit) can
+            # The elevated task (cold pwsh start + stopping the managed services) can
             # lose the race against a fixed-delay reboot; wait for it to consume the
-            # request file before shutting down, so hypervisor/VPN state isn't stale.
+            # request file before shutting down, so service/display state isn't stale.
             $waitedSec = 0
             while ((Test-Path $RequestPath) -and ($waitedSec -lt 30)) {
                 Start-Sleep -Seconds 1
