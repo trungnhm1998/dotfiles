@@ -37,6 +37,7 @@ $Apps = @(
         Kill  = { & pwsh -NoProfile -File (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') -Off }
         Start = { if (-not (Get-Process kanata* -ErrorAction SilentlyContinue)) {
                       & pwsh -NoProfile -File (Join-Path $HOME '.config\kanata\kanata-toggle.ps1') } }
+        Probe = { [bool](Get-Process kanata* -ErrorAction SilentlyContinue) }
     } }
     @{ Name='komorebi';  Profile='work'; KillOrder=11; StartOrder=21; Custom=@{
         # wm-toggle is a blind toggle -> gate each direction on komorebi's run state
@@ -44,6 +45,7 @@ $Apps = @(
                       & pwsh -NoProfile -File (Join-Path $HOME '.config\komorebi\wm-toggle.ps1') } }
         Start = { if (-not (Get-Process komorebi -ErrorAction SilentlyContinue)) {
                       & pwsh -NoProfile -File (Join-Path $HOME '.config\komorebi\wm-toggle.ps1') } }
+        Probe = { [bool](Get-Process komorebi -ErrorAction SilentlyContinue) }
     } }
     @{ Name='PowerToys'; Profile='work'; Procs=@('PowerToys*')
        Start=(Join-Path $env:ProgramFiles 'PowerToys\PowerToys.exe') }
@@ -55,6 +57,7 @@ $Apps = @(
         Kill  = { foreach ($p in 'PhoneExperienceHost','CrossDeviceService','CrossDeviceResume') {
                       Get-Process $p -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue } }
         Start = { }   # kill-only: Windows relaunches Phone Link on demand
+        Probe = { $false }
     } }
     @{ Name='KDEConnect'; Profile='work'; Procs=@('kdeconnectd','kdeconnect-indicator')
        Start=(Join-Path $env:ProgramFiles 'KDE Connect\bin\kdeconnect-indicator.exe') }
@@ -66,6 +69,7 @@ $Apps = @(
         Start = { if (-not (Get-Process tailscale-ipn -ErrorAction SilentlyContinue)) {
                       Start-Process (Join-Path $env:ProgramFiles 'Tailscale\tailscale-ipn.exe') }
                   & (Join-Path $env:ProgramFiles 'Tailscale\tailscale.exe') up 2>$null }
+        Probe = { [bool](Get-Process tailscale-ipn -ErrorAction SilentlyContinue) }
     } }
     @{ Name='OpenVPN';   Profile='work'; KillOrder=61; StartOrder=61; Custom=@{
         # GUI dies here; the agent services stop/start via the elevated task (batched in Invoke-ProfileSwitch)
@@ -73,6 +77,7 @@ $Apps = @(
         Start = { if (-not (Get-Process OpenVPNConnect -ErrorAction SilentlyContinue)) {
                       Start-Process (Join-Path $env:ProgramFiles 'OpenVPN Connect\OpenVPNConnect.exe') `
                           -ArgumentList '--opened-at-login','--minimize' } }
+        Probe = { [bool](Get-Process OpenVPNConnect -ErrorAction SilentlyContinue) }
     } }
     @{ Name='Docker';    Profile='work'; KillOrder=90; StartOrder=10; StartDelaySec=5; Custom=@{
         Kill  = {
@@ -93,6 +98,7 @@ $Apps = @(
                 Start-Process (Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe')
             }
         }
+        Probe = { [bool](Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue) }
     } }
     @{ Name='Steam';     Profile='gaming'; Procs=@('steam')
        Start=(Join-Path ${env:ProgramFiles(x86)} 'Steam\steam.exe'); StartArgs=@('-silent') }
@@ -132,6 +138,74 @@ function Set-ProfileMarker {
     param([Parameter(Mandatory)][string]$Value)
     if (-not (Test-Path $MarkerDir)) { New-Item -ItemType Directory -Path $MarkerDir -Force | Out-Null }
     Set-Content -Path $MarkerPath -Value $Value -NoNewline
+}
+
+function Test-AppRunning {
+    param([Parameter(Mandatory)][hashtable]$App)
+    if ($App.Custom) { return [bool](& $App.Custom.Probe) }
+    foreach ($p in $App.Procs) {
+        if (Get-Process $p -ErrorAction SilentlyContinue) { return $true }
+    }
+    return $false
+}
+
+function New-ProfileSnapshot {
+    # Pure: probe results -> snapshot. Only managed services are kept (whitelist).
+    param(
+        [Parameter(Mandatory)][hashtable]$AppStates,
+        [Parameter(Mandatory)][hashtable]$ServiceStates,
+        [Parameter(Mandatory)][string]$PowerScheme,
+        [Parameter(Mandatory)][bool]$VirtualDisplaysEnabled,
+        [Parameter(Mandatory)][string]$BootTime
+    )
+    $services = @{}
+    foreach ($n in $ManagedServices) {
+        if ($ServiceStates.ContainsKey($n)) { $services[$n] = $ServiceStates[$n] }
+    }
+    return [ordered]@{
+        schemaVersion          = 1
+        createdUtc             = (Get-Date).ToUniversalTime().ToString('o')
+        bootTime               = $BootTime
+        apps                   = $AppStates
+        services               = $services
+        powerScheme            = $PowerScheme
+        virtualDisplaysEnabled = $VirtualDisplaysEnabled
+        restore                = @{}
+    }
+}
+
+function Get-MachineSnapshot {
+    # Impure collector. Everything here is readable unelevated.
+    $apps = @{}
+    foreach ($a in $Apps) { $apps[$a.Name] = Test-AppRunning -App $a }
+    $services = @{}
+    foreach ($n in $ManagedServices) {
+        $s = Get-Service $n -ErrorAction SilentlyContinue
+        if ($s) { $services[$n] = [string]$s.Status }
+    }
+    $scheme = [regex]::Match(((powercfg /getactivescheme) -join ' '), '[0-9a-f-]{36}').Value
+    # Read-only probe by friendly name (same match the pwsh profile's vdisp helper uses);
+    # the elevated side still matches by hardware id before touching anything.
+    $vdisp = [bool](Get-PnpDevice -Class Display -ErrorAction SilentlyContinue |
+        Where-Object { $_.Status -eq 'OK' -and $_.FriendlyName -match 'SudoMaker|SuperDisplay' })
+    $boot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToString('o')
+    return New-ProfileSnapshot -AppStates $apps -ServiceStates $services -PowerScheme $scheme `
+        -VirtualDisplaysEnabled $vdisp -BootTime $boot
+}
+
+function Save-ProfileSnapshot {
+    param([Parameter(Mandatory)]$Snapshot)
+    if (-not (Test-Path $MarkerDir)) { New-Item -ItemType Directory -Path $MarkerDir -Force | Out-Null }
+    $Snapshot | ConvertTo-Json -Depth 4 | Set-Content -Path $SnapshotPath -Encoding UTF8
+}
+
+function Read-ProfileSnapshot {
+    # $null when absent, unreadable, or a schema we do not know (caller falls back to work).
+    if (-not (Test-Path $SnapshotPath)) { return $null }
+    try { $snap = Get-Content -Path $SnapshotPath -Raw | ConvertFrom-Json -AsHashtable }
+    catch { Write-ProfileLog "WARN snapshot unreadable: $($_.Exception.Message)"; return $null }
+    if ($snap.schemaVersion -ne 1) { Write-ProfileLog "WARN snapshot schemaVersion $($snap.schemaVersion) unsupported"; return $null }
+    return $snap
 }
 
 function Write-ProfileLog {

@@ -26,6 +26,11 @@ Describe '$Apps schema' {
                        'OpenVPN','Tailscale','PhoneLink','KDEConnect','Deskflow',
                        'Steam','ExitLag','Discord') { $names | Should -Contain $n }
     }
+    It 'every Custom app has a Probe' {
+        foreach ($a in ($Apps | Where-Object Custom)) {
+            $a.Custom.Probe | Should -Not -BeNullOrEmpty -Because "$($a.Name) needs a was-it-running probe"
+        }
+    }
 }
 
 Describe 'Get-ProfileActions' {
@@ -48,6 +53,33 @@ Describe 'Get-ProfileActions' {
     }
     It 'starts Docker first on the work side (StartOrder)' {
         (Get-ProfileActions -Direction 'work').Start[0].Name | Should -Be 'Docker'
+    }
+}
+
+Describe 'New-ProfileSnapshot' {
+    BeforeAll {
+        $script:snap = New-ProfileSnapshot `
+            -AppStates @{ Slack = $true; Docker = $false; Steam = $false } `
+            -ServiceStates @{ agent_ovpnconnect = 'Running'; DoSvc = 'Stopped'; WinDefend = 'Running' } `
+            -PowerScheme '867b47bb-313a-417e-8919-e01e14288ea3' `
+            -VirtualDisplaysEnabled $true -BootTime '2026-09-02T07:20:11.0000000+07:00'
+    }
+    It 'has schemaVersion 1 and the given boot time' {
+        $snap.schemaVersion | Should -Be 1
+        $snap.bootTime      | Should -Be '2026-09-02T07:20:11.0000000+07:00'
+    }
+    It 'keeps only managed services' {
+        $snap.services.Keys | Should -Not -Contain 'WinDefend'
+        $snap.services['agent_ovpnconnect'] | Should -Be 'Running'
+        $snap.services['DoSvc']             | Should -Be 'Stopped'
+    }
+    It 'round-trips through JSON' {
+        $back = $snap | ConvertTo-Json -Depth 4 | ConvertFrom-Json -AsHashtable
+        $back.apps['Slack']            | Should -BeTrue
+        $back.apps['Docker']           | Should -BeFalse
+        $back.powerScheme              | Should -Be $snap.powerScheme
+        $back.virtualDisplaysEnabled   | Should -BeTrue
+        $back.services['DoSvc']        | Should -Be 'Stopped'
     }
 }
 
