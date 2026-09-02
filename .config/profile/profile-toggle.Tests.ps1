@@ -150,3 +150,15 @@ Describe 'Get-EnterDecision' {
     It 'no-ops when already gaming'                       { Get-EnterDecision -SnapshotExists $true  -Marker 'gaming' | Should -Be 'noop' }
     It 'restores a stale snapshot first when marker=work' { Get-EnterDecision -SnapshotExists $true  -Marker 'work'   | Should -Be 'restore-then-enter' }
 }
+
+Describe 'Test-RestoreComplete' {
+    It 'is complete when every status value is ok' {
+        Test-RestoreComplete -Status @{ elevated = 'ok'; power = 'ok'; 'kill:Steam' = 'ok' } | Should -BeTrue
+    }
+    It 'is not complete when a step failed' {
+        Test-RestoreComplete -Status @{ elevated = 'ok'; power = 'failed: powercfg exit 1' } | Should -BeFalse
+    }
+    It 'is not complete when a step was skipped' {
+        Test-RestoreComplete -Status @{ elevated = 'skipped: no elevated task'; power = 'ok' } | Should -BeFalse
+    }
+}

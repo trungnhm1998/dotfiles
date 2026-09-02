@@ -236,6 +236,14 @@ function Get-EnterDecision {
     return 'restore-then-enter'
 }
 
+function Test-RestoreComplete {
+    # Pure. Only a fully-ok restore (every step exactly 'ok') is safe to clear the
+    # snapshot for -- 'skipped: ...' is not 'ok' either, so a missing elevated task
+    # keeps the snapshot around just like an outright failure would.
+    param([Parameter(Mandatory)][hashtable]$Status)
+    return @($Status.Values | Where-Object { $_ -ne 'ok' }).Count -eq 0
+}
+
 function Invoke-ProfileRestore {
     $snap = Read-ProfileSnapshot
     if (-not $snap) {
@@ -252,11 +260,21 @@ function Invoke-ProfileRestore {
         # Reverse of apply: displays + services first (elevated), power, then processes
         # last because Docker and the VPN GUIs need their services.
         if ($plan.Elevated.Count) {
-            $status['elevated'] = if (Request-Elevated -Lines $plan.Elevated) { 'ok' } else { 'skipped: no elevated task' }
+            try {
+                $status['elevated'] = if (Request-Elevated -Lines $plan.Elevated) { 'ok' } else { 'skipped: no elevated task' }
+            } catch {
+                $status['elevated'] = "failed: $($_.Exception.Message)"
+                Write-ProfileLog "ERROR elevated request: $($_.Exception.Message)"
+            }
         }
         if ($plan.PowerScheme) {
-            powercfg /setactive $plan.PowerScheme | Out-Null
-            $status['power'] = if ($LASTEXITCODE -eq 0) { 'ok' } else { "failed: powercfg exit $LASTEXITCODE" }
+            try {
+                powercfg /setactive $plan.PowerScheme | Out-Null
+                $status['power'] = if ($LASTEXITCODE -eq 0) { 'ok' } else { "failed: powercfg exit $LASTEXITCODE" }
+            } catch {
+                $status['power'] = "failed: $($_.Exception.Message)"
+                Write-ProfileLog "ERROR power scheme: $($_.Exception.Message)"
+            }
         }
         foreach ($app in $plan.Kill) {
             try { Invoke-AppKill -App $app; $status["kill:$($app.Name)"] = 'ok'; Write-ProfileLog "killed $($app.Name)" }
@@ -267,13 +285,22 @@ function Invoke-ProfileRestore {
             catch { $status["start:$($app.Name)"] = "failed: $($_.Exception.Message)"; Write-ProfileLog "ERROR start $($app.Name): $($_.Exception.Message)" }
         }
         $snap.restore = $status
-        Save-ProfileSnapshot -Snapshot $snap
-        $failed = @($status.Values | Where-Object { $_ -like 'failed*' })
-        if ($failed.Count -eq 0) {
+        try {
+            Save-ProfileSnapshot -Snapshot $snap
+            $status['save'] = 'ok'
+        } catch {
+            $status['save'] = "failed: $($_.Exception.Message)"
+            Write-ProfileLog "ERROR saving snapshot: $($_.Exception.Message)"
+        }
+        # Only a fully-ok restore clears the snapshot; a skip or failure keeps it so
+        # the next 'game' retries the missing pieces.
+        if (Test-RestoreComplete -Status $status) {
             Remove-Item $SnapshotPath -Force -ErrorAction SilentlyContinue
             Write-ProfileLog '-> restore done, snapshot removed'
         } else {
-            Write-ProfileLog "-> restore done with $($failed.Count) failure(s); snapshot kept, next 'game' retries"
+            $issues = ($status.GetEnumerator() | Where-Object { $_.Value -ne 'ok' } |
+                ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ', '
+            Write-ProfileLog "-> restore done with issues: $issues; snapshot kept, next 'game' retries"
         }
         Set-ProfileMarker -Value 'work'
     } finally {
