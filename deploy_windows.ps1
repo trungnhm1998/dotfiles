@@ -898,6 +898,7 @@ if ($activePlan -match '(Balanced|Power saver)') {
 $defenderPaths = @(
     (Join-Path $env:ProgramData 'Epic\Zen\Data')     # Unreal 5.4+ local DDC
     (Join-Path $env:APPDATA 'Godot')                  # Godot editor + shader cache
+    (Join-Path $env:LOCALAPPDATA 'NVIDIA\DXCache')     # NVIDIA shader cache
 )
 foreach ($root in @('D:\Projects', (Join-Path $HOME 'Projects'))) {
     if (-not (Test-Path $root)) { continue }
@@ -913,6 +914,40 @@ foreach ($p in $defenderPaths) {
     else { Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue }
 }
 Write-Status "Defender exclusions: $($defenderPaths.Count) paths (re-run deploy after new Unity projects; tune with Get-MpPerformanceReport -TopScans 20)" -Type Success
+
+# Defender scheduled scans never contend with a build or a match: idle-only, 20% CPU
+# cap, quick scan at 04:00. Real-time protection is untouched (Tamper Protection
+# makes -Disable* a silent no-op anyway; no anti-cheat needs AV off).
+if ($DryRun) {
+    Write-Host "  [DRY RUN] Set-MpPreference -ScanOnlyIfIdleEnabled 1 -ScanAvgCPULoadFactor 20 -ScanScheduleQuickScanTime 04:00" -ForegroundColor DarkGray
+} else {
+    Set-MpPreference -ScanOnlyIfIdleEnabled $true -ScanAvgCPULoadFactor 20 -ScanScheduleQuickScanTime 04:00:00 -ErrorAction SilentlyContinue
+    Write-Status "Defender scans: idle-only, 20% CPU cap, quick scan 04:00" -Type Success
+}
+
+# Driver-hygiene pre-flight (read-only). Each of these is an anti-cheat block or an
+# input-latency regression on Win11; warn, never change.
+$bcd = (bcdedit /enum '{current}' 2>$null) -join "`n"
+foreach ($flag in 'testsigning', 'nointegritychecks', 'useplatformtick', 'useplatformclock', 'disabledynamictick') {
+    if ($bcd -match "(?m)^\s*$flag\s+Yes") {
+        Write-Status "bcdedit $flag is ON - anti-cheat/latency hazard; revert: bcdedit /deletevalue $flag" -Type Warning
+    }
+}
+$blocklist = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Config' -Name VulnerableDriverBlocklistEnable -ErrorAction SilentlyContinue).VulnerableDriverBlocklistEnable
+if ($blocklist -ne 1) {
+    Write-Status "Vulnerable Driver Blocklist is off - Vanguard/FACEIT block the same drivers anyway; turn it on (Windows Security > Core isolation)" -Type Warning
+}
+if (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\inpoutx64') {
+    Write-Status "inpoutx64 driver present (RGB/fan tool) - blocked by Windows and anti-cheats; uninstall the tool that installed it" -Type Warning
+}
+$fanControl = Get-Process FanControl -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($fanControl -and $fanControl.Path) {
+    $fcVersion = [int]((Get-Item $fanControl.Path).VersionInfo.ProductVersion -replace '[^\d].*$')
+    if ($fcVersion -lt 239) {
+        Write-Status "FanControl $fcVersion uses WinRing0 (FACEIT/Vanguard blocklist) - update to v239+ (PawnIO)" -Type Warning
+    }
+}
+Write-Status "Driver-hygiene pre-flight done (warnings above, if any)" -Type Success
 
 # Native autostarts -> removed; the dotfiles-profile-boot task owns startup now.
 $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
