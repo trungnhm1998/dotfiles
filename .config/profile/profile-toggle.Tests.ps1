@@ -145,6 +145,30 @@ Describe 'Get-RestoreActions' {
     }
 }
 
+Describe 'Read-ProfileSnapshot' {
+    It 'returns null when apps is missing (bad schema)' {
+        $SnapshotPath = Join-Path $TestDrive 'snap.json'
+        $LogPath = Join-Path $TestDrive 'toggle.log'
+        Set-Content -Path $SnapshotPath -Value '{"schemaVersion":1,"services":{}}'
+        Read-ProfileSnapshot | Should -BeNullOrEmpty
+    }
+    It 'returns null for an unsupported schemaVersion' {
+        $SnapshotPath = Join-Path $TestDrive 'snap.json'
+        $LogPath = Join-Path $TestDrive 'toggle.log'
+        Set-Content -Path $SnapshotPath -Value '{"schemaVersion":2,"apps":{},"services":{}}'
+        Read-ProfileSnapshot | Should -BeNullOrEmpty
+    }
+    It 'returns the snapshot hashtable for a valid schemaVersion-1 document' {
+        $SnapshotPath = Join-Path $TestDrive 'snap.json'
+        $LogPath = Join-Path $TestDrive 'toggle.log'
+        Set-Content -Path $SnapshotPath -Value (
+            '{"schemaVersion":1,"apps":{"Slack":true},"services":{"DoSvc":"Stopped"},' +
+            '"powerScheme":"867b47bb-313a-417e-8919-e01e14288ea3","virtualDisplaysEnabled":true}')
+        $snap = Read-ProfileSnapshot
+        $snap.apps.Keys | Should -Contain 'Slack'
+    }
+}
+
 Describe 'Get-EnterDecision' {
     It 'enters when there is no snapshot'                 { Get-EnterDecision -SnapshotExists $false -Marker 'work'   | Should -Be 'enter' }
     It 'no-ops when already gaming'                       { Get-EnterDecision -SnapshotExists $true  -Marker 'gaming' | Should -Be 'noop' }
