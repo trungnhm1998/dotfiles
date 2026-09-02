@@ -13,6 +13,11 @@ paths:
 ## Performance
 - Flag per-frame heap allocations (LINQ/boxing/`string` concat/`Camera.main`/`GetComponent` in `Update`) and frame-budget costs.
 
+## Bug suspects (check first when debugging)
+- Lifecycle order: `Awake`/`OnEnable`/`Start` ordering, `OnDisable`/`OnDestroy` cleanup, event and delegate unsubscription.
+- Async: coroutines/UniTask not cancelled on disable or destroy; `NativeArray`/`NativeList` disposal and job dependencies.
+- After a code change in a Unity project, read the Editor console via the Unity MCP bridge before reporting done.
+
 ## Testing
 - Name unit tests **`UnitUnderTest_StateUnderTest_Expected`** (e.g. `Aggregate_WithNoModifiers_ReturnsBase`) — the method/type under test, the scenario, then the expected outcome; PascalCase segments joined by `_`.
 

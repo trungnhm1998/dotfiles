@@ -22,7 +22,7 @@ if counts="$(awk '
     END    { if (h) printf "%s: %d", h, n }
   ' "$index")" && [ -n "$counts" ]; then
   ctx="Max's durable knowledge lives in his Obsidian vault at ${vault} (hand-curated PARA notes plus the agent-owned LLM wiki at 05.Wiki). Wiki scale: ${counts}.
-DISPATCH the vault-librarian subagent BEFORE you answer a design or architecture question, BEFORE you start non-trivial implementation, and whenever a prompt touches Max's own knowledge, preferences, past decisions, or cross-project learnings. The wiki already holds his conventions, system designs, existing features, and prior solutions, so assume it has something relevant before assuming it does not. Do not grep the vault yourself and do not answer from memory; the librarian reads 05.Wiki/index.md, the always-current catalog, and returns a short answer with source paths. Skip it only for trivial mechanical edits.
+When a prompt asks about Max's own knowledge, preferences, past decisions, or cross-project learnings, dispatch the vault-librarian subagent and wait for its answer before replying; it reads 05.Wiki/index.md and returns a short answer with source paths. Do not grep the vault yourself. Ordinary in-repo coding does not need it.
 To record durable knowledge from this session, dispatch the wiki-scribe subagent (or run /wiki-capture)."
   out="$(jq -n --arg c "$ctx" '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$c}}')" || out=""
 else
