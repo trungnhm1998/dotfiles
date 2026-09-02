@@ -28,7 +28,7 @@
       "C:\\ObsidianVaults"
     ]
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "sonnet",
   "skillOverrides": {
     "beautiful-mermaid": "name-only",
     "obsidian-inbox": "name-only",
@@ -85,8 +85,9 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash ~/.claude/hooks/statusline.sh",
-    "padding": 0
+    "command": "ccstatusline",
+    "padding": 0,
+    "refreshInterval": 10
   },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
@@ -106,6 +107,9 @@
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "high"
+    },
+    "claude-sonnet-5": {
+      "effortLevel": "xhigh"
     }
   },
   "promptSuggestionEnabled": false,
