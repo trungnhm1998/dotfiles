@@ -529,6 +529,49 @@ function claude-local {
 function cc-fast { claude-local -Box 'http://127.0.0.1:8080' -Model fast @args }
 function cc-big  { claude-local -Box 'http://127.0.0.1:8080' -Model big  @args }
 
+# --- wsl-vpnkit toggle (company VPN passthrough into WSL2) ---
+# wsl-vpnkit.vbs (Startup folder) auto-starts this distro at logon so the WSL2 VM can
+# reach the company VPC through the Windows OpenVPN tunnel. Its idle vmmemWSL VM still
+# costs RAM/CPU during gaming, so this lets you drop it manually and bring it back after --
+# without touching the autostart. Calls wsl.exe directly, not the `wsl` wrapper below, so
+# it doesn't flip the WezTerm mux var for what's really a background admin command.
+# wsl.exe writes UTF-16; captured non-interactively that decodes with a NUL byte between
+# every character -- stripping everything but identifier chars before matching survives that
+# either way (measured: `\s` does NOT catch it, NUL isn't whitespace).
+function wsl-vpn {
+    param([ValidateSet('on', 'off', 'status')] $do = 'status')
+    $clean = { ((wsl.exe --list --running) -join '') -replace '[^a-zA-Z0-9-]' }
+    switch ($do) {
+        'on' {
+            if ((& $clean) -match 'wsl-vpnkit') { Write-Host 'wsl-vpnkit already on' -ForegroundColor Yellow; break }
+            Start-Process wsl.exe -ArgumentList '-d', 'wsl-vpnkit', '--cd', '/app', 'wsl-vpnkit' -WindowStyle Hidden
+            Write-Host 'wsl-vpnkit ON - company VPN reachable from WSL2' -ForegroundColor Green
+        }
+        'off' {
+            wsl.exe --terminate wsl-vpnkit
+            # --terminate returns before wsl's running-list reflects it (measured race: an
+            # immediate --list --running can still show wsl-vpnkit for a beat) -- poll briefly
+            # so the "anything else still up" check below isn't fooled by the distro we just
+            # asked to stop.
+            for ($i = 0; $i -lt 10 -and ((& $clean) -match 'wsl-vpnkit'); $i++) { Start-Sleep -Milliseconds 300 }
+            # --terminate alone leaves vmmemWSL resident on WSL's idle timer (measured: still
+            # ~1.3GB 10s later) -- only --shutdown frees it now. Skip that if another distro is
+            # still up (e.g. wsl-tmux-autostart's "main" session for phone access) so gaming
+            # doesn't take that down too.
+            if ((& $clean) -match 'norunningdistributions') {
+                wsl.exe --shutdown
+                Write-Host 'wsl-vpnkit OFF - vmmemWSL fully freed for gaming' -ForegroundColor Green
+            } else {
+                Write-Host 'wsl-vpnkit OFF - another distro still running, vmmemWSL left warm' -ForegroundColor Yellow
+            }
+        }
+        'status' {
+            if ((& $clean) -match 'wsl-vpnkit') { Write-Host 'wsl-vpnkit ON' -ForegroundColor Green }
+            else { Write-Host 'wsl-vpnkit off' -ForegroundColor DarkGray }
+        }
+    }
+}
+
 # --- Obsidian vault sync task toggle ---
 # ObsidianVaultSync (schtasks, runs scripts/vault-sync.ps1 every 30min) on/off/status.
 function vault-sync {
