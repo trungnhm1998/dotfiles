@@ -70,15 +70,16 @@ function Set-VirtualDisplay {
 }
 
 function Stop-ServiceBounded {
-    # OpenVPN agent is a known StopPending offender: wait, then kill the host PID.
+    # OpenVPN services have SCM restart-on-failure (RESTART action at 1s/5s/30s), so we
+    # wait with a timeout but do NOT kill; SCM treats a killed process as a crash and
+    # restarts it within a second, defeating the stop. Log a warning on timeout instead.
     param([Parameter(Mandatory)][string]$Name, [int]$TimeoutSec = 20)
     $svc = Get-Service $Name -ErrorAction SilentlyContinue
     if (-not $svc -or $svc.Status -eq 'Stopped') { return }
     Stop-Service $Name -Force -NoWait -ErrorAction SilentlyContinue
     try { $svc.WaitForStatus('Stopped', [TimeSpan]::FromSeconds($TimeoutSec)) }
     catch {
-        $svcPid = (Get-CimInstance Win32_Service -Filter "Name='$Name'").ProcessId
-        if ($svcPid) { Stop-Process -Id $svcPid -Force -ErrorAction SilentlyContinue }
+        "$(Get-Date -Format s)  WARN svc $Name still not Stopped after ${TimeoutSec}s" | Add-Content $LogPath
     }
 }
 
