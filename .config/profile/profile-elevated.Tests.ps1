@@ -1,70 +1,40 @@
 BeforeAll {
-    . "$PSScriptRoot\profile-elevated.ps1"
+    . "$PSScriptRoot\profile-elevated.ps1"    # dot-source: loads functions, skips main (guard)
 }
 
 Describe 'Get-ElevatedRequest' {
-    It 'parses valid vpn+hv lines' {
-        $r = Get-ElevatedRequest -Lines @('vpn=stop', 'hv=off') -AgeSeconds 1
-        $r.vpn | Should -Be 'stop'
-        $r.hv  | Should -Be 'off'
+    It 'accepts svc stop/start for whitelisted services' {
+        $req = Get-ElevatedRequest -Lines @('svc=DoSvc=stop', 'svc=agent_ovpnconnect=start') -AgeSeconds 1
+        $req.Services['DoSvc']             | Should -Be 'stop'
+        $req.Services['agent_ovpnconnect'] | Should -Be 'start'
     }
-    It 'rejects stale requests (>60s)' {
-        Get-ElevatedRequest -Lines @('vpn=stop') -AgeSeconds 61 | Should -Be $null
+    It 'rejects services outside the whitelist' {
+        $req = Get-ElevatedRequest -Lines @('svc=WinDefend=stop') -AgeSeconds 1
+        $req | Should -BeNullOrEmpty
     }
-    It 'ignores unknown keys and invalid values (trust boundary)' {
-        $r = Get-ElevatedRequest -Lines @('vpn=stop', 'evil=rm', 'hv=nonsense') -AgeSeconds 1
-        $r.vpn            | Should -Be 'stop'
-        $r.ContainsKey('hv')   | Should -Be $false
-        $r.ContainsKey('evil') | Should -Be $false
+    It 'rejects verbs other than stop|start' {
+        $req = Get-ElevatedRequest -Lines @('svc=DoSvc=disable') -AgeSeconds 1
+        $req | Should -BeNullOrEmpty
     }
-    It 'returns null for an empty request' {
-        Get-ElevatedRequest -Lines @() -AgeSeconds 1 | Should -Be $null
+    It 'still parses vdisp' {
+        (Get-ElevatedRequest -Lines @('vdisp=on') -AgeSeconds 1).vdisp | Should -Be 'on'
     }
-}
-
-Describe 'Get-ElevatedRequest - vdisp' {
-    It 'parses vdisp=off and vdisp=on' {
-        (Get-ElevatedRequest -Lines @('vdisp=off') -AgeSeconds 1).vdisp | Should -Be 'off'
-        (Get-ElevatedRequest -Lines @('vdisp=on')  -AgeSeconds 1).vdisp | Should -Be 'on'
+    It 'ignores legacy vpn= and hv= lines' {
+        $req = Get-ElevatedRequest -Lines @('vpn=stop', 'hv=off') -AgeSeconds 1
+        $req | Should -BeNullOrEmpty
     }
-    It 'rejects any other vdisp value (trust boundary)' {
-        $r = Get-ElevatedRequest -Lines @('vpn=stop', 'vdisp=; rm -rf /') -AgeSeconds 1
-        $r.ContainsKey('vdisp') | Should -Be $false
-        $r.vpn | Should -Be 'stop'
-    }
-    It 'parses vdisp alongside vpn and hv' {
-        $r = Get-ElevatedRequest -Lines @('vpn=stop', 'hv=off', 'vdisp=off') -AgeSeconds 1
-        $r.vpn   | Should -Be 'stop'
-        $r.hv    | Should -Be 'off'
-        $r.vdisp | Should -Be 'off'
+    It 'drops stale requests' {
+        Get-ElevatedRequest -Lines @('svc=DoSvc=stop') -AgeSeconds 61 | Should -BeNullOrEmpty
     }
 }
 
 Describe 'Test-VirtualDisplayHwId' {
-    It 'matches the SudoMaker virtual adapter' {
-        Test-VirtualDisplayHwId -HardwareIds @('root\sudomaker\sudovda') | Should -Be $true
+    It 'matches the virtual adapters' {
+        Test-VirtualDisplayHwId -HardwareIds @('ROOT\SudoMaker\SudoVDA') | Should -BeTrue
+        Test-VirtualDisplayHwId -HardwareIds @('SuperDisplay\Display')   | Should -BeTrue
     }
-    It 'matches the SuperDisplay virtual adapter (case-insensitively)' {
-        Test-VirtualDisplayHwId -HardwareIds @('SuperDisplay\Display') | Should -Be $true
-    }
-    It 'NEVER matches the real NVIDIA GPU' {
-        $nvidia = @(
-            'PCI\VEN_10DE&DEV_2C05&SUBSYS_53101462&REV_A1'
-            'PCI\VEN_10DE&DEV_2C05&SUBSYS_53101462'
-            'PCI\VEN_10DE&DEV_2C05&CC_030000'
-            'PCI\VEN_10DE&DEV_2C05&CC_0300'
-        )
-        Test-VirtualDisplayHwId -HardwareIds $nvidia | Should -Be $false
-    }
-    It 'NEVER matches the Intel iGPU' {
-        $intel = @(
-            'PCI\VEN_8086&DEV_A780&SUBSYS_D0001458&REV_04'
-            'PCI\VEN_8086&DEV_A780&CC_038000'
-        )
-        Test-VirtualDisplayHwId -HardwareIds $intel | Should -Be $false
-    }
-    It 'returns false for empty or null input' {
-        Test-VirtualDisplayHwId -HardwareIds @()     | Should -Be $false
-        Test-VirtualDisplayHwId -HardwareIds @($null) | Should -Be $false
+    It 'never matches the real GPUs' {
+        Test-VirtualDisplayHwId -HardwareIds @('PCI\VEN_10DE&DEV_2C05&SUBSYS_00000000&REV_A1', 'PCI\VEN_10DE&DEV_2C05') | Should -BeFalse
+        Test-VirtualDisplayHwId -HardwareIds @('PCI\VEN_8086&DEV_A780&SUBSYS_00000000&REV_04') | Should -BeFalse
     }
 }

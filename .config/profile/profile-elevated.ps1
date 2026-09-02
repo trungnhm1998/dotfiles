@@ -4,7 +4,7 @@
     (RunLevel Highest). Reads a one-shot request file dropped by profile-toggle.ps1,
     validates it strictly (this is a trust boundary: the file is user-writable but
     this process is elevated), acts, deletes it.
-    Scope is deliberately tiny: OpenVPN agent services + bcdedit hypervisor flip.
+    Scope is deliberately tiny: whitelisted services (OpenVPN agent, Delivery Optimization) + virtual display adapters. The bcdedit hypervisor lane was removed 2026-09-02 (FACEIT/Vanguard now require VBS).
 
     NOTE: the RunLevel-Highest task points at this file directly, and it is
     user-writable — accepted tradeoff on a single-user box (equivalent to
@@ -14,7 +14,9 @@
 #>
 $RequestPath = Join-Path $HOME '.config\dotfiles\profile-elevated-request'
 $LogPath     = Join-Path $env:TEMP 'profile-elevated.log'
-$VpnServices = @('agent_ovpnconnect', 'ovpnhelper_service')
+# Services the user half may stop/start through this task. Fixed here, never taken
+# from the request file: the file is user-writable, this process is elevated.
+$ManagedServices = @('agent_ovpnconnect', 'ovpnhelper_service', 'DoSvc')
 
 # Virtual display adapters disabled while gaming. Matched by HARDWARE ID, never by
 # instance ID: instance IDs change across driver updates, and a mismatch here would
@@ -25,13 +27,13 @@ function Get-ElevatedRequest {
     # Pure: request lines + age -> validated hashtable, or $null. Whitelist only.
     param([string[]]$Lines, [double]$AgeSeconds)
     if ($AgeSeconds -gt 60) { return $null }                 # stale one-shot
-    $req = @{}
+    $req = @{ Services = @{} }
     foreach ($l in $Lines) {
-        if ($l -match '^vpn=(stop|start)$')      { $req['vpn'] = $Matches[1] }
-        elseif ($l -match '^hv=(off|auto-if-off)$') { $req['hv'] = $Matches[1] }
-        elseif ($l -match '^vdisp=(off|on)$')       { $req['vdisp'] = $Matches[1] }
+        if ($l -match '^svc=([A-Za-z0-9_]+)=(stop|start)$') {
+            if ($ManagedServices -contains $Matches[1]) { $req.Services[$Matches[1]] = $Matches[2] }
+        } elseif ($l -match '^vdisp=(off|on)$') { $req['vdisp'] = $Matches[1] }
     }
-    if ($req.Count -eq 0) { return $null }
+    if ($req.Services.Count -eq 0 -and -not $req.ContainsKey('vdisp')) { return $null }
     return $req
 }
 
@@ -67,23 +69,28 @@ function Set-VirtualDisplay {
     }
 }
 
+function Stop-ServiceBounded {
+    # OpenVPN agent is a known StopPending offender: wait, then kill the host PID.
+    param([Parameter(Mandatory)][string]$Name, [int]$TimeoutSec = 20)
+    $svc = Get-Service $Name -ErrorAction SilentlyContinue
+    if (-not $svc -or $svc.Status -eq 'Stopped') { return }
+    Stop-Service $Name -Force -NoWait -ErrorAction SilentlyContinue
+    try { $svc.WaitForStatus('Stopped', [TimeSpan]::FromSeconds($TimeoutSec)) }
+    catch {
+        $svcPid = (Get-CimInstance Win32_Service -Filter "Name='$Name'").ProcessId
+        if ($svcPid) { Stop-Process -Id $svcPid -Force -ErrorAction SilentlyContinue }
+    }
+}
+
 function Invoke-ElevatedRequest {
     param([Parameter(Mandatory)][hashtable]$Req)
-    if ($Req.vpn -eq 'stop') {
-        foreach ($s in $VpnServices) { Stop-Service $s -Force -ErrorAction SilentlyContinue }
-    } elseif ($Req.vpn -eq 'start') {
-        foreach ($s in $VpnServices) { Start-Service $s -ErrorAction SilentlyContinue }
-    }
-    if ($Req.hv -eq 'off') {
-        bcdedit /set hypervisorlaunchtype off | Out-Null
-        "$(Get-Date -Format s)  hypervisor OFF (reboot pending)" | Add-Content $LogPath
-    } elseif ($Req.hv -eq 'auto-if-off') {
-        $cur = bcdedit /enum '{current}' | Select-String 'hypervisorlaunchtype'
-        # absent line = default (auto) - only flip when it is explicitly Off
-        if ($cur -and $cur.ToString() -match 'Off') {
-            bcdedit /set hypervisorlaunchtype auto | Out-Null
-            "$(Get-Date -Format s)  hypervisor restored to AUTO - reboot needed for WSL2/Docker" | Add-Content $LogPath
-        }
+    foreach ($name in $Req.Services.Keys) {
+        # Diff-based: DoSvc is trigger-started and the OpenVPN agent has a restart
+        # failure action, so "already in the requested state" is success.
+        if ($Req.Services[$name] -eq 'stop') { Stop-ServiceBounded -Name $name }
+        else { Start-Service $name -ErrorAction SilentlyContinue }
+        "$(Get-Date -Format s)  svc $name $($Req.Services[$name]) -> $((Get-Service $name -ErrorAction SilentlyContinue).Status)" |
+            Add-Content $LogPath
     }
     if ($Req.vdisp -eq 'off') {
         Set-VirtualDisplay -Enabled $false
@@ -99,7 +106,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     Remove-Item $RequestPath -Force -ErrorAction SilentlyContinue   # one-shot: consume before acting
     $req = Get-ElevatedRequest -Lines $lines -AgeSeconds $age
     if ($req) {
-        "$(Get-Date -Format s)  request: $($req.Keys -join ',')" | Add-Content $LogPath
+        "$(Get-Date -Format s)  request: svc=$($req.Services.Keys -join ',') vdisp=$($req.vdisp)" | Add-Content $LogPath
         Invoke-ElevatedRequest -Req $req
     }
 }
