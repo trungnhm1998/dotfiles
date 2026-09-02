@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+#Requires -Version 7.0
 <#
     profile-toggle.ps1 — flip the machine between WORK and GAMING profiles.
     Design: docs/specs/2026-07-13-gaming-profile-design.md
@@ -7,7 +7,7 @@
       -Boot            -> replay marker profile at logon (staggered starts)
       -State           -> print bar glyph (yasb pill poll)
       -Reboot          -> with -Gaming/-Work: write marker then reboot clean
-      -NoHypervisor    -> with -Gaming -Reboot: also bcdedit hypervisor off (FACEIT/ESEA lane)
+      -Restore         -> put the machine back to the pre-game snapshot (game -Off / ungame)
 #>
 param(
     [switch]$Gaming,
@@ -15,13 +15,16 @@ param(
     [switch]$Boot,
     [switch]$State,
     [switch]$Reboot,
-    [switch]$NoHypervisor
+    [switch]$Restore
 )
 
 $MarkerDir   = Join-Path $HOME '.config\dotfiles'
 $MarkerPath  = Join-Path $MarkerDir 'profile'
 $RequestPath = Join-Path $MarkerDir 'profile-elevated-request'
 $LogPath     = Join-Path $env:TEMP 'profile-toggle.log'
+$SnapshotPath = Join-Path $MarkerDir 'profile-snapshot.json'
+# Must match $ManagedServices in profile-elevated.ps1 (the elevated side is the whitelist).
+$ManagedServices = @('agent_ovpnconnect', 'ovpnhelper_service', 'DoSvc')
 
 # --- App table: THE single source of truth -----------------------------------
 # Profile='work'   : killed going gaming, started going work.
@@ -180,31 +183,19 @@ function Request-Elevated {
 }
 
 function Get-ElevatedRequestLines {
-    # Elevated batch: VPN services always; hypervisor only on the explicit lane.
-    # work always sends hv=auto-if-off so a prior -NoHypervisor session self-heals.
-    # vdisp: the SudoMaker/SuperDisplay virtual adapters are phantom displays and
-    # needless surface for a kernel anti-cheat. Off while gaming, restored on work.
-    param(
-        [Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction,
-        [switch]$WithHypervisorOff
-    )
-    $lines = @()
-    if ($Direction -eq 'gaming') {
-        $lines += 'vpn=stop'
-        $lines += 'vdisp=off'
-        if ($WithHypervisorOff) { $lines += 'hv=off' }
-    } else {
-        $lines += 'vpn=start'
-        $lines += 'vdisp=on'
-        $lines += 'hv=auto-if-off'
-    }
+    # Elevated batch: managed services + virtual display adapters. The SudoMaker/
+    # SuperDisplay adapters are phantom displays and needless surface for a kernel
+    # anti-cheat. DoSvc: 24H2/25H2 RAM-growth bug and P2P upload vs ExitLag.
+    param([Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction)
+    $verb = if ($Direction -eq 'gaming') { 'stop' } else { 'start' }
+    $lines = @($ManagedServices | ForEach-Object { "svc=$_=$verb" })
+    $lines += if ($Direction -eq 'gaming') { 'vdisp=off' } else { 'vdisp=on' }
     return $lines
 }
 
 function Invoke-ProfileSwitch {
     param(
         [Parameter(Mandatory)][ValidateSet('gaming','work')][string]$Direction,
-        [switch]$WithHypervisorOff,
         [switch]$RebootAfter,
         [switch]$Stagger        # -Boot: pause between starts to avoid a logon CPU storm
     )
@@ -222,7 +213,7 @@ function Invoke-ProfileSwitch {
             catch { Write-ProfileLog "ERROR start $($app.Name): $($_.Exception.Message)" }
             if ($Stagger -and $app.StartDelaySec) { Start-Sleep -Seconds $app.StartDelaySec }
         }
-        $lines = Get-ElevatedRequestLines -Direction $Direction -WithHypervisorOff:$WithHypervisorOff
+        $lines = Get-ElevatedRequestLines -Direction $Direction
         Request-Elevated -Lines $lines
         if ($Direction -eq 'gaming') {
             # Dual-mode is a monitor firmware flip (OSD / DisplayWidget), not a Windows
@@ -270,7 +261,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     } elseif ($Boot) {
         Invoke-ProfileSwitch -Direction (Get-ProfileMarker) -Stagger
     } elseif ($Gaming) {
-        Invoke-ProfileSwitch -Direction 'gaming' -WithHypervisorOff:$NoHypervisor -RebootAfter:$Reboot
+        Invoke-ProfileSwitch -Direction 'gaming' -RebootAfter:$Reboot
     } elseif ($Work) {
         Invoke-ProfileSwitch -Direction 'work' -RebootAfter:$Reboot
     } else {

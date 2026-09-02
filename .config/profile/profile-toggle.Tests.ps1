@@ -52,23 +52,18 @@ Describe 'Get-ProfileActions' {
 }
 
 Describe 'Get-ElevatedRequestLines' {
-    It 'gaming direction sends vdisp=off' {
-        (Get-ElevatedRequestLines -Direction 'gaming') | Should -Contain 'vdisp=off'
+    It 'gaming stops every managed service and disables virtual displays' {
+        (Get-ElevatedRequestLines -Direction 'gaming') | Should -Be @(
+            'svc=agent_ovpnconnect=stop', 'svc=ovpnhelper_service=stop', 'svc=DoSvc=stop', 'vdisp=off')
     }
-    It 'work direction sends vdisp=on' {
-        (Get-ElevatedRequestLines -Direction 'work') | Should -Contain 'vdisp=on'
+    It 'work starts every managed service and enables virtual displays' {
+        (Get-ElevatedRequestLines -Direction 'work') | Should -Be @(
+            'svc=agent_ovpnconnect=start', 'svc=ovpnhelper_service=start', 'svc=DoSvc=start', 'vdisp=on')
     }
-    It 'gaming without -WithHypervisorOff' {
-        (Get-ElevatedRequestLines -Direction 'gaming') | Should -Be @('vpn=stop', 'vdisp=off')
-    }
-    It 'gaming with -WithHypervisorOff' {
-        (Get-ElevatedRequestLines -Direction 'gaming' -WithHypervisorOff) | Should -Be @('vpn=stop', 'vdisp=off', 'hv=off')
-    }
-    It 'work without -WithHypervisorOff' {
-        (Get-ElevatedRequestLines -Direction 'work') | Should -Be @('vpn=start', 'vdisp=on', 'hv=auto-if-off')
-    }
-    It 'work with -WithHypervisorOff (hv always auto-if-off, switch ignored)' {
-        (Get-ElevatedRequestLines -Direction 'work' -WithHypervisorOff) | Should -Be @('vpn=start', 'vdisp=on', 'hv=auto-if-off')
+    It 'never emits vpn= or hv= lines' {
+        foreach ($d in 'gaming', 'work') {
+            (Get-ElevatedRequestLines -Direction $d) -match '^(vpn|hv)=' | Should -BeNullOrEmpty
+        }
     }
 }
 
