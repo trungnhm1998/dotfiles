@@ -942,9 +942,11 @@ if (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\inpoutx64') {
 }
 $fanControl = Get-Process FanControl -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($fanControl -and $fanControl.Path) {
-    $fcVersion = [int]((Get-Item $fanControl.Path).VersionInfo.ProductVersion -replace '[^\d].*$')
-    if ($fcVersion -lt 239) {
-        Write-Status "FanControl $fcVersion uses WinRing0 (FACEIT/Vanguard blocklist) - update to v239+ (PawnIO)" -Type Warning
+    $fcVersionText = [regex]::Match([string](Get-Item $fanControl.Path).VersionInfo.ProductVersion, '\d+').Value
+    if (-not $fcVersionText) {
+        Write-Status "FanControl version unreadable at $($fanControl.Path) - make sure it is v239+ (PawnIO, not WinRing0)" -Type Warning
+    } elseif ([int]$fcVersionText -lt 239) {
+        Write-Status "FanControl $fcVersionText uses WinRing0 (FACEIT/Vanguard blocklist) - update to v239+ (PawnIO)" -Type Warning
     }
 }
 Write-Status "Driver-hygiene pre-flight done (warnings above, if any)" -Type Success
