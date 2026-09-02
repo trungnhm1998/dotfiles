@@ -14,6 +14,22 @@
       "PushNotification",
       "AskUserQuestion"
     ],
+    "ask": [
+      "Bash(git reset*)",
+      "Bash(git clean*)",
+      "Bash(git rebase*)",
+      "Bash(rm -rf*)",
+      "Bash(rm -fr*)",
+      "Bash(rm -r -f*)",
+      "Bash(rm -f -r*)",
+      "PowerShell(git reset*)",
+      "PowerShell(git clean*)",
+      "PowerShell(git rebase*)",
+      "PowerShell(Remove-Item -Recurse -Force*)",
+      "PowerShell(Remove-Item -Force -Recurse*)",
+      "PowerShell(rm -Recurse -Force*)",
+      "PowerShell(rm -Force -Recurse*)"
+    ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "C:\\ObsidianVaults"
