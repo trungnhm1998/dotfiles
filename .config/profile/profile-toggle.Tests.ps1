@@ -104,3 +104,49 @@ Describe 'ConvertTo-ProfileName' {
     It 'maps anything else to work'       { ConvertTo-ProfileName -Raw 'garbage'   | Should -Be 'work' }
     It 'maps empty/null to work'          { ConvertTo-ProfileName -Raw ''          | Should -Be 'work' }
 }
+
+Describe 'Get-RestoreActions' {
+    BeforeAll {
+        # Before the game: Slack + kanata + Discord were up; Docker, Steam, ExitLag down.
+        $script:snap = @{
+            apps = @{ kanata = $true; komorebi = $false; PowerToys = $false; Slack = $true
+                      GoogleDrive = $false; PhoneLink = $false; KDEConnect = $false; Deskflow = $false
+                      Tailscale = $false; OpenVPN = $false; Docker = $false
+                      Steam = $false; ExitLag = $false; Discord = $true }
+            services = @{ agent_ovpnconnect = 'Running'; ovpnhelper_service = 'Running'; DoSvc = 'Stopped' }
+            powerScheme = '867b47bb-313a-417e-8919-e01e14288ea3'
+            virtualDisplaysEnabled = $true
+        }
+        $script:plan = Get-RestoreActions -Snapshot $snap
+    }
+    It 'kills only gaming apps that were not running before' {
+        ($plan.Kill | ForEach-Object Name) | Should -Be @('Steam', 'ExitLag')
+    }
+    It 'starts only work apps that were running before, kanata before Slack' {
+        ($plan.Start | ForEach-Object Name) | Should -Be @('kanata', 'Slack')
+    }
+    It 'starts only services that were Running' {
+        $plan.Elevated | Should -Contain 'svc=agent_ovpnconnect=start'
+        $plan.Elevated | Should -Contain 'svc=ovpnhelper_service=start'
+        $plan.Elevated | Should -Not -Contain 'svc=DoSvc=start'
+    }
+    It 'sends vdisp=on only when virtual displays were enabled' {
+        $plan.Elevated | Should -Contain 'vdisp=on'
+        $off = Get-RestoreActions -Snapshot (@{ apps = $snap.apps; services = $snap.services; powerScheme = 'x'; virtualDisplaysEnabled = $false })
+        $off.Elevated | Should -Not -Contain 'vdisp=on'
+    }
+    It 'carries the power scheme' {
+        $plan.PowerScheme | Should -Be '867b47bb-313a-417e-8919-e01e14288ea3'
+    }
+    It 'puts Docker first when it was running' {
+        $s2 = @{ apps = @{ Docker = $true; Slack = $true; Steam = $true; ExitLag = $true; Discord = $true }
+                 services = @{}; powerScheme = 'x'; virtualDisplaysEnabled = $false }
+        ((Get-RestoreActions -Snapshot $s2).Start | ForEach-Object Name)[0] | Should -Be 'Docker'
+    }
+}
+
+Describe 'Get-EnterDecision' {
+    It 'enters when there is no snapshot'                 { Get-EnterDecision -SnapshotExists $false -Marker 'work'   | Should -Be 'enter' }
+    It 'no-ops when already gaming'                       { Get-EnterDecision -SnapshotExists $true  -Marker 'gaming' | Should -Be 'noop' }
+    It 'restores a stale snapshot first when marker=work' { Get-EnterDecision -SnapshotExists $true  -Marker 'work'   | Should -Be 'restore-then-enter' }
+}

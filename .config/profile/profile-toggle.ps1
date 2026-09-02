@@ -176,8 +176,10 @@ function New-ProfileSnapshot {
 
 function Get-MachineSnapshot {
     # Impure collector. Everything here is readable unelevated.
-    $apps = @{}
-    foreach ($a in $Apps) { $apps[$a.Name] = Test-AppRunning -App $a }
+    # ponytail: local var is $appStates, not $apps -- PowerShell variable names are
+    # case-insensitive, so $apps would shadow the script-scoped $Apps table below.
+    $appStates = @{}
+    foreach ($a in $Apps) { $appStates[$a.Name] = Test-AppRunning -App $a }
     $services = @{}
     foreach ($n in $ManagedServices) {
         $s = Get-Service $n -ErrorAction SilentlyContinue
@@ -189,7 +191,7 @@ function Get-MachineSnapshot {
     $vdisp = [bool](Get-PnpDevice -Class Display -ErrorAction SilentlyContinue |
         Where-Object { $_.Status -eq 'OK' -and $_.FriendlyName -match 'SudoMaker|SuperDisplay' })
     $boot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToString('o')
-    return New-ProfileSnapshot -AppStates $apps -ServiceStates $services -PowerScheme $scheme `
+    return New-ProfileSnapshot -AppStates $appStates -ServiceStates $services -PowerScheme $scheme `
         -VirtualDisplaysEnabled $vdisp -BootTime $boot
 }
 
@@ -206,6 +208,88 @@ function Read-ProfileSnapshot {
     catch { Write-ProfileLog "WARN snapshot unreadable: $($_.Exception.Message)"; return $null }
     if ($snap.schemaVersion -ne 1) { Write-ProfileLog "WARN snapshot schemaVersion $($snap.schemaVersion) unsupported"; return $null }
     return $snap
+}
+
+function Get-RestoreActions {
+    # Pure: snapshot -> diff-based plan. Kill gaming apps that were down, start work
+    # apps that were up, start services that were Running, re-enable vdisp if it was.
+    param([Parameter(Mandatory)][hashtable]$Snapshot)
+    $was = $Snapshot.apps
+    $kill  = @($Apps | Where-Object { $_.Profile -eq 'gaming' -and -not $was[$_.Name] } |
+        Sort-Object { if ($_.ContainsKey('KillOrder'))  { $_.KillOrder }  else { 50 } })
+    $start = @($Apps | Where-Object { $_.Profile -eq 'work' -and $was[$_.Name] } |
+        Sort-Object { if ($_.ContainsKey('StartOrder')) { $_.StartOrder } else { 50 } })
+    $lines = @()
+    if ($Snapshot.virtualDisplaysEnabled) { $lines += 'vdisp=on' }
+    foreach ($n in $ManagedServices) {
+        if ($Snapshot.services[$n] -eq 'Running') { $lines += "svc=$n=start" }
+    }
+    return @{ Kill = $kill; Start = $start; Elevated = $lines; PowerScheme = [string]$Snapshot.powerScheme }
+}
+
+function Get-EnterDecision {
+    # Pure. snapshot + marker=gaming: already in a session. snapshot + marker=work:
+    # a previous restore did not finish (or a crash) -> restore, then enter.
+    param([Parameter(Mandatory)][bool]$SnapshotExists, [Parameter(Mandatory)][string]$Marker)
+    if (-not $SnapshotExists) { return 'enter' }
+    if ($Marker -eq 'gaming') { return 'noop' }
+    return 'restore-then-enter'
+}
+
+function Invoke-ProfileRestore {
+    $snap = Read-ProfileSnapshot
+    if (-not $snap) {
+        Write-ProfileLog 'no snapshot - falling back to the work profile'
+        Invoke-ProfileSwitch -Direction 'work'
+        return
+    }
+    $mutex = [System.Threading.Mutex]::new($false, 'Local\profile-toggle')
+    if (-not $mutex.WaitOne(0)) { Write-ProfileLog 'debounced: another switch in progress'; return }
+    try {
+        Write-ProfileLog '-> restore begin'
+        $plan   = Get-RestoreActions -Snapshot $snap
+        $status = @{}
+        # Reverse of apply: displays + services first (elevated), power, then processes
+        # last because Docker and the VPN GUIs need their services.
+        if ($plan.Elevated.Count) {
+            $status['elevated'] = if (Request-Elevated -Lines $plan.Elevated) { 'ok' } else { 'skipped: no elevated task' }
+        }
+        if ($plan.PowerScheme) {
+            powercfg /setactive $plan.PowerScheme | Out-Null
+            $status['power'] = if ($LASTEXITCODE -eq 0) { 'ok' } else { "failed: powercfg exit $LASTEXITCODE" }
+        }
+        foreach ($app in $plan.Kill) {
+            try { Invoke-AppKill -App $app; $status["kill:$($app.Name)"] = 'ok'; Write-ProfileLog "killed $($app.Name)" }
+            catch { $status["kill:$($app.Name)"] = "failed: $($_.Exception.Message)"; Write-ProfileLog "ERROR kill $($app.Name): $($_.Exception.Message)" }
+        }
+        foreach ($app in $plan.Start) {
+            try { Invoke-AppStart -App $app; $status["start:$($app.Name)"] = 'ok'; Write-ProfileLog "started $($app.Name)" }
+            catch { $status["start:$($app.Name)"] = "failed: $($_.Exception.Message)"; Write-ProfileLog "ERROR start $($app.Name): $($_.Exception.Message)" }
+        }
+        $snap.restore = $status
+        Save-ProfileSnapshot -Snapshot $snap
+        $failed = @($status.Values | Where-Object { $_ -like 'failed*' })
+        if ($failed.Count -eq 0) {
+            Remove-Item $SnapshotPath -Force -ErrorAction SilentlyContinue
+            Write-ProfileLog '-> restore done, snapshot removed'
+        } else {
+            Write-ProfileLog "-> restore done with $($failed.Count) failure(s); snapshot kept, next 'game' retries"
+        }
+        Set-ProfileMarker -Value 'work'
+    } finally {
+        $mutex.ReleaseMutex()
+    }
+}
+
+function Invoke-GamingEntry {
+    param([switch]$RebootAfter)
+    switch (Get-EnterDecision -SnapshotExists (Test-Path $SnapshotPath) -Marker (Get-ProfileMarker)) {
+        'noop'               { Write-ProfileLog "already in a gaming session (snapshot present) - run 'ungame' first" }
+        'restore-then-enter' { Write-ProfileLog 'stale snapshot with marker=work - restoring first'
+                               Invoke-ProfileRestore
+                               Invoke-ProfileSwitch -Direction 'gaming' -RebootAfter:$RebootAfter }
+        'enter'              { Invoke-ProfileSwitch -Direction 'gaming' -RebootAfter:$RebootAfter }
+    }
 }
 
 function Write-ProfileLog {
@@ -253,7 +337,11 @@ function Request-Elevated {
     if (-not (Test-Path $MarkerDir)) { New-Item -ItemType Directory -Path $MarkerDir -Force | Out-Null }
     Set-Content -Path $RequestPath -Value $Lines
     schtasks /run /tn 'dotfiles-profile-elevated' 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) { Write-ProfileLog 'WARN elevated task missing - service/bcdedit ops skipped (run deploy_windows.ps1)' }
+    if ($LASTEXITCODE -ne 0) {
+        Write-ProfileLog 'WARN elevated task missing - service/vdisp ops skipped (run deploy_windows.ps1)'
+        return $false
+    }
+    return $true
 }
 
 function Get-ElevatedRequestLines {
@@ -277,6 +365,13 @@ function Invoke-ProfileSwitch {
     if (-not $mutex.WaitOne(0)) { Write-ProfileLog 'debounced: another switch in progress'; return }
     try {
         Write-ProfileLog "-> $Direction begin"
+        if ($Direction -eq 'gaming') {
+            # Only the first entry snapshots; a boot replay with marker=gaming keeps the
+            # pre-reboot snapshot so 'ungame' still knows the real before-state.
+            if (-not (Test-Path $SnapshotPath)) { Save-ProfileSnapshot -Snapshot (Get-MachineSnapshot); Write-ProfileLog 'snapshot written' }
+        } else {
+            if (Test-Path $SnapshotPath) { Remove-Item $SnapshotPath -Force -ErrorAction SilentlyContinue; Write-ProfileLog 'snapshot removed (work profile supersedes it)' }
+        }
         $plan = Get-ProfileActions -Direction $Direction
         foreach ($app in $plan.Kill) {
             try { Invoke-AppKill -App $app; Write-ProfileLog "killed $($app.Name)" }
@@ -288,7 +383,7 @@ function Invoke-ProfileSwitch {
             if ($Stagger -and $app.StartDelaySec) { Start-Sleep -Seconds $app.StartDelaySec }
         }
         $lines = Get-ElevatedRequestLines -Direction $Direction
-        Request-Elevated -Lines $lines
+        Request-Elevated -Lines $lines | Out-Null
         if ($Direction -eq 'gaming') {
             # Dual-mode is a monitor firmware flip (OSD / DisplayWidget), not a Windows
             # resolution change, so it cannot be scripted. Windows adopts 1920x1080 on
@@ -332,15 +427,21 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
     if ($State) {
         Write-ProfileState
+    } elseif ($Restore) {
+        Invoke-ProfileRestore
     } elseif ($Boot) {
-        Invoke-ProfileSwitch -Direction (Get-ProfileMarker) -Stagger
+        $marker = Get-ProfileMarker
+        if ($marker -eq 'work' -and (Test-Path $SnapshotPath)) {
+            Write-ProfileLog 'boot: stale snapshot - restoring before the work replay'
+            Invoke-ProfileRestore
+        }
+        Invoke-ProfileSwitch -Direction $marker -Stagger
     } elseif ($Gaming) {
-        Invoke-ProfileSwitch -Direction 'gaming' -RebootAfter:$Reboot
+        Invoke-GamingEntry -RebootAfter:$Reboot
     } elseif ($Work) {
         Invoke-ProfileSwitch -Direction 'work' -RebootAfter:$Reboot
     } else {
-        # bare call = toggle (yasb pill click)
-        $next = if ((Get-ProfileMarker) -eq 'gaming') { 'work' } else { 'gaming' }
-        Invoke-ProfileSwitch -Direction $next
+        # bare call (yasb pill): in a session -> restore, otherwise enter
+        if ((Get-ProfileMarker) -eq 'gaming') { Invoke-ProfileRestore } else { Invoke-GamingEntry }
     }
 }
