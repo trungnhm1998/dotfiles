@@ -804,7 +804,7 @@ if ($DryRun) {
 
 # =============================================================================
 # Gaming/work profile tasks (design: docs/specs/2026-07-13-gaming-profile-design.md)
-#   dotfiles-profile-elevated : on-demand, RunLevel Highest — OpenVPN services + bcdedit.
+#   dotfiles-profile-elevated : on-demand, RunLevel Highest — whitelisted services (OpenVPN agent, DoSvc) + virtual display adapters.
 #                               Triggered by schtasks /run from profile-toggle.ps1 (no UAC).
 #   dotfiles-profile-boot     : at logon — replays the marker profile (staggered starts).
 # =============================================================================

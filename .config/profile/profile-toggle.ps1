@@ -186,10 +186,13 @@ function Get-MachineSnapshot {
         if ($s) { $services[$n] = [string]$s.Status }
     }
     $scheme = [regex]::Match(((powercfg /getactivescheme) -join ' '), '[0-9a-f-]{36}').Value
-    # Read-only probe by friendly name (same match the pwsh profile's vdisp helper uses);
-    # the elevated side still matches by hardware id before touching anything.
-    $vdisp = [bool](Get-PnpDevice -Class Display -ErrorAction SilentlyContinue |
-        Where-Object { $_.Status -eq 'OK' -and $_.FriendlyName -match 'SudoMaker|SuperDisplay' })
+    # Same hardware-id whitelist as profile-elevated.ps1 (a friendly-name match
+    # would silently miss a renamed driver and leave the adapters disabled).
+    $virtualDisplayHwIds = @('root\sudomaker\sudovda', 'superdisplay\display')
+    $vdisp = [bool](Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object {
+        $_.Status -eq 'OK' -and (
+            (Get-PnpDeviceProperty -InstanceId $_.InstanceId -KeyName DEVPKEY_Device_HardwareIds -ErrorAction SilentlyContinue).Data |
+                Where-Object { $_ -and ($virtualDisplayHwIds -contains $_.ToLower()) }) })
     $boot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToString('o')
     return New-ProfileSnapshot -AppStates $appStates -ServiceStates $services -PowerScheme $scheme `
         -VirtualDisplaysEnabled $vdisp -BootTime $boot
@@ -206,7 +209,10 @@ function Read-ProfileSnapshot {
     if (-not (Test-Path $SnapshotPath)) { return $null }
     try { $snap = Get-Content -Path $SnapshotPath -Raw | ConvertFrom-Json -AsHashtable }
     catch { Write-ProfileLog "WARN snapshot unreadable: $($_.Exception.Message)"; return $null }
-    if ($snap.schemaVersion -ne 1) { Write-ProfileLog "WARN snapshot schemaVersion $($snap.schemaVersion) unsupported"; return $null }
+    if ($snap.schemaVersion -ne 1 -or $null -eq $snap.apps -or $null -eq $snap.services) {
+        Write-ProfileLog "WARN snapshot schema unusable (schemaVersion=$($snap.schemaVersion))"
+        return $null
+    }
     return $snap
 }
 
@@ -395,7 +401,10 @@ function Invoke-ProfileSwitch {
         if ($Direction -eq 'gaming') {
             # Only the first entry snapshots; a boot replay with marker=gaming keeps the
             # pre-reboot snapshot so 'ungame' still knows the real before-state.
-            if (-not (Test-Path $SnapshotPath)) { Save-ProfileSnapshot -Snapshot (Get-MachineSnapshot); Write-ProfileLog 'snapshot written' }
+            if (-not (Test-Path $SnapshotPath)) {
+                try { Save-ProfileSnapshot -Snapshot (Get-MachineSnapshot); Write-ProfileLog 'snapshot written' }
+                catch { Write-ProfileLog "WARN snapshot not written: $($_.Exception.Message); 'ungame' will fall back to work" }
+            }
         } else {
             if (Test-Path $SnapshotPath) { Remove-Item $SnapshotPath -Force -ErrorAction SilentlyContinue; Write-ProfileLog 'snapshot removed (work profile supersedes it)' }
         }
