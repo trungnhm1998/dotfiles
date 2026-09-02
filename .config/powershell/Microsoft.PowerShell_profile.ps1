@@ -381,13 +381,18 @@ function Set-WmStack
 function game
 {
     # Real switches, not a splatted string array -- splatted '-Gaming' strings land
-    # in $args unbound (silent bare toggle). -NoHypervisor: FACEIT/ESEA lane; NOT Valorant.
-    param([switch]$Reboot, [switch]$NoHypervisor, [switch]$Lite)
+    # in $args unbound (silent bare toggle). -Off restores the pre-game snapshot
+    # (see docs/specs/2026-09-02-gaming-session-snapshot-design.md).
+    param([switch]$Reboot, [switch]$Lite, [switch]$Off)
     if ($Lite)
     { Set-WmStack down; return
     }
-    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Gaming -Reboot:$Reboot -NoHypervisor:$NoHypervisor
+    if ($Off)
+    { & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Restore; return
+    }
+    & (Join-Path $HOME '.config\profile\profile-toggle.ps1') -Gaming -Reboot:$Reboot
 }
+function ungame { game -Off }
 function work
 {
     param([switch]$Reboot, [switch]$Lite)
