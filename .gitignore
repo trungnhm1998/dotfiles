@@ -45,3 +45,6 @@ docs/notes/
 docs/plans/
 docs/specs/
 .omc
+
+# git worktrees (superpowers using-git-worktrees)
+.worktrees/
