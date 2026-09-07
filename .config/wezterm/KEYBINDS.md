@@ -76,11 +76,10 @@ Workspaces are WezTerm's equivalent of tmux sessions. These bindings deliberatel
 | `Ctrl+Space` → `)` (Shift+0) | Next workspace (alphabetical) | `prefix )` |
 | `Ctrl+Space` → `(` (Shift+9) | Previous workspace | `prefix (` |
 | `Ctrl+Space` → `Shift+L` | Toggle to the **last-used** workspace | `prefix L` |
-| `Ctrl+Space` → `f` | **Fuzzy switcher** — existing workspaces + `zoxide` dirs | — |
 | `Ctrl+Space` → `g` | **Remote picker** — fuzzy list of WSL distros + `~/.ssh/config` hosts + extras; lands in a workspace named for the host (remote tmux owns `Ctrl+Space` there) | — |
 | `Ctrl+Space` → `Shift+S` | Workspace list launcher (**type to filter**) | `prefix s` |
 
-> `f` uses the [`smart_workspace_switcher`](https://github.com/MLFlexer/smart_workspace_switcher.wezterm) plugin (needs `zoxide` on PATH). Picking a zoxide directory spawns/switches to a workspace rooted there — like `tmux-sessionizer`. `Shift+L` remembers your previous workspace via `wezterm.GLOBAL` and is guarded so a renamed/closed workspace won't spawn an empty phantom.
+> `Shift+L` remembers your previous workspace via `wezterm.GLOBAL` and is guarded so a renamed/closed workspace won't spawn an empty phantom.
 
 ### Session & Tools
 
@@ -122,9 +121,8 @@ These keybindings work from anywhere and don't require the leader key:
 | `Alt+Enter` | *Disabled* (default wezterm behavior) |
 | `Ctrl+Alt+U` | *Disabled* (user-defined override) |
 | `Ctrl+Alt+D` | *Disabled* (user-defined override) |
-| `Ctrl+Shift+Space` | **Force WezTerm leader** — activates leader mode even in ssh/WSL panes (where `Ctrl+Space` goes to the remote tmux). Then use `g`/`f`/`(`/`)`/etc. |
+| `Ctrl+Shift+Space` | **Force WezTerm leader** — activates leader mode even in ssh/WSL panes (where `Ctrl+Space` goes to the remote tmux). Then use `g`/`(`/`)`/etc. |
 | `Ctrl+Shift+G` | **Remote picker** from any pane (incl. ssh/WSL) |
-| `Ctrl+Shift+F` | **Fuzzy workspace switcher** from any pane (replaces WezTerm's default scrollback Search) |
 | `Ctrl+Shift+[` / `Ctrl+Shift+]` | Previous / next workspace from any pane |
 | `Ctrl+Shift+Backspace` | Clear the key-table stack (lockout backstop; moved from `Ctrl+Shift+Space`) |
 
@@ -160,10 +158,10 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 | **Tabs** | `t` new · `n`/`p` next/prev · `1`–`9` goto · `,` rename · `&` close |
 | **Panes** | `v` split-H · `s` split-V · `x` close · `z` zoom · `h/j/k/l` select · `r` resize mode |
 | **Copy/paste** | `Escape` copy mode (vi) · `]` paste · `Space` send-prefix |
-| **Workspaces** | `w` new/named · `$` rename · `(`/`)` prev/next · `Shift+L` last · `f` fuzzy · `Shift+S` list |
+| **Workspaces** | `w` new/named · `$` rename · `(`/`)` prev/next · `Shift+L` last · `Shift+S` list |
 | **Tools** | `:` debug REPL · `Shift+T` launcher |
 | **Pane nav** (no leader) | `Ctrl+H/J/K/L` move · `Meta+H/J/K/L` resize · `Ctrl+Shift+Backspace` reset |
-| **Workspace (global)** | `Ctrl+Shift+Space` force-leader · `Ctrl+Shift+G` picker · `Ctrl+Shift+F` fuzzy · `Ctrl+Shift+[/]` prev/next |
+| **Workspace (global)** | `Ctrl+Shift+Space` force-leader · `Ctrl+Shift+G` picker · `Ctrl+Shift+[/]` prev/next |
 
 ---
 
@@ -181,7 +179,7 @@ The `vim-smart-splits.nvim` plugin is integrated. These bindings allow seamless 
 1. Press `Ctrl+Space` + `w`, type a name (e.g. "project-a"), press Enter
 2. Create another the same way (e.g. "notes")
 3. Flip between the two with `Ctrl+Space` + `Shift+L` (last-used) — the fastest switch
-4. Or cycle with `Ctrl+Space` + `(` / `)`, or fuzzy-jump (incl. zoxide dirs) with `Ctrl+Space` + `f`
+4. Or cycle with `Ctrl+Space` + `(` / `)`, or list them with `Ctrl+Shift+S`
 5. Rename the current workspace with `Ctrl+Space` + `$`
 
 ### Example 3: Switch to WSL Tab and Use Tmux

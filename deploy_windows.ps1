@@ -752,8 +752,8 @@ $envVars = @{
     # Zellij ignores XDG_CONFIG_HOME on Windows; ZELLIJ_CONFIG_DIR gives ~/.config/zellij parity across OSes.
     "ZELLIJ_CONFIG_DIR"    = "$HOME\.config\zellij"
     # zoxide's DB is relocated here by the pwsh profile ($env:_ZO_DATA_DIR, profile:22), but that is
-    # session-only: taskbar/Start-launched GUIs never run the profile, so WezTerm's workspace switcher
-    # (Ctrl+Space f -> cmd /c zoxide query -l) read an empty default DB and showed no zoxide dirs.
+    # session-only: taskbar/Start-launched GUIs never run the profile, so anything reading the DB
+    # outside a profile-initialised shell saw an empty default DB.
     # Persisting it at User scope points every launch path at the same DB.
     "_ZO_DATA_DIR"         = "$HOME\ZoxideData"
     # Windows-only: Claude Code routes through the local proxy on :8080. The synced

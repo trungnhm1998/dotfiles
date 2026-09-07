@@ -7,11 +7,6 @@ local wezterm = require("wezterm")
 
 local vim_smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smart-splits.nvim")
 local tabline = wezterm.plugin.require("https://github.com/michaelbrusegard/tabline.wez")
--- Fuzzy workspace + zoxide switcher. Upstream is archived but works on current WezTerm;
--- if it ever breaks on an update, migrate to a fork or mikkasendke/sessionizer.wezterm.
--- Requires zoxide on PATH (present: scoop shim). This also makes the "smart_workspace_switcher"
--- tabline extension below live instead of dormant.
-local workspace_switcher = wezterm.plugin.require("https://github.com/MLFlexer/smart_workspace_switcher.wezterm")
 local remotes = require("wezterm_remotes")
 local status = require("wezterm_status")
 local mux_detect = require("wezterm_mux_detect")
@@ -496,10 +491,9 @@ table.insert(config.keys, {
 -- Ctrl+Space belongs to the remote tmux). Windows-only: the picker/switcher are Windows features.
 if is_windows then
     table.insert(config.keys, { key = "g", mods = "CTRL|SHIFT", action = remote_picker() })
-    table.insert(config.keys, { key = "f", mods = "CTRL|SHIFT", action = workspace_switcher.switch_workspace() })
     table.insert(config.keys, { key = "[", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(-1) })
     table.insert(config.keys, { key = "]", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(1) })
-    -- Workspaces-only picker: a clean list of live workspaces (no zoxide dirs, unlike Ctrl+Shift+f).
+    -- Workspaces-only picker: a clean list of live workspaces.
     -- Lives here, not in leader, because it needs Shift -- which the one_shot leader table eats. Was Leader+Shift+S.
     table.insert(
         config.keys,
@@ -675,8 +669,6 @@ if is_windows then
             end),
         }),
     })
-    -- Fuzzy switcher (smart_workspace_switcher): workspaces + zoxide dirs
-    table.insert(leader, { key = "f", action = workspace_switcher.switch_workspace() })
     -- Detach this domain (tmux `prefix d`); panes + procs stay on the mux server.
     table.insert(leader, { key = "d", action = act.DetachDomain("CurrentPaneDomain") })
     -- Remote picker (WSL / ssh hosts / extras) -> workspace. Plain key (modified keys in leader
@@ -821,23 +813,6 @@ if is_windows then
     package.loaded["tabline.components.tab.claude"] = require("tabline_claude_badge")
 end
 
--- Windows-only: command palette (Ctrl+Shift+P) entry for the fuzzy workspace picker --
--- same action as Leader+f (smart_workspace_switcher: workspaces + zoxide dirs). mac/Linux
--- uses tmux sessions, not workspaces, so it's gated to match the Leader+f gating above.
--- NOTE: WezTerm renders only the FIRST augment-command-palette handler (#6211) -- if you add
--- more entries later, return them all from THIS table; do NOT register a second handler.
-if is_windows then
-    wezterm.on("augment-command-palette", function(window, pane)
-        return {
-            {
-                brief = "Switch workspace (fuzzy)",
-                icon = "md_briefcase_outline",
-                action = workspace_switcher.switch_workspace(),
-            },
-        }
-    end)
-end
-
 -- Tabline sections: Windows shows the full set; mac/Linux a lean complementary set (only what
 -- tmux's bar lacks). datetime/domain/workspace/claude are dropped on unix -- tmux + SketchyBar
 -- own those, so showing them again would just duplicate the tmux status line stacked below.
@@ -943,7 +918,7 @@ tabline.setup({
         right = "",
     },
     sections = tabline_sections,
-    extensions = is_windows and { "resurrect", "smart_workspace_switcher", "quick_domains" } or {},
+    extensions = is_windows and { "resurrect", "quick_domains" } or {},
 })
 
 local colors = tabline.get_theme().colors
