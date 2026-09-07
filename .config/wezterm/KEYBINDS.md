@@ -102,7 +102,7 @@ Workspaces are WezTerm's equivalent of tmux sessions. These bindings deliberatel
 | `Ctrl+Space` → `]` | Paste from clipboard | `bind ] paste-buffer` |
 | `Ctrl+Space` → `Space` | Send a literal `Ctrl+Space` (NUL) to the program | `send-prefix` |
 
-In copy mode: `h`/`j`/`k`/`l` move · `v` start selection · `V` line · `Ctrl+v` block · `y` or `Enter` copy-and-exit · `/` search · `g`/`G` top/bottom · `Ctrl+u`/`Ctrl+d` half-page · `q`/`Esc` exit — matching `mode-keys vi` + tmux-yank.
+In copy mode: `h`/`j`/`k`/`l` move · `v` start selection · `V` line · `Ctrl+v` block · `y` or `Enter` copy-and-exit · `/` search (`Enter` accepts the pattern, `n`/`N` next/prev match, `Esc` leaves copy mode) · `g`/`G` top/bottom · `Ctrl+u`/`Ctrl+d` half-page · `q`/`Esc` exit — matching `mode-keys vi` + tmux-yank.
 
 ### Cancelling the prefix
 

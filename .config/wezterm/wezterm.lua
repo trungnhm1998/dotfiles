@@ -629,24 +629,40 @@ for i = 1, 9 do
     })
 end
 
--- tmux copy-mode-vi parity. WezTerm's default copy_mode is already vi-style; the only gap is
--- Enter: tmux's `copy-mode-vi Enter copy-selection-and-cancel`. Start from defaults, drop the
--- bare-Enter binding, add copy-and-close. wezterm.gui is nil GUI-less (mux server), where
--- default_key_tables() throws -- guard it.
+-- tmux copy-mode-vi parity. WezTerm's default copy_mode is already vi-style; the gaps are Enter
+-- (tmux's `copy-mode-vi Enter copy-selection-and-cancel`) and search -- `/` is unbound, so the
+-- `prefix Esc /pattern` muscle memory dies at the `/`. search_mode's stock Enter is PriorMatch,
+-- which jumps backwards and leaves the prompt up; AcceptPattern dismisses it and stays in copy
+-- mode on the match, like tmux. Start from defaults, drop bare Enter, append ours. Plain keys
+-- only: a modified entry in a custom key_table silently never fires on Windows (wezterm #6824),
+-- and `N` is written unmodified because Shift folds into the uppercase glyph anyway.
+-- wezterm.gui is nil GUI-less (mux server), where default_key_tables() throws -- guard it.
 if wezterm.gui then
-    local copy_mode = wezterm.gui.default_key_tables().copy_mode
-    local copy_mode_keys = {}
-    for _, m in ipairs(copy_mode) do
-        if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
-            table.insert(copy_mode_keys, m)
+    local defaults = wezterm.gui.default_key_tables()
+    local function without_bare_enter(table_keys)
+        local kept = {}
+        for _, m in ipairs(table_keys) do
+            if not (m.key == "Enter" and (m.mods == nil or m.mods == "NONE")) then
+                table.insert(kept, m)
+            end
         end
+        return kept
     end
+
+    local copy_mode_keys = without_bare_enter(defaults.copy_mode)
     table.insert(copy_mode_keys, {
         key = "Enter",
         mods = "NONE",
         action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
     })
+    table.insert(copy_mode_keys, { key = "/", mods = "NONE", action = act.Search("CurrentSelectionOrEmptyString") })
+    table.insert(copy_mode_keys, { key = "n", mods = "NONE", action = act.CopyMode("NextMatch") })
+    table.insert(copy_mode_keys, { key = "N", mods = "NONE", action = act.CopyMode("PriorMatch") })
     config.key_tables.copy_mode = copy_mode_keys
+
+    local search_mode_keys = without_bare_enter(defaults.search_mode)
+    table.insert(search_mode_keys, { key = "Enter", mods = "NONE", action = act.CopyMode("AcceptPattern") })
+    config.key_tables.search_mode = search_mode_keys
 end
 
 -- Windows-only leader extras: launcher (pwsh/WSL menu), workspace switching, detach domain.
