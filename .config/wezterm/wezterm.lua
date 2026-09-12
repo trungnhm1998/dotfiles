@@ -493,6 +493,14 @@ if is_windows then
     table.insert(config.keys, { key = "g", mods = "CTRL|SHIFT", action = remote_picker() })
     table.insert(config.keys, { key = "[", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(-1) })
     table.insert(config.keys, { key = "]", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(1) })
+    -- Fuzzy workspaces + domains picker. Native launcher, NOT the old smart_workspace_switcher
+    -- plugin (d7c238f): its zoxide spawn resolved cwd against the mux server, so picking a dir
+    -- landed in the wrong place. Shadows WezTerm's default Ctrl+Shift+F scrollback search --
+    -- search lives on copy-mode `/` (Ctrl+Space Esc /) instead.
+    table.insert(
+        config.keys,
+        { key = "f", mods = "CTRL|SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES|DOMAINS" }) }
+    )
     -- Workspaces-only picker: a clean list of live workspaces.
     -- Lives here, not in leader, because it needs Shift -- which the one_shot leader table eats. Was Leader+Shift+S.
     table.insert(

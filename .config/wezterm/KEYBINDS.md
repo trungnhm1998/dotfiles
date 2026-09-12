@@ -123,6 +123,7 @@ These keybindings work from anywhere and don't require the leader key:
 | `Ctrl+Alt+D` | *Disabled* (user-defined override) |
 | `Ctrl+Shift+Space` | **Force WezTerm leader** — activates leader mode even in ssh/WSL panes (where `Ctrl+Space` goes to the remote tmux). Then use `g`/`(`/`)`/etc. |
 | `Ctrl+Shift+G` | **Remote picker** from any pane (incl. ssh/WSL) |
+| `Ctrl+Shift+F` | **Fuzzy workspaces + domains** picker (native launcher; shadows the default scrollback search, use copy-mode `/` for that) |
 | `Ctrl+Shift+[` / `Ctrl+Shift+]` | Previous / next workspace from any pane |
 | `Ctrl+Shift+Backspace` | Clear the key-table stack (lockout backstop; moved from `Ctrl+Shift+Space`) |
 
