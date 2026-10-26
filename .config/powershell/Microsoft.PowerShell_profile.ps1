@@ -518,7 +518,7 @@ function cc
 # Points Claude Code at the OpenAI/Anthropic-compatible local server. Env is scoped to this
 # shell only (no setx / global), so plain `claude` in other shells is unaffected.
 function claude-local {
-    param($Box = "http://127.0.0.1:8080", $Model = "fast")
+    param($Box = "http://127.0.0.1:8090", $Model = "uncensored")
     $env:ANTHROPIC_BASE_URL = $Box
     $env:ANTHROPIC_AUTH_TOKEN = "none"
     $env:ANTHROPIC_MODEL = $Model
@@ -527,12 +527,6 @@ function claude-local {
     $env:ANTHROPIC_DEFAULT_OPUS_MODEL = $Model
     claude @args
 }
-
-# Shortcuts: pin the whole CC session to one local chat model. fast<->big swap on the GPU, so it's
-# one model per session (mixing them would thrash big's ~16s reload). Both params named so extra
-# args (`cc-big --resume`) pass through to claude instead of hijacking the positional $Box.
-function cc-fast { claude-local -Box 'http://127.0.0.1:8080' -Model fast @args }
-function cc-big  { claude-local -Box 'http://127.0.0.1:8080' -Model big  @args }
 
 # --- wsl-vpnkit toggle (company VPN passthrough into WSL2) ---
 # wsl-vpnkit.vbs (Startup folder) auto-starts this distro at logon so the WSL2 VM can
@@ -589,7 +583,7 @@ function vault-sync {
 }
 
 # --- Local AI stack toggle (opt-in so the GPU stays free for gaming by default) ---
-# `ai on`   start llama-swap (loopback 8080) -> Continue autocomplete + claude-local/opencode go live.
+# `ai on`   start llama-swap (loopback 8090; 8080 is better-ccflare) -> claude-local/opencode go live.
 # `ai off`  stop llama-swap + any llama-server child -> frees ALL VRAM for games.
 # `ai`      status: running? which models loaded? VRAM used.
 # No logon autostart by design: nothing touches the GPU until you opt in with `ai on`.
@@ -601,8 +595,8 @@ function ai {
     switch ($do) {
         'on' {
             if (Get-Process llama-swap -ErrorAction SilentlyContinue) { Write-Host 'llama-swap already on' -ForegroundColor Yellow; break }
-            Start-Process $exe -ArgumentList '--config', $cfg, '--listen', '127.0.0.1:8080' -WindowStyle Hidden -RedirectStandardOutput H:\llm\swap-out.log -RedirectStandardError H:\llm\swap-err.log
-            Write-Host 'llama-swap ON  (127.0.0.1:8080) - autocomplete + local agents live' -ForegroundColor Green
+            Start-Process $exe -ArgumentList '--config', $cfg, '--listen', '127.0.0.1:8090' -WindowStyle Hidden -RedirectStandardOutput H:\llm\swap-out.log -RedirectStandardError H:\llm\swap-err.log
+            Write-Host 'llama-swap ON  (127.0.0.1:8090) - local agents live' -ForegroundColor Green
         }
         'off' {
             Get-Process llama-swap, llama-server -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -610,7 +604,7 @@ function ai {
         }
         'status' {
             if (Get-Process llama-swap -ErrorAction SilentlyContinue) {
-                $m = try { (Invoke-RestMethod http://127.0.0.1:8080/running -TimeoutSec 2).running.model -join ', ' } catch { '' }
+                $m = try { (Invoke-RestMethod http://127.0.0.1:8090/running -TimeoutSec 2).running.model -join ', ' } catch { '' }
                 Write-Host ("llama-swap ON  | loaded: {0}" -f $(if ($m) { $m } else { '(none yet)' })) -ForegroundColor Green
             } else {
                 Write-Host 'llama-swap off' -ForegroundColor DarkGray
