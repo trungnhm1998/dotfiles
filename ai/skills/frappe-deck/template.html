@@ -60,6 +60,7 @@ pre.code .cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:up
 .diagram{position:relative;flex:1;min-height:340px;background:var(--mantle);border:1px solid var(--s0);border-radius:12px;overflow:hidden;touch-action:none}
 .diagram .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab}
 .diagram .stage.dragging{cursor:grabbing}
+.diagram:fullscreen{border:0;border-radius:0}
 .diagram .stage :is(svg){transform-origin:0 0;max-width:none!important;max-height:none!important}
 .dctl{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:5}
 .dctl button{width:32px;height:32px;border-radius:8px;border:1px solid var(--s1);background:var(--crust);color:var(--sub1);font-family:var(--mono);font-size:15px;cursor:pointer}
@@ -115,8 +116,8 @@ if (thing.IsReady) return thing.Value;</code></pre>
   <div class="eyebrow">Diagram</div>
   <h2><span class="n">03</span>Diagram headline</h2>
   <div class="diagram">
-    <div class="dctl"><button data-z="in">+</button><button data-z="out">−</button><button data-z="reset">⌂</button></div>
-    <div class="dhint">wheel = zoom · drag = pan · ⌂ = reset</div>
+    <div class="dctl"><button data-z="in">+</button><button data-z="out">−</button><button data-z="reset">⌂</button><button data-z="fs" title="fullscreen">⛶</button></div>
+    <div class="dhint">wheel = zoom · drag = pan · ⌂ = reset · ⛶ = fullscreen</div>
     <div class="stage"><pre class="mermaid">%%{init:{'theme':'base','themeVariables':{'darkMode':true,'background':'#292c3c','primaryColor':'#414559','primaryTextColor':'#c6d0f5','primaryBorderColor':'#8caaee','lineColor':'#838ba7','secondaryColor':'#51576d','tertiaryColor':'#232634','mainBkg':'#414559','nodeBorder':'#8caaee','textColor':'#c6d0f5','clusterBkg':'#292c3c','clusterBorder':'#51576d','edgeLabelBackground':'#292c3c','labelBackground':'#292c3c','fontFamily':'Consolas,monospace','fontSize':'14px'}}}%%
 flowchart TD
     A[Node label&lt;br/&gt;second line] --> B{{Alert node}}
@@ -222,6 +223,7 @@ flowchart TD
     };
     box._fit=fit;
     fit();
+    box.addEventListener('fullscreenchange',fit);
     stage.addEventListener('wheel',e=>{
       e.preventDefault();
       const r=stage.getBoundingClientRect();
@@ -236,6 +238,7 @@ flowchart TD
     box.querySelectorAll('.dctl button').forEach(b=>b.onclick=()=>{
       const z=b.dataset.z;
       if(z==='reset')fit();
+      else if(z==='fs')document.fullscreenElement===box?document.exitFullscreen():box.requestFullscreen(); // ponytail: native API only; add a position:fixed fallback if an iframe host rejects it
       else{k=Math.max(.2,Math.min(6,k*(z==='in'?1.25:.8)));apply();}
     });
     return true;

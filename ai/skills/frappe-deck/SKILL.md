@@ -248,7 +248,7 @@ sources in the design spec's references section) - treat it as rules, not a vibe
 | Diff code | `data-diff` on `pre.code`; lines starting `-`/`+` get a real gutter sign (not `::before`, for a11y) plus a tint. See Common mistakes for the bare-sign gotcha. |
 | Lab (interactive widget) | `.lab` div with `input[name]` controls and `data-out`/`data-attr`/`data-class`/`data-style` expressions on the elements they drive; `data-scrub="name"` on a `<b>` for a drag-to-adjust number - it requires a matching `input[name]` in the same `.lab` (mark that input `hidden` if only the scrub should show). Expressions compile once per lab (`new Function`) with the input names as arguments; labs are islands, one never mutates anything outside its own `.lab` block. |
 | Breakout width | `.wide` (spans body + gutter) or `.full` (spans everything) on a block that needs more than the 66ch body measure. |
-| Diagram | `.diagram` block - same markup as decks: mermaid source in `pre.mermaid`, pre-render before delivery, pan/zoom attaches automatically. One behaviour differs: article diagrams zoom with **ctrl+wheel** (plain wheel scrolls the page); decks keep plain-wheel zoom. Keep the `.dhint` wording in sync with that. |
+| Diagram | `.diagram` block - same markup as decks: mermaid source in `pre.mermaid`, pre-render before delivery, pan/zoom + `⛶` fullscreen attach automatically. One behaviour differs: article diagrams zoom with **ctrl+wheel** (plain wheel scrolls the page, except in fullscreen); decks keep plain-wheel zoom. Keep the `.dhint` wording in sync with that. |
 | Hover preview | Automatic for every internal `a[href^="#"]` link inside the article body - nothing to mark up. |
 
 ### Not built, do not relitigate
@@ -285,7 +285,7 @@ Extends the mechanical checks in Article workflow step 4. Before delivering, con
 | Chip | `.chip blocker|major|minor|soft|hard` - inline in table `td` or body text, not inside `h3` |
 | Hero statement | `.big` with `<em>` for the red word |
 | Code | `pre.code > span.cap` caption + `code[data-lang=csharp|lua]` - highlighter is built in (CSP blocks CDN libs); add languages by extending `LANGS` in the engine only if asked. See **Code blocks** below |
-| Diagram | copy the diagram slide in the template verbatim; put mermaid source inside `pre.mermaid` |
+| Diagram | copy the diagram slide in the template verbatim (`.dctl` = `+ − ⌂ ⛶`, `⛶` is fullscreen); put mermaid source inside `pre.mermaid` |
 
 ## Code blocks
 
@@ -307,7 +307,7 @@ Extends the mechanical checks in Article workflow step 4. Before delivering, con
 - Inside `pre.mermaid`, escape line breaks as `&lt;br/&gt;` (a literal `<br/>` becomes an HTML tag and vanishes from textContent). Arrows `-->`, `->>`, `-.->`, `-->|label|` stay LITERAL - `-->` is only special inside an already-open HTML comment, so it is safe in a `<pre>`. Do not entity-escape arrows.
 - No parentheses, quotes, or `--` inside node labels.
 - Accent nodes: `style X fill:#3b2b33,stroke:#e78284` (red) · `#2f3a34/#a6d189` (green) · `#3a382e/#e5c890` (yellow) · `style X fill:#2f3846,stroke:#8caaee` (blue) · `#3d3229/#ef9f76` (peach) · `#382f3d/#ca9ee6` (mauve). Blue/peach/mauve are the diagram-side match for the article's concept colors `c1`/`c3`/`c4` (green is `c2`) - use them to bind a node to the same entity in prose and code.
-- Pan/zoom (drag, reset, auto-fit) attaches automatically to any `.diagram` block - no JS needed per slide or section. Zoom is plain wheel on a deck, **ctrl+wheel in an article** (a scrolling document must keep plain wheel for the page).
+- Pan/zoom (drag, reset, auto-fit, fullscreen) attaches automatically to any `.diagram` block - no JS needed per slide or section. Zoom is plain wheel on a deck, **ctrl+wheel in an article** (a scrolling document must keep plain wheel for the page). The `⛶` button (`data-z="fs"`) takes the `.diagram` box native-fullscreen (Escape exits, SVG refits on both transitions); in fullscreen the article accepts plain-wheel zoom too. Keep all four `.dctl` buttons when copying the block.
 
 ## Style rules
 
